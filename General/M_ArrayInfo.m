@@ -12,7 +12,7 @@ function R = M_ArrayInfo(ArrayName,NElectrodes,Plot)
 
 Comment = ''; Angle = NaN; Type = '2d_planar'; Floating = 0; % could also be linear
 switch lower(ArrayName)
-  case 'generic'; % USED IN MANTA TO ALLOW IMPROVISED SET OF CHANNELS
+  case 'generic'; % USED IN MANTA TO ALLOW USER DEFINED ARRAYS
     PinsByElectrode = []; Drive = 0;
     ElecPos = []; Reference = {}; Ground = {};
     
@@ -192,25 +192,7 @@ switch lower(ArrayName)
     Reference = {{'Tip',[NaN,NaN,NaN]}};
     Ground = {{'Tip',[NaN,NaN,NaN]}};
     Comment = '';
-       
-  case 'lma3d_1_32';
-    % - 3D Rotation of plots: RotateMatrix, and RotateMatrixSetup
-    
-    PinsByElectrode = [1:32];
-    Drive = 1; Type = '3d';
-    Nx = 2; Ny = 3; Nz = 4; Dz = 0.15;
-    for iE=1:length(PinsByElectrode)
-      ElecPos(iE,:) = [ ...
-        mod(floor((iE-1)/Nz),Nx) ,...
-        floor((iE-1)/(Nz*Nx)) ,...
-        Dz*(Nz-mod(iE-1,Nz)-1) ]; % Spacing is 1mm in X & Y
-    end
-    Impedances = repmat(0.5,size(PinsByElectrode));
-    WireDiameter =  repmat(25,size(PinsByElectrode));
-    Reference = {{'Tip',[NaN,NaN,NaN]}};
-    Ground = {{'Tip',[NaN,NaN,NaN]}};
-    Comment = '';
-   
+        
   case 'lma3d_1_96';
     % - 3D Rotation of plots: RotateMatrix, and RotateMatrixSetup
     
@@ -229,29 +211,21 @@ switch lower(ArrayName)
     Reference = {{'Tip',[NaN,NaN,NaN]}};
     Ground = {{'Tip',[NaN,NaN,NaN]}};
     Comment = '';
-  
-  case 'nn3d_1_128';
-    % - 3D Rotation of plots: RotateMatrix, and RotateMatrixSetup
     
-    PinsByElectrode = [1:128];
-    Drive = 1; Type = '3d';
-    Nx = 4; Ny = 4; Nz = 8; Dz = 0.15;
-    for iE=1:length(PinsByElectrode)
-      ElecPos(iE,:) = [ ...
-        mod(floor((iE-1)/Nz),Nx) ,...
-        floor((iE-1)/(Nz*Nx)) ,...
-        Dz*(Nz-mod(iE-1,Nz)-1) ]; % Spacing is 1mm in X & Y
-    end
-    Impedances = repmat(0.5,size(PinsByElectrode));
-    WireDiameter =  repmat(25,size(PinsByElectrode));
-    Reference = {{'Tip',[NaN,NaN,NaN]}};
-    Ground = {{'Tip',[NaN,NaN,NaN]}};
-    Comment = '';
-    
-  case 'plextrode_24';
+  case 'plextrode_24_100';
     NChannels = 24;
     PinsByElectrode = [1:NChannels]; Drive = 1; Type = '1d_depth';
     dZ = 0.1; ElecPos = [0:dZ:(NChannels-1)*dZ];
+    Impedances = repmat(2,1,NChannels);
+    WireDiameter = repmat(15,1,NChannels);
+    Reference = {{'None',[NaN,NaN,NaN]}};
+    Ground = {{'Shaft',[NaN,NaN,NaN]}};
+    Comment = '';
+    
+  case 'plextrode_24_75';
+    NChannels = 24;
+    PinsByElectrode = [1:NChannels]; Drive = 1; Type = '1d_depth';
+    dZ = 0.075; ElecPos = [0:dZ:(NChannels-1)*dZ];
     Impedances = repmat(2,1,NChannels);
     WireDiameter = repmat(15,1,NChannels);
     Reference = {{'None',[NaN,NaN,NaN]}};

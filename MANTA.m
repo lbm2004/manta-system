@@ -62,6 +62,9 @@ function MANTA(varargin)
 % You should have received a copy of the GNU General Public License
 % along with MANTA.  If not, see <http://www.gnu.org/licenses/>.
 
+% SET THE PATH
+M_setPath; if length(varargin)==1 && strcmp(varargin{1},'PathOnly') return; end
+
 %% MG CONTAINS ALL RELEVANT INFORMATION FOR RECORDING SESSION
 fprintf('Starting MANTA ... \n');
 M_cleanUp; global MG Verbose;  try; dbquit; catch; end
@@ -87,3 +90,26 @@ M_prepareEngine;
 M_buildGUI;
 
 try close(MG.Disp.SplashFig); end
+
+
+function M_setPath(Path)
+% Add
+
+File = which('MANTA');
+Path = File(1:find(File==filesep,1,'last'));
+LF_addpathWithoutVC(Path);
+
+function LF_addpathWithoutVC(Path)
+
+switch architecture
+  case 'PCWIN'; Delimiter = ';';
+  otherwise Delimiter = ':';
+end
+
+Paths=''; PathsAll=strsep(genpath(Path),Delimiter);
+for ii=1:length(PathsAll),
+  if isempty(findstr('.svn',PathsAll{ii})) && isempty(findstr('.git',PathsAll{ii})) && ~isempty(PathsAll{ii}),
+    Paths=[Paths,Delimiter,PathsAll{ii}];
+  end
+end
+addpath(Paths(2:end));
