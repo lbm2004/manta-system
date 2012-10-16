@@ -226,7 +226,7 @@ switch lower(ArrayName)
     Ground = {{'Tip',[NaN,NaN,NaN]}};
     Comment = '';
     
-  case 'nn3d_1_128';	215	  case 'plextrode_24_100';
+  case 'nn3d_1_128';	
     PinsByElectrode = [1:128];
     Drive = 1; Type = '3d';
     Nx = 4; Ny = 4; Nz = 8; Dz = 0.15;
