@@ -76,22 +76,6 @@ if MG.Disp.Spectrum
   F = F./max(F(:));
 end
 
-%% TRANSFER SIGNAL TO BE PLOTTED (OLD)
-% DispIteration = ceil(SamplesAcquired/MG.Disp.DispStepsFull); % How many display periods have been 'wrapped'
-% FirstSample = SamplesAcquired-CurrentSamples+1; % First sample of the current display period (absolute)
-% LastSample = SamplesAcquired; % Last sample of the current display period (absolute)
-% FirstSampleRel = modnonzero(FirstSample,MG.Disp.DispStepsFull); % First sample of current display period (relative)
-% LastSampleRel = modnonzero(LastSample,MG.Disp.DispStepsFull); % Last sample of current display period (relative)
-% FirstOffset = modnonzero(FirstSample,MG.Disp.ScaleFactor); % Offset of first sample from display subset
-% LastOffset = mod(LastSample,MG.Disp.ScaleFactor); % same for last sample
-% FirstSampleM = FirstSample + MG.Disp.ScaleFactor-FirstOffset; % First sample on displaying grid
-% LastSampleM = LastSample - LastOffset; % Last Sample on displaying grid
-% cDispInd = modnonzero([FirstSampleM/ScaleFactor:LastSampleM/ScaleFactor],MG.Disp.DispSteps); % Indices to select displayed samples
-% cDataInd = [FirstSampleM-FirstSample+1:ScaleFactor:CurrentSamples-LastOffset]; 
-% if MG.Disp.Raw    MG.Disp.RawD(cDispInd,PlotInd) = MG.Data.Raw(cDataInd,PlotInd); end
-% if MG.Disp.Trace  MG.Disp.TraceD(cDispInd,PlotInd) = MG.Data.Trace(cDataInd,PlotInd); end
-% if MG.Disp.LFP     MG.Disp.LFPD(cDispInd,PlotInd) = MG.Data.LFP(cDataInd,PlotInd); end
-
 %% TRANSFER SIGNAL TO BE PLOTTED
 DispIteration = ceil(SamplesAcquired/MG.Disp.DispStepsFull); % How many display periods have been 'wrapped'
 FirstSample = SamplesAcquired-CurrentSamples+1; % First sample of the current display period (absolute)
@@ -103,14 +87,8 @@ LastOffset = mod(LastSample,MG.Disp.ScaleFactor); % same for last sample
 FirstSampleM = FirstSample + MG.Disp.ScaleFactor-FirstOffset; % First sample on displaying grid
 LastSampleM = LastSample - LastOffset; % Last Sample on displaying grid
 
-%% COMPUTE INDICES 
-cDispInd = modnonzero([FirstSampleM/ScaleFactor:LastSampleM/ScaleFactor],MG.Disp.DispSteps); % Indices to select displayed samples
-cDataInd = [FirstSampleM-FirstSample+1:ScaleFactor:CurrentSamples-LastOffset]; 
-if FirstSampleRel<LastSampleRel   cFullInd = [FirstSampleRel:LastSampleRel];
-else cFullInd = [FirstSampleRel:MG.Disp.DispStepsFull,1:LastSampleRel];  
-end
-
-%% COLLECT ALL DATA TO SHOW IN THE CURRENT TIME RANGE
+%% COLLECT ALL DATA FOR DISPLAY ON ZOOMED PLOTS
+cFullInd = modnonzero([FirstSample:LastSample],MG.Disp.DispStepsFull);
 if sum(MG.Disp.ZoomedBool)
   if MG.Disp.Raw MG.Disp.RawA(cFullInd,:) = MG.Data.Raw; end
   if MG.Disp.Trace MG.Disp.TraceA(cFullInd,:) = MG.Data.Trace; end
@@ -118,6 +96,8 @@ if sum(MG.Disp.ZoomedBool)
 end
 
 %% DOWNSAMPLE DATA FOR FAST DISPLAY
+cDispInd = modnonzero([FirstSampleM/ScaleFactor:LastSampleM/ScaleFactor],MG.Disp.DispSteps); % Indices to select displayed samples
+cDataInd = [FirstSampleM-FirstSample+1:ScaleFactor:CurrentSamples-LastOffset]; 
 for iD = 1:length(cDispInd)
   if MG.Disp.Raw
     cData = MG.Data.Raw(cDataInd(iD):min(cDataInd(iD)+ScaleFactor-1,end),PlotInd); 
@@ -135,7 +115,6 @@ for iD = 1:length(cDispInd)
     MG.Disp.TraceD(2*cDispInd(iD),PlotInd) = min(cData);
   end
 end
-
 
 %% PREPARE DEPTH REPRESENTATION
 if MG.Disp.DepthAvailable & MG.Disp.Depth
@@ -260,8 +239,8 @@ if CollectPSTH
 end
 
 %% PLOT SIGNALS
+set(MG.Disp.IPH(1),'XData',[cTime,cTime]);
 for i=PlotInd
-  set(MG.Disp.IPH(i),'XData',[cTime,cTime]);
   if ~MG.Disp.ZoomedBool(i) % IF CURRENT CHANNEL IS DOCKED
     if MG.Disp.Raw          set(MG.Disp.RPH(i),'YData',MG.Disp.RawD(:,i)); end
     if MG.Disp.Trace        set(MG.Disp.TPH(i),'YData',MG.Disp.TraceD(:,i)); end
