@@ -24,7 +24,14 @@ if MG.DAQ.FirstTrial || ~FigOpen || ~M_sameEngines
 else
   if Verbose fprintf(' (Reusing old Display)'); end
   if FigOpen
-    try set([MG.Disp.RPH,MG.Disp.TPH,MG.Disp.LPH],'YData',MG.Disp.TraceInit(:,1));
+    try
+      for i=1:MG.Disp.NPlot
+        if ~MG.Disp.ZoomedBool(i)
+          set([MG.Disp.RPH(i),MG.Disp.TPH(i),MG.Disp.LPH(i)],'YData',MG.Disp.TraceInit(:,1));
+        else
+          set([MG.Disp.RPH(i),MG.Disp.TPH(i),MG.Disp.LPH(i)],'YData',MG.Disp.TraceInitFull(:,1));
+        end
+      end
     catch; end
   end
 end

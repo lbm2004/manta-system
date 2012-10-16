@@ -92,13 +92,13 @@ while MG.DAQ.Running
         MG.Data.Raw = MG.Data.Raw/10;
         
       case 'Real'; % LOAD DATA FROM A SAVED RECORDING (e.g. for publication pictures) 
-%         for i=1:96
-%           FileName = ['C:\Dropbox\Recording\min053h02_p_bsp.001.',n2s(i),'.evp'];
-%           tmp = evpread5(FileName);
-%           MG.Data.Raw(:,i) = tmp(MG.DAQ.SamplesAcquired+1:MG.DAQ.SamplesAcquired+SamplesAvailable);
-%         end         
+        %         for i=1:96
+        %           FileName = ['C:\Dropbox\Recording\min053h02_p_bsp.001.',n2s(i),'.evp'];
+        %           tmp = evpread5(FileName);
+        %           MG.Data.Raw(:,i) = tmp(MG.DAQ.SamplesAcquired+1:MG.DAQ.SamplesAcquired+SamplesAvailable);
+        %         end
     end
-    if Verbose fprintf('Warning : Using simulated Data'); end
+    if Verbose && Iteration == 1 fprintf('\n\n     [   Warning : Using simulated Data     ]    \\n'); end
   end
   MG.DAQ.SamplesAcquired = MG.DAQ.SamplesAcquired + SamplesAvailable;
   MG.DAQ.TimeAcquired = MG.DAQ.SamplesAcquired/MG.DAQ.SR;

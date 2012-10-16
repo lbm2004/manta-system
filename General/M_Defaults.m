@@ -186,6 +186,7 @@ switch lower(MG.GUI.Skin)
     MG.Colors.Cycleusage = HF_colormap({[0,1,0],[1,0,0]},[0,1],100);
     MG.Colors.Inactive = [0.5,0.5,0.5];
     MG.Colors.SpikeColorsBase = [0.5,0,0;1,0,0;1,0.5,0]';
+    MG.Colors.AlterColors = {[1,1,1],[1,1,.7]};
   
   case 'classic'
     MG.Colors.Background = [0,0,0];
