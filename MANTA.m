@@ -93,7 +93,7 @@ try close(MG.Disp.SplashFig); end
 
 
 function M_setPath(Path)
-% Add
+% ADD THE MANTA PATH TO THE GLOBAL PATH
 
 File = which('MANTA');
 Path = File(1:find(File==filesep,1,'last'));
@@ -106,7 +106,11 @@ switch architecture
   otherwise Delimiter = ':';
 end
 
-Paths=''; PathsAll=strsep(genpath(Path),Delimiter);
+Paths=''; 
+FullPath = genpath(Path);
+Pos = [0,find(FullPath==Delimiter),length(FullPath)+1]; 
+PathsAll=cell(size(Pos));
+for i=1:length(Pos)-1 PathsAll{i} = FullPath(Pos(i)+1:Pos(i+1)-1); end
 for ii=1:length(PathsAll),
   if isempty(findstr('.svn',PathsAll{ii})) && isempty(findstr('.git',PathsAll{ii})) && ~isempty(PathsAll{ii}),
     Paths=[Paths,Delimiter,PathsAll{ii}];

@@ -192,14 +192,44 @@ switch lower(ArrayName)
     Reference = {{'Tip',[NaN,NaN,NaN]}};
     Ground = {{'Tip',[NaN,NaN,NaN]}};
     Comment = '';
-        
-  case 'lma3d_1_96';
-    % - 3D Rotation of plots: RotateMatrix, and RotateMatrixSetup
     
+  case 'lma3d_1_32';		
+    PinsByElectrode = [1:32];
+    Drive = 1; Type = '3d';
+    Nx = 2; Ny = 3; Nz = 4; Dz = 0.15;
+    for iE=1:length(PinsByElectrode)
+      ElecPos(iE,:) = [ ...
+        mod(floor((iE-1)/Nz),Nx) ,...
+        floor((iE-1)/(Nz*Nx)) ,...
+        Dz*(Nz-mod(iE-1,Nz)-1) ]; % Spacing is 1mm in X & Y
+    end
+    Impedances = repmat(0.5,size(PinsByElectrode));
+    WireDiameter =  repmat(25,size(PinsByElectrode));
+    Reference = {{'Tip',[NaN,NaN,NaN]}};
+    Ground = {{'Tip',[NaN,NaN,NaN]}};
+    Comment = '';
+    
+  case 'lma3d_1_96';
     PinsByElectrode = [1:16,25:32,17:24];
     PinsByElectrode = [PinsByElectrode,32+PinsByElectrode,64+PinsByElectrode]; % needs to change
     Drive = 1; Type = '3d';
     Nx = 4; Ny = 3; Nz = 8; Dz = 0.15;
+    for iE=1:length(PinsByElectrode)
+      ElecPos(iE,:) = [ ...
+        mod(floor((iE-1)/Nz),Nx) ,...
+        floor((iE-1)/(Nz*Nx)) ,...
+        Dz*(Nz-mod(iE-1,Nz)-1) ]; % Spacing is 1mm in X & Y
+    end
+    Impedances = repmat(0.5,size(PinsByElectrode));
+    WireDiameter =  repmat(25,size(PinsByElectrode));
+    Reference = {{'Tip',[NaN,NaN,NaN]}};
+    Ground = {{'Tip',[NaN,NaN,NaN]}};
+    Comment = '';
+    
+  case 'nn3d_1_128';	215	  case 'plextrode_24_100';
+    PinsByElectrode = [1:128];
+    Drive = 1; Type = '3d';
+    Nx = 4; Ny = 4; Nz = 8; Dz = 0.15;
     for iE=1:length(PinsByElectrode)
       ElecPos(iE,:) = [ ...
         mod(floor((iE-1)/Nz),Nx) ,...
