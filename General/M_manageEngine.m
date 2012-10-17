@@ -180,7 +180,7 @@ while MG.DAQ.Running
   end
   
   %% OUTPUT SOME INFORMATION
-  drawnow; % other options (update,expose) don't work with interactivity
+  drawnow ; % other options (update,expose) don't work with interactivity
   
   % WAIT SOME TIME TO NOT EXCEED MAXIMUM FRAME RATE :)
   DT = toc; pause(max(0,MG.DAQ.MinDur-DT)); DT = toc;

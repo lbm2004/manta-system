@@ -98,19 +98,21 @@ end
 %% DOWNSAMPLE DATA FOR FAST DISPLAY
 cDispInd = modnonzero([FirstSampleM/ScaleFactor:LastSampleM/ScaleFactor],MG.Disp.DispSteps); % Indices to select displayed samples
 cDataInd = [FirstSampleM-FirstSample+1:ScaleFactor:CurrentSamples-LastOffset]; 
+ScaleRadiusL = floor(ScaleFactor/2); ScaleRadiusU = floor(ScaleFactor/2);
 for iD = 1:length(cDispInd)
+    cInd = [max(cDataInd(iD) - ScaleRadiusL,1) : min(cDataInd(iD)+ScaleRadiusU-1,size(MG.Data.Raw,1))];
   if MG.Disp.Raw
-    cData = MG.Data.Raw(cDataInd(iD):min(cDataInd(iD)+ScaleFactor-1,end),PlotInd); 
+    cData = MG.Data.Raw(cInd,PlotInd); 
     MG.Disp.RawD(2*cDispInd(iD)-1,PlotInd) = max(cData);
     MG.Disp.RawD(2*cDispInd(iD),PlotInd) = min(cData);
   end
   if MG.Disp.LFP
-    cData = MG.Data.LFP(cDataInd(iD):min(cDataInd(iD)+ScaleFactor-1,end),PlotInd); 
+    cData = MG.Data.LFP(cInd,PlotInd); 
     MG.Disp.LFPD(2*cDispInd(iD)-1,PlotInd) = max(cData);
     MG.Disp.LFPD(2*cDispInd(iD),PlotInd) = min(cData);
   end
   if MG.Disp.Trace
-    cData = MG.Data.Trace(cDataInd(iD):min(cDataInd(iD)+ScaleFactor-1,end),PlotInd); 
+    cData = MG.Data.Trace(cInd,PlotInd); 
     MG.Disp.TraceD(2*cDispInd(iD)-1,PlotInd) = max(cData);
     MG.Disp.TraceD(2*cDispInd(iD),PlotInd) = min(cData);
   end
