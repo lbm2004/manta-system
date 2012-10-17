@@ -32,6 +32,8 @@ switch lower(SystemName)
     R = struct('Name',SystemName,'Gain',1,'InputRange',[-0.005,0.005],'ChannelMap',[1:96],'DigitalChannels',0,'Bits',12);
   case 'generic_128ch_16bit';
     R = struct('Name',SystemName,'Gain',1,'InputRange',[-0.005,0.005],'ChannelMap',[1:128],'DigitalChannels',[0,1],'Bits',16);
+  case 'generic_64ch_16bit';
+    R = struct('Name',SystemName,'Gain',1,'InputRange',[-0.005,0.005],'ChannelMap',[1:64],'DigitalChannels',[0,1],'Bits',16);
   case 'generic_32ch_16bit';
     R = struct('Name',SystemName,'Gain',1,'InputRange',[-0.005,0.005],'ChannelMap',[1:32],'DigitalChannels',[0,1],'Bits',16);
   otherwise
