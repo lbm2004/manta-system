@@ -96,7 +96,7 @@ while MG.DAQ.Running
         for i=1:length(MG.DAQ.Files)
           FileName = MG.DAQ.Files{i};
           tmp = evpread5(FileName);
-          MG.Data.Raw(:,i) = tmp(MG.DAQ.SamplesAcquired+1:MG.DAQ.SamplesAcquired+SamplesAvailable);
+          MG.Data.Raw(:,i) = tmp(MG.DAQ.SamplesAcquired+1:min(MG.DAQ.SamplesAcquired+SamplesAvailable,end));
         end
     end
     if Verbose && Iteration == 1 fprintf('\n\n     [   Warning : Using simulated Data     ]    \\n'); end
