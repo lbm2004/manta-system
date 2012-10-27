@@ -74,6 +74,8 @@ while MG.DAQ.Running
       end
     end
   else % SIMULATION MODE FOR TESTING
+    set(MG.GUI.FIG,'Color',MG.Colors.GUIBackgroundSim)
+    
     if ~isfield(MG.DAQ,'SimulationSource') MG.DAQ.SimulationSource = 'Artificial'; end
     switch MG.DAQ.SimulationSource
       case 'Artificial'; % CREATE REALISTIC DATA USING SOME PRESETS

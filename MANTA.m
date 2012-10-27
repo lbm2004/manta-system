@@ -28,7 +28,7 @@ function MANTA(varargin)
 % - GUI (Local) and baphy (Remote) Triggers are processed differently
 %   - Local: Engines are running without logging
 %   - Remote: Engines start running and logging at the same time
-% - Discritization: 
+% - Discretization: 
 %   - Different cards have slightly different voltage ranges and 
 %      consequently slightly different quantization steps
 %   - Differences also exist for different input ranges 
