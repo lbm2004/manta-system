@@ -105,8 +105,8 @@ MG.Disp.Filter.Trace.Order = 2;
 MG.Disp.Filter.LFP.Lowpass = 300;
 MG.Disp.Filter.LFP.Highpass = 0.1;
 MG.Disp.Filter.LFP.Order = 2;
-MG.Disp.Filter.Humbug.Style = 'narrow O6';
 MG.Disp.Filter.Humbug.Styles = M_Humbug('getstyles');
+MG.Disp.Filter.Humbug.Style = MG.Disp.Filter.Humbug.Styles{1};
 % Graphics properties
 MG.Disp.UseUserXY = 0;
 MG.Disp.Tiling.State = 0;

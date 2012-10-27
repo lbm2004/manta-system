@@ -78,18 +78,18 @@ while MG.DAQ.Running
     switch MG.DAQ.SimulationSource
       case 'Artificial'; % CREATE REALISTIC DATA USING SOME PRESETS
         MG.Data.Raw = randn(size(MG.Data.Raw));
-%         NoiseScale = 8;
-%         Time = 2*pi*(MG.DAQ.SamplesAcquired+[0:SamplesAvailable-1]')/MG.DAQ.SR;
-%         Noise = NoiseScale*(sin(MG.DAQ.HumFreq*Time) + sin(3.25*Time) + sin(0.231*Time));
-%         MG.Data.Raw = MG.Data.Raw + repmat(Noise,1,size(MG.Data.Raw,2));
-%         for iCh = 1:length(MG.Disp.Spikes.ChSels)
-%           for iSpike = 1:MG.Disp.Spikes.NSpikes(iCh)
-%             SpikePos = double(rand(SamplesAvailable,1)<0.001);
-%             tmp = conv(SpikePos,MG.Disp.Spikes.SpikeWaves{iCh}(:,iSpike));
-%             MG.Data.Raw(:,MG.Disp.Spikes.ChSels(iCh)) = MG.Data.Raw(:,MG.Disp.Spikes.ChSels(iCh)) + tmp(1:SamplesAvailable);
-%           end
-%         end
-%         MG.Data.Raw = MG.Data.Raw/10;
+        NoiseScale = 8;
+        Time = 2*pi*(MG.DAQ.SamplesAcquired+[0:SamplesAvailable-1]')/MG.DAQ.SR;
+        Noise = NoiseScale*(sin(MG.DAQ.HumFreq*Time) + sin(3.25*Time) + sin(0.231*Time));
+        MG.Data.Raw = MG.Data.Raw + repmat(Noise,1,size(MG.Data.Raw,2));
+        for iCh = 1:length(MG.Disp.Spikes.ChSels)
+          for iSpike = 1:MG.Disp.Spikes.NSpikes(iCh)
+            SpikePos = double(rand(SamplesAvailable,1)<0.001);
+            tmp = conv(SpikePos,MG.Disp.Spikes.SpikeWaves{iCh}(:,iSpike));
+            MG.Data.Raw(:,MG.Disp.Spikes.ChSels(iCh)) = MG.Data.Raw(:,MG.Disp.Spikes.ChSels(iCh)) + tmp(1:SamplesAvailable);
+          end
+        end
+        MG.Data.Raw = MG.Data.Raw/10;
         
       case 'Real'; % LOAD DATA FROM A SAVED RECORDING (e.g. for publication pictures) 
         %         for i=1:96

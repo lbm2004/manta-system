@@ -118,6 +118,12 @@ for iD = 1:length(cDispInd)
   end
 end
 
+%% INTRODUCE WHITE LINE IN EACH PLOT 
+WhiteInd = modnonzero(2*cDispInd(end)+[2:3],size(MG.Disp.TraceD,1));
+MG.Disp.TraceD(WhiteInd,:)=0;
+MG.Disp.LFPD(WhiteInd,:)=0;
+MG.Disp.RawD(WhiteInd,:)=0;
+
 %% PREPARE DEPTH REPRESENTATION
 if MG.Disp.DepthAvailable & MG.Disp.Depth
   LFPP = zeros([length(cDispInd),MG.Disp.NElectrodesPerProng,MG.Disp.NProngs]);
@@ -241,7 +247,6 @@ if CollectPSTH
 end
 
 %% PLOT SIGNALS
-set(MG.Disp.IPH(1),'XData',[cTime,cTime]);
 for i=PlotInd
   if ~MG.Disp.ZoomedBool(i) % IF CURRENT CHANNEL IS DOCKED
     if MG.Disp.Raw          set(MG.Disp.RPH(i),'YData',MG.Disp.RawD(:,i)); end

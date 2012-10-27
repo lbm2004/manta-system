@@ -35,19 +35,17 @@ function MANTA(varargin)
 % - MG.DAQ should contain the properties of the cards used with MANTA
 
 %% TODO:
-% - Audio: try PortAudio with pa-wavplay for continuous audio output (cross-platform that does not require the DAQ Toolbox)
 % - generalize narrowband humbug to arbitrary sampling rates (using fitler design toolbox)
 % - check stopping sequence during recording
 % - test digital timing by generating a sequence which has events at regular intervals and check whey they are displayed
-% - check Mapping of 3D array... something fishy here.
-% - GUI for referencing
-% - switch between engines cleanly and delete the old entries
+% - check Mapping of 3D array
+% - More advanced GUI for referencing
+% - Switch between engines more cleanly and delete the old entries
 % - Add help for all GUI elements & add variable names to all tooltips for debugging?
 % - More checks for inputs, to avoid errors
-% - Add spike window to 3D array
 % - Audio streaming from DAQ file
+% - Audio: try PortAudio with pa-wavplay for continuous audio output (cross-platform that does not require the DAQ Toolbox)
 % - Use different TCP/IP suite
-% - Rename all function consistently M_prepare, M_start, M_stop
 %  
 % LICENSE
 % This file is part of MANTA.
