@@ -67,6 +67,7 @@ M_setPath; if length(varargin)==1 && strcmp(varargin{1},'PathOnly') return; end
 %% MG CONTAINS ALL RELEVANT INFORMATION FOR RECORDING SESSION
 fprintf('Starting MANTA ... \n');
 M_cleanUp; global MG Verbose;  try; dbquit; catch; end
+if  M_checkToolboxes== -1 return;  end
 M_showSplash;
 for i=1:length(varargin)/2 eval(['MG.',varargin{(i-1)*2+1},' = varargin{i*2};']); end
 M_Defaults; evalin('base','global MG Verbose');
