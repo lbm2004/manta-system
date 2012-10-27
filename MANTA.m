@@ -61,13 +61,13 @@ function MANTA(varargin)
 % You should have received a copy of the GNU General Public License
 % along with MANTA.  If not, see <http://www.gnu.org/licenses/>.
 
-% SET THE PATH
+% SET THE PATH & CHECK FOR REQUIRED TOOLBOXES
 M_setPath; if length(varargin)==1 && strcmp(varargin{1},'PathOnly') return; end
+if  M_checkToolboxes== -1 return;  end
 
 %% MG CONTAINS ALL RELEVANT INFORMATION FOR RECORDING SESSION
 fprintf('Starting MANTA ... \n');
 M_cleanUp; global MG Verbose;  try; dbquit; catch; end
-if  M_checkToolboxes== -1 return;  end
 M_showSplash;
 for i=1:length(varargin)/2 eval(['MG.',varargin{(i-1)*2+1},' = varargin{i*2};']); end
 M_Defaults; evalin('base','global MG Verbose');
@@ -101,8 +101,9 @@ LF_addpathWithoutVC(Path);
 
 function LF_addpathWithoutVC(Path)
 
-switch architecture
-  case 'PCWIN'; Delimiter = ';';
+Architecture = computer;
+switch Architecture(1:2)
+  case 'PC'; Delimiter = ';';
   otherwise Delimiter = ':';
 end
 

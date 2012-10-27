@@ -73,9 +73,7 @@ while MG.DAQ.Running
           MG.Data.Raw = bsxfun(@rdivide,MG.Data.Raw,MG.DAQ.int16factors{i}');
       end
     end
-  else % SIMULATION MODE FOR TESTING
-    set(MG.GUI.FIG,'Color',MG.Colors.GUIBackgroundSim)
-    
+  else % SIMULATION MODE FOR TESTING    
     if ~isfield(MG.DAQ,'SimulationSource') MG.DAQ.SimulationSource = 'Artificial'; end
     switch MG.DAQ.SimulationSource
       case 'Artificial'; % CREATE REALISTIC DATA USING SOME PRESETS
