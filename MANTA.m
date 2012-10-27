@@ -4,6 +4,7 @@ function MANTA(varargin)
 %
 % Author: Bernhard Englitz (benglitz@gmail.com)
 %
+%
 %% Getting started :
 % - Install the NI Driver software for your DAQ card (either NI DAQmx or HS-DIO)
 % - Open NI-MAX and assign useful names with the pattern D[Number] (e.g. D1,...,D5)
