@@ -50,6 +50,7 @@ M_loadDefaultsByHostname(MG.HW.Hostname,'Stim');
 %% DAQ DEFAULTS
 MG.DAQ.Engine = 'NIDAQ';
 MG.DAQ.Simulation = 0;
+MG.DAQ.WithSpikes = 1;
 MG.DAQ.HSDIO.TempFile = 'D:\HSDIO.bin'; % Intermediate storage of acquired data
 MG.DAQ.HSDIO.DebugFile = 'D:\HSDIO.out'; % Debugging information for digital acquisition
 MG.DAQ.HSDIO.EngineCommand = 'D:\Code\baphy\Hardware\hsdio\hsdio_stream_dual';
@@ -71,7 +72,7 @@ MG.DAQ.Recording = 0;
 MG.DAQ.EVPVersion = 5;
 % OVERRIDE default settings with anything specified in the Hostname file.
 M_loadDefaultsByHostname(MG.HW.Hostname,'DAQ');
-MG.DAQ.BaseName = [MG.DAQ.DataPath,'none\non001\raw\non001test'];
+MG.DAQ.BaseName = [tempdir,'testrec'];
 
 % SETUP TRIGGERING
 MG.DAQ.TriggerCondition.HwDigital = 'PositiveEdge';
@@ -81,7 +82,7 @@ MG.DAQ.TriggerConditionValue.HwDigital = 2.5;
 MG.DAQ.TriggerConditionValue.Immediate = 1;
 MG.DAQ.TriggerConditionValue.Manual = 1;
 MG.DAQ.FirstTrial = 0;
-MG.DAQ.HumFreq = 60; % Frequency of Line Noise;
+MG.DAQ.HumFreq = 50; % Frequency of Line Noise;
 % SET TRIGGERS
 % Note : Triggers need to be set for each DAQ system separately
 M_loadDefaultsByHostname(MG.HW.Hostname,'Triggers');

@@ -135,7 +135,7 @@ set(MG.GUI.Trial,'Enable','off');
 DC2=HF_axesDivide([1.5,.5,.5,1],[1],DC{4},[.2,.3,.2],[]);
 % Remaining Space
 TT='Written Data for current Recording';
-MG.GUI.CurrentFileSize = LF_addText(Panel,DC2{1}+[0,.1,0,-.1],[''],TT);
+MG.GUI.CurrentFileSize = LF_addText(Panel,DC2{1}+[0,.08,0,-.05],[''],TT);
 set(MG.GUI.CurrentFileSize,'FontSize',7,'FontName','Arial');
 MG.GUI.Space = LF_addText(Panel,DC2{1}+[0,-.08,0,-.05],'',TT); 
 M_setDiskspace; set(MG.GUI.Space,'FontSize',7,'FontName','Arial');
