@@ -342,10 +342,8 @@ switch lower(Type)
   otherwise error('Type of Array not implemented');
 end
 
-ProngNums={};
-for i=1:size(ElecPos,1) 
-  ProngNums{i} = [num2str(ElecPos(i,1)),' : ',num2str(ElecPos(i,2))]; 
-end
+ProngNums=cell(size(ElecPos,1),1);
+for i=1:size(ElecPos,1)  ProngNums{i} = sprintf('%d : %d',ElecPos(i,:));  end
 [UProngNums,tmp,Prongs] = unique(ProngNums);
 NProngs = length(UProngNums);
 

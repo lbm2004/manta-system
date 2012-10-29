@@ -14,7 +14,7 @@ MG.Disp.PlotInd = find(MG.Disp.PlotBool); PlotInd = MG.Disp.PlotInd;
 NPlot = MG.DAQ.NChannelsTotal; SPAll = [];
 
 %% CHECK IF FIGURE WAS CLOSED AND TURN OFF PLOTTING
-if ~sum(MG.Disp.FIG==get(0,'Children')) MG.Disp.Display = 0; return; end
+if ~MG.Disp.Display return; end
 
 %% REFERENCE SIGNALS DIFFERENTLY
 if MG.Disp.Reference
@@ -45,10 +45,11 @@ if MG.Disp.Humbug
     filter(MG.Disp.Filter.Humbug.b,MG.Disp.Filter.Humbug.a,MG.Data.Raw,MG.Data.IVHumbug);
 end
 
-% TESTING 'AUTOCORRELATION FILTERING' : USEFUL FOR IRREGULAR REPEATING SIGNALS
+% TESTING 'AUTOCORRELATION FILTERING' : USEFUL FOR IRREGULARlY REPEATING SIGNALS
 MG.Disp.Humbug2 =0;
 if MG.Disp.Humbug2
-  NPeriods = floor(size(MG.Data.Raw,1)/417); PeriodSteps = 417; % @  25kHz
+  PeriodSteps = round(1/MG.DAQ.HumFreq*MG.DAQ.SR); 
+  NPeriods = floor(size(MG.Data.Raw,1)/PeriodSteps); 
   if NPeriods 
     NChannels = size(MG.Data.Raw,2);
     RW = reshape(MG.Data.Raw(1:PeriodSteps*NPeriods,:),[PeriodSteps,NPeriods,NChannels]);
@@ -99,24 +100,23 @@ end
 cDispInd = modnonzero([FirstSampleM/ScaleFactor:LastSampleM/ScaleFactor],MG.Disp.DispSteps); % Indices to select displayed samples
 cDataInd = [FirstSampleM-FirstSample+1:ScaleFactor:CurrentSamples-LastOffset]; 
 ScaleRadiusL = floor(ScaleFactor/2); ScaleRadiusU = floor(ScaleFactor/2);
+FieldNames = {'Raw','LFP','Trace'};
 for iD = 1:length(cDispInd)
     cInd = [max(cDataInd(iD) - ScaleRadiusL,1) : min(cDataInd(iD)+ScaleRadiusU-1,size(MG.Data.Raw,1))];
-  if MG.Disp.Raw
-    cData = MG.Data.Raw(cInd,PlotInd); 
-    MG.Disp.RawD(2*cDispInd(iD)-1,PlotInd) = max(cData);
-    MG.Disp.RawD(2*cDispInd(iD),PlotInd) = min(cData);
-  end
-  if MG.Disp.LFP
-    cData = MG.Data.LFP(cInd,PlotInd); 
-    MG.Disp.LFPD(2*cDispInd(iD)-1,PlotInd) = max(cData);
-    MG.Disp.LFPD(2*cDispInd(iD),PlotInd) = min(cData);
-  end
-  if MG.Disp.Trace
-    cData = MG.Data.Trace(cInd,PlotInd); 
-    MG.Disp.TraceD(2*cDispInd(iD)-1,PlotInd) = max(cData);
-    MG.Disp.TraceD(2*cDispInd(iD),PlotInd) = min(cData);
-  end
+    for iF =1:length(FieldNames)
+      cFieldName = FieldNames{iF};
+      if MG.Disp.(cFieldName)
+        cData = MG.Data.(cFieldName)(cInd,PlotInd);
+        cFieldNameD = [cFieldName,'D'];
+        MG.Disp.(cFieldNameD)(2*cDispInd(iD)-1,PlotInd) = max(cData);
+        MG.Disp.(cFieldNameD)(2*cDispInd(iD),PlotInd) = min(cData);
+      end
+    end
 end
+
+%% INTRODUCE WHITE LINE IN EACH PLOT
+WhiteInd = modnonzero(2*cDispInd(end)+[3:6],size(MG.Disp.TraceD,1));
+for iF=1:length(FieldNames) MG.Disp.([FieldNames{iF},'D'])(WhiteInd,:)=0; end
 
 %% PREPARE DEPTH REPRESENTATION
 if MG.Disp.DepthAvailable & MG.Disp.Depth
@@ -241,7 +241,6 @@ if CollectPSTH
 end
 
 %% PLOT SIGNALS
-set(MG.Disp.IPH(1),'XData',[cTime,cTime]);
 for i=PlotInd
   if ~MG.Disp.ZoomedBool(i) % IF CURRENT CHANNEL IS DOCKED
     if MG.Disp.Raw          set(MG.Disp.RPH(i),'YData',MG.Disp.RawD(:,i)); end

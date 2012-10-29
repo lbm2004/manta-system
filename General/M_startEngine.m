@@ -7,9 +7,12 @@ global MG Verbose
 P = parsePairs(varargin);
 if ~isfield(P,'Trigger') P.Trigger = 'Local'; end
 MG.DAQ.Trigger.Type = P.Trigger;
-% ACTIVATE PSTH DISPLAY WHEN TRIGGERING REMOTELY
-%MG.Disp.PSTH = strcmpi(MG.DAQ.Trigger.Type ,'Remote');
-%set(MG.GUI.PSTH.State,'Value',MG.Disp.PSTH);
+
+if MG.DAQ.DAQAccess
+  set(MG.GUI.FIG,'Color',MG.Colors.GUIBackground)
+else
+  set(MG.GUI.FIG,'Color',MG.Colors.GUIBackgroundSim)
+end
 
 % SET PARAMETERS
 M_prepareParameters; if Verbose fprintf('\n => Parameters set ...'); end

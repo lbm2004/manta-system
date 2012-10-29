@@ -12,13 +12,17 @@ if ~isfield(MG,'Config') MG.Config = 'Default'; end
 SavePath = which('MANTA');
 SavePath = SavePath(1:find(SavePath==Sep,1,'last'));
 MG.HW.Hostname = lower(HF_getHostname);
+if ~isempty(find(MG.HW.Hostname==' ')) 
+  error(['The current computers hostname "',MG.HW.Hostname,'" contains a space.\n This is incompatible with the current scheme of defining computer dependent settings.']); 
+end
 MG.HW.HostnameFile = ['M_Hostname_',MG.HW.Hostname];
 Location = which(MG.HW.HostnameFile); 
-if isempty(Location) 
-  warning(['No configuration file for current hostname. Add a file named ''',MG.HW.HostnameFile,''' to a subdirectory with your labname in configurations.']);
-  MG.HW.Lab = 'None';
-  MG.HW.ConfigPath = '';
-  return;
+if isempty(Location)
+  MG.HW.Hostname = 'generic';
+  MG.HW.HostnameFile = ['M_Hostname_',MG.HW.Hostname];
+  MG.HW.Lab = 'Generic';
+  MG.HW.ConfigPath = [SavePath,'Configurations',Sep,MG.HW.Lab,Sep];
+  fprintf(['WARNING : \tNo configuration file for current hostname "',MG.HW.Hostname,'". \n\tAdd a file named ''',MG.HW.HostnameFile,''' to a subdirectory with your labname\n\tin the directory <MANTAROOT>/Configurations.\n\tUsing  "',MG.HW.ConfigPath,MG.HW.HostnameFile,'.m" until then.\n']);
 else
   Pos = find(Location==Sep);
   MG.HW.Lab = Location(Pos(end-1)+1:Pos(end)-1);
@@ -27,7 +31,7 @@ end
 
 %% DEFINES HW-DEFAULTS
 MG.HW.Architecture = architecture;
-if ~isempty(strfind(computer,'64')) 
+if ~isempty(strfind(computer,'64'))
   MG.HW.Bitlength = 64; MG.HW.TaskPointerType = 'uint64Ptr';
 else MG.HW.Bitlength = 32; MG.HW.TaskPointerType = 'uint32Ptr';
 end
@@ -46,6 +50,7 @@ M_loadDefaultsByHostname(MG.HW.Hostname,'Stim');
 %% DAQ DEFAULTS
 MG.DAQ.Engine = 'NIDAQ';
 MG.DAQ.Simulation = 0;
+MG.DAQ.WithSpikes = 1;
 MG.DAQ.HSDIO.TempFile = 'D:\HSDIO.bin'; % Intermediate storage of acquired data
 MG.DAQ.HSDIO.DebugFile = 'D:\HSDIO.out'; % Debugging information for digital acquisition
 MG.DAQ.HSDIO.EngineCommand = 'D:\Code\baphy\Hardware\hsdio\hsdio_stream_dual';
@@ -67,7 +72,7 @@ MG.DAQ.Recording = 0;
 MG.DAQ.EVPVersion = 5;
 % OVERRIDE default settings with anything specified in the Hostname file.
 M_loadDefaultsByHostname(MG.HW.Hostname,'DAQ');
-MG.DAQ.BaseName = [MG.DAQ.DataPath,'none\non001\raw\non001test'];
+MG.DAQ.BaseName = [tempdir,'testrec'];
 
 % SETUP TRIGGERING
 MG.DAQ.TriggerCondition.HwDigital = 'PositiveEdge';
@@ -77,7 +82,7 @@ MG.DAQ.TriggerConditionValue.HwDigital = 2.5;
 MG.DAQ.TriggerConditionValue.Immediate = 1;
 MG.DAQ.TriggerConditionValue.Manual = 1;
 MG.DAQ.FirstTrial = 0;
-MG.DAQ.HumFreq = 60; % Frequency of Line Noise;
+MG.DAQ.HumFreq = 50; % Frequency of Line Noise;
 % SET TRIGGERS
 % Note : Triggers need to be set for each DAQ system separately
 M_loadDefaultsByHostname(MG.HW.Hostname,'Triggers');
@@ -105,8 +110,8 @@ MG.Disp.Filter.Trace.Order = 2;
 MG.Disp.Filter.LFP.Lowpass = 300;
 MG.Disp.Filter.LFP.Highpass = 0.1;
 MG.Disp.Filter.LFP.Order = 2;
-MG.Disp.Filter.Humbug.Style = 'narrow O6';
 MG.Disp.Filter.Humbug.Styles = M_Humbug('getstyles');
+MG.Disp.Filter.Humbug.Style = MG.Disp.Filter.Humbug.Styles{1};
 % Graphics properties
 MG.Disp.UseUserXY = 0;
 MG.Disp.Tiling.State = 0;
@@ -164,6 +169,8 @@ MG.GUI.FIGs = [MG.Disp.FIG,MG.GUI.FIG];
 
 %% DEFINES DEFAULT COLORS
 if ~isfield(MG.GUI,'Skin') MG.GUI.Skin = 'default'; end
+MG.Colors.GUIBackground = [0,0,.8];
+MG.Colors.GUIBackgroundSim = [1,0,0];
 switch lower(MG.GUI.Skin)
   case 'default';
     MG.Colors.Background = [0.95,0.95,0.95];
@@ -177,7 +184,6 @@ switch lower(MG.GUI.Skin)
     MG.Colors.Indicator = [.7,.7,.7];
     MG.Colors.Panel = [0,0,1];
     MG.Colors.PSTH = [0,1,0];
-    MG.Colors.GUIBackground = [0,0,.8];
     MG.Colors.SpikeBackground = [1,0.9,1];
     MG.Colors.Button = [1,1,0];
     MG.Colors.ButtonAct = [1,0,0];
@@ -200,7 +206,6 @@ switch lower(MG.GUI.Skin)
     MG.Colors.Panel = [0,0,1];
     MG.Colors.PSTH = [0,1,0];
     MG.Colors.SpikeBackground = [1,0.9,1];
-    MG.Colors.GUIBackground = [0,0,.8];
     MG.Colors.Button = [1,1,0];
     MG.Colors.ButtonAct = [1,0,0];
     MG.Colors.TCPIP.open = [0,1,0];

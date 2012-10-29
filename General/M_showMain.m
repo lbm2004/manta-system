@@ -19,7 +19,7 @@ if MG.Disp.Main~=CurrentState
   
   if MG.Disp.Main Setting = 'on'; else Setting = 'off'; end
   if prod(double(isfield(MG.Disp,{'AH'})))
-    H = [MG.Disp.AH.Data;MG.Disp.TH(:);MG.Disp.IPH(:);MG.Disp.ZPH(:);MG.Disp.UH(:);MG.Disp.PPH(:)];
+    H = [MG.Disp.AH.Data;MG.Disp.TH(:);MG.Disp.ZPH(:);MG.Disp.UH(:);MG.Disp.PPH(:)];
     set(H,'Visible',Setting);
   end
   
