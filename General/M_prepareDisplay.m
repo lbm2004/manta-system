@@ -43,6 +43,7 @@ MG.Disp.AH.Data = zeros(NPlot,1);
 MG.Disp.RPH = zeros(NPlot,1);
 MG.Disp.TPH = zeros(NPlot,1);
 MG.Disp.LPH = zeros(NPlot,1);
+MG.Disp.IPH = zeros(NPlot,1);
 MG.Disp.UH = zeros(NPlot,1);
 MG.Disp.ZPH = zeros(NPlot,1);
 MG.Disp.ZoomedBool = logical(zeros(NPlot,1));
@@ -162,10 +163,9 @@ end
 %% START PLOTTING
 for i=NPlot:-1:1   
   % CONTINUOUS PLOTTING
-  MG.Disp.AH.Data(i) = axes('Position',MG.Disp.DC.Data{i},...
-  'ButtonDownFcn',{@M_CBF_axisClick,i},'nextplot','add',Opts{:}); 
+  MG.Disp.AH.Data(i) = axes('Position',MG.Disp.DC.Data{i}); hold on;
   
-  % ADD CHECKBOX (TO TURN RECORDINGS ON AND OFF)
+  % ADD CHECKBOX (TO TURN RECORDINDS ON AND OFF)
   %MG.Disp.CBH(i) = uicontrol('style','checkbox','Units','n',...
    % 'Pos',[MG.Disp.DC.Data{i}([1,2]),.013,.013],'Value',MG.Disp.PlotBool(i),...
   %  'Callback',{@M_CBF_selectPlot,i});
@@ -174,7 +174,9 @@ for i=NPlot:-1:1
   MG.Disp.TPH(i) = plot(TimeInit,MG.Disp.TraceInit,'Color',MG.Colors.Trace,'LineWidth',0.5,'HitTest','off')';
   MG.Disp.LPH(i) = plot(TimeInit,MG.Disp.TraceInit,'Color',MG.Colors.LFP,'LineWidth',0.5,'HitTest','off')';
   MG.Disp.PPH(i) = plot(TimeInitP,MG.Disp.PSTHInit,'Color',MG.Colors.PSTH,'LineWidth',1.5,'HitTest','off')';
+  MG.Disp.IPH(i) = plot([0,0],[-1e6,1e6],'Color',MG.Colors.Indicator);
   MG.Disp.ZPH(i) = plot([0,MG.Disp.DispDur],[0,0],'Color',MG.Colors.Indicator);
+  set(MG.Disp.AH.Data(i),'ButtonDownFcn',{@M_CBF_axisClick,i});
   % SHOW Electrode # (ArrayName) | Overallchannel # (Channel #, BoardID)
   if Verbose
     String = ['E',sprintf('%d',MG.DAQ.ElectrodesByChannel(i).Electrode),' C',sprintf('%d',i),' (',MG.DAQ.ElectrodesByChannel(i).BoardID,',P',n2s(MG.DAQ.ElectrodesByChannel(i).Pin),')'];%,...
@@ -188,25 +190,25 @@ for i=NPlot:-1:1
   MG.Disp.UH(i) = text(-0.08,1,'V','horiz','r','Units','n','FontSize',6,'Interpreter','none','Color',MG.Colors.LineColor);
 
   % SPECTRUM PLOTTING
-  MG.Disp.AH.Spectrum(i) = axes('Position',MG.Disp.DC.Spectrum{i},'nextplot','add',Opts{:}); 
+  MG.Disp.AH.Spectrum(i) = axes('Position',MG.Disp.DC.Spectrum{i}); hold on;
   MG.Disp.FPH(i) = plot(Fs,MG.Disp.SpecInit,'Color',MG.Colors.Spectrum,'LineWidth',0.5,'HitTest','off');
   
   % SPIKE PLOTTING
-  MG.Disp.AH.Spike(i) = axes('Position',MG.Disp.DC.Spike{i},'nextplot','add',Opts{:});
+  MG.Disp.AH.Spike(i) = axes('Position',MG.Disp.DC.Spike{i}); hold on;
   MG.Disp.SPH(i,:) = plot(SpikeTime,MG.Disp.SpikeInit,'Color',MG.Colors.Trace,'LineWidth',0.5,'HitTest','Off')';
   MG.Disp.ThPH(i) = plot(SpikeTime([1,end]),[MG.Disp.Thresholds(i),MG.Disp.Thresholds(i)],'Color',MG.Colors.Threshold);
   set(MG.Disp.AH.Spike(i),'ButtonDownFcn',{@M_CBF_axisClick,i});
-  %MG.Disp.FR(i) = text(1,.9,'0 Hz','Units','n','Horiz','r','FontSize',6,'Color',MG.Colors.LineColor);
+  MG.Disp.FR(i) = text(1,.9,'0 Hz','Units','n','Horiz','r','FontSize',6,'Color',MG.Colors.LineColor);
 end
 
-set(MG.Disp.AH.Data,'XLim',[0,MG.Disp.DispDur],'Ylim',1.01*[-MG.Disp.YLim,MG.Disp.YLim],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);
+set(MG.Disp.AH.Data,Opts{:},'XLim',[0,MG.Disp.DispDur],'Ylim',1.01*[-MG.Disp.YLim,MG.Disp.YLim],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);
 if MG.Disp.DepthAvailable 
   set(MG.Disp.AH.Depth,Opts{:},'XLim',[0,MG.Disp.DispDur]); 
   set(get(MG.Disp.AH.Depth(1),'YLabel'),'String','Depth [mm]','FontSize',6); 
 end
 
-set(MG.Disp.AH.Spike,'XLim',SpikeTime([1,end]),'Ylim',1.01*[-MG.Disp.YLim,MG.Disp.YLim],'YTick',[],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);
-set(MG.Disp.AH.Spectrum,'XLim',Fs([1,end]),'Ylim',[0,1],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);
+set(MG.Disp.AH.Spike,Opts{:},'XLim',SpikeTime([1,end]),'Ylim',1.01*[-MG.Disp.YLim,MG.Disp.YLim],'YTick',[],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);
+set(MG.Disp.AH.Spectrum,Opts{:},'XLim',Fs([1,end]),'Ylim',[0,1],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);
 set([MG.Disp.AH.Data(MG.Disp.HasSpikeBool),MG.Disp.AH.Spike(MG.Disp.HasSpikeBool),MG.Disp.AH.Spectrum(MG.Disp.HasSpikeBool)],'Color',MG.Colors.SpikeBackground);
 if ~MG.Disp.Raw            set(MG.Disp.RPH,'Visible','Off'); end
 if ~MG.Disp.Trace          set(MG.Disp.TPH,'Visible','Off'); end
@@ -438,7 +440,7 @@ YLims = cell2mat(get([MG.Disp.AH.Data,MG.Disp.AH.Spike],'YLim'));
  [b,m,n] = unique(YLims);
  H = histc(n,[.5:1:length(b)+.5]);
 [MAX,Ind] = max(H); YLim = YLims(Ind);
-NewYLim = 2^(-event.VerticalScrollCount/4)*YLim;
+NewYLim = 2^(event.VerticalScrollCount/4)*YLim;
 if NewYLim == 0 NewYLim = 0.1; end
 if NewYLim<0 NewYLim = -NewYLim; end
 set([MG.Disp.AH.Data,MG.Disp.AH.Spike],'YLim',[-NewYLim,NewYLim]);
@@ -455,9 +457,8 @@ MG.Disp.PlotBool(Index) = get(obj,'Value');
 function M_CBF_closeDisplay(obj,event)
 global MG Verbose
 try 
-  set(MG.GUI.Display,'Value',0,'BackGroundColor',MG.Colors.Button);
+  set(MG.GUI.Display,'Value',0,'BackGroundColor',MG.Colors.Button); MG.Disp.Display = 0;
 end
-MG.Disp.Display = 0;
 MG.Disp.LastPos = get(obj,'Position');
 clear global MGold;
 
