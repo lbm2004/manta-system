@@ -73,32 +73,35 @@ while MG.DAQ.Running
           MG.Data.Raw = bsxfun(@rdivide,MG.Data.Raw,MG.DAQ.int16factors{i}');
       end
     end
-  else % SIMULATION MODE FOR TESTING
+  else % SIMULATION MODE FOR TESTING    
     if ~isfield(MG.DAQ,'SimulationSource') MG.DAQ.SimulationSource = 'Artificial'; end
     switch MG.DAQ.SimulationSource
       case 'Artificial'; % CREATE REALISTIC DATA USING SOME PRESETS
         MG.Data.Raw = randn(size(MG.Data.Raw));
-        NoiseScale = 8;
-        Time = 2*pi*(MG.DAQ.SamplesAcquired+[0:SamplesAvailable-1]')/MG.DAQ.SR;
-        Noise = NoiseScale*(sin(MG.DAQ.HumFreq*Time) + sin(3.25*Time) + sin(0.231*Time));
-        MG.Data.Raw = MG.Data.Raw + repmat(Noise,1,size(MG.Data.Raw,2));
-        for iCh = 1:length(MG.Disp.Spikes.ChSels)
-          for iSpike = 1:MG.Disp.Spikes.NSpikes(iCh)
-            SpikePos = double(rand(SamplesAvailable,1)<0.001);
-            tmp = conv(SpikePos,MG.Disp.Spikes.SpikeWaves{iCh}(:,iSpike));
-            MG.Data.Raw(:,MG.Disp.Spikes.ChSels(iCh)) = MG.Data.Raw(:,MG.Disp.Spikes.ChSels(iCh)) + tmp(1:SamplesAvailable);
+        if MG.DAQ.WithSpikes
+          NoiseScale = 8;
+          Time = 2*pi*(MG.DAQ.SamplesAcquired+[0:SamplesAvailable-1]')/MG.DAQ.SR;
+          Noise = NoiseScale*(sin(MG.DAQ.HumFreq*Time) + sin(3.25*Time) + sin(0.231*Time));
+          MG.Data.Raw = MG.Data.Raw + repmat(Noise,1,size(MG.Data.Raw,2));
+          for iCh = 1:length(MG.Disp.Spikes.ChSels)
+            for iSpike = 1:MG.Disp.Spikes.NSpikes(iCh)
+              SpikePos = double(rand(SamplesAvailable,1)<0.001);
+              tmp = conv(SpikePos,MG.Disp.Spikes.SpikeWaves{iCh}(:,iSpike));
+              MG.Data.Raw(:,MG.Disp.Spikes.ChSels(iCh)) = MG.Data.Raw(:,MG.Disp.Spikes.ChSels(iCh)) + tmp(1:SamplesAvailable);
+            end
           end
         end
         MG.Data.Raw = MG.Data.Raw/10;
         
       case 'Real'; % LOAD DATA FROM A SAVED RECORDING (e.g. for publication pictures) 
-%         for i=1:96
-%           FileName = ['C:\Dropbox\Recording\min053h02_p_bsp.001.',n2s(i),'.evp'];
-%           tmp = evpread5(FileName);
-%           MG.Data.Raw(:,i) = tmp(MG.DAQ.SamplesAcquired+1:MG.DAQ.SamplesAcquired+SamplesAvailable);
-%         end         
+        % NOT FINISHED YET
+        for i=1:length(MG.DAQ.Files)
+          FileName = MG.DAQ.Files{i};
+          tmp = evpread5(FileName);
+          MG.Data.Raw(:,i) = tmp(MG.DAQ.SamplesAcquired+1:min(MG.DAQ.SamplesAcquired+SamplesAvailable,end));
+        end
     end
-    if Verbose fprintf('Warning : Using simulated Data'); end
+    if Verbose && Iteration == 1 fprintf('\n\n     [   Warning : Using simulated Data     ]    \\n'); end
   end
   MG.DAQ.SamplesAcquired = MG.DAQ.SamplesAcquired + SamplesAvailable;
   MG.DAQ.TimeAcquired = MG.DAQ.SamplesAcquired/MG.DAQ.SR;
@@ -180,7 +183,7 @@ while MG.DAQ.Running
   end
   
   %% OUTPUT SOME INFORMATION
-  drawnow; % other options (update,expose) don't work with interactivity
+  drawnow ; % other options (update,expose) don't work with interactivity
   
   % WAIT SOME TIME TO NOT EXCEED MAXIMUM FRAME RATE :)
   DT = toc; pause(max(0,MG.DAQ.MinDur-DT)); DT = toc;
@@ -209,7 +212,9 @@ if MG.DAQ.DAQAccess
       SamplesAvailable = SamplesAvailable - MG.DAQ.SamplesAcquired;
   end
 else
-  SamplesAvailable = 5000;
+  if MG.DAQ.Iteration < 2  SamplesAvailable = 5000;
+  else SamplesAvailable = round(MG.DAQ.SR*(MG.DAQ.DTs(MG.DAQ.Iteration-1)));
+  end
 end
 
 function M_ErrorMessage(exception,Operation)

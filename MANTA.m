@@ -4,6 +4,7 @@ function MANTA(varargin)
 %
 % Author: Bernhard Englitz (benglitz@gmail.com)
 %
+%
 %% Getting started :
 % - Install the NI Driver software for your DAQ card (either NI DAQmx or HS-DIO)
 % - Open NI-MAX and assign useful names with the pattern D[Number] (e.g. D1,...,D5)
@@ -27,7 +28,7 @@ function MANTA(varargin)
 % - GUI (Local) and baphy (Remote) Triggers are processed differently
 %   - Local: Engines are running without logging
 %   - Remote: Engines start running and logging at the same time
-% - Discritization: 
+% - Discretization: 
 %   - Different cards have slightly different voltage ranges and 
 %      consequently slightly different quantization steps
 %   - Differences also exist for different input ranges 
@@ -35,19 +36,17 @@ function MANTA(varargin)
 % - MG.DAQ should contain the properties of the cards used with MANTA
 
 %% TODO:
-% - Audio: try PortAudio with pa-wavplay for continuous audio output (cross-platform that does not require the DAQ Toolbox)
 % - generalize narrowband humbug to arbitrary sampling rates (using fitler design toolbox)
 % - check stopping sequence during recording
 % - test digital timing by generating a sequence which has events at regular intervals and check whey they are displayed
-% - check Mapping of 3D array... something fishy here.
-% - GUI for referencing
-% - switch between engines cleanly and delete the old entries
+% - check Mapping of 3D array
+% - More advanced GUI for referencing
+% - Switch between engines more cleanly and delete the old entries
 % - Add help for all GUI elements & add variable names to all tooltips for debugging?
 % - More checks for inputs, to avoid errors
-% - Add spike window to 3D array
 % - Audio streaming from DAQ file
+% - Audio: try PortAudio with pa-wavplay for continuous audio output (cross-platform that does not require the DAQ Toolbox)
 % - Use different TCP/IP suite
-% - Rename all function consistently M_prepare, M_start, M_stop
 %  
 % LICENSE
 % This file is part of MANTA.
@@ -62,8 +61,9 @@ function MANTA(varargin)
 % You should have received a copy of the GNU General Public License
 % along with MANTA.  If not, see <http://www.gnu.org/licenses/>.
 
-% SET THE PATH
+% SET THE PATH & CHECK FOR REQUIRED TOOLBOXES
 M_setPath; if length(varargin)==1 && strcmp(varargin{1},'PathOnly') return; end
+if  M_checkToolboxes== -1 return;  end
 
 %% MG CONTAINS ALL RELEVANT INFORMATION FOR RECORDING SESSION
 fprintf('Starting MANTA ... \n');
@@ -93,7 +93,7 @@ try close(MG.Disp.SplashFig); end
 
 
 function M_setPath(Path)
-% Add
+% ADD THE MANTA PATH TO THE GLOBAL PATH
 
 File = which('MANTA');
 Path = File(1:find(File==filesep,1,'last'));
@@ -101,12 +101,17 @@ LF_addpathWithoutVC(Path);
 
 function LF_addpathWithoutVC(Path)
 
-switch architecture
-  case 'PCWIN'; Delimiter = ';';
+Architecture = computer;
+switch Architecture(1:2)
+  case 'PC'; Delimiter = ';';
   otherwise Delimiter = ':';
 end
 
-Paths=''; PathsAll=strsep(genpath(Path),Delimiter);
+Paths=''; 
+FullPath = genpath(Path);
+Pos = [0,find(FullPath==Delimiter),length(FullPath)+1]; 
+PathsAll=cell(size(Pos));
+for i=1:length(Pos)-1 PathsAll{i} = FullPath(Pos(i)+1:Pos(i+1)-1); end
 for ii=1:length(PathsAll),
   if isempty(findstr('.svn',PathsAll{ii})) && isempty(findstr('.git',PathsAll{ii})) && ~isempty(PathsAll{ii}),
     Paths=[Paths,Delimiter,PathsAll{ii}];

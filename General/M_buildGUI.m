@@ -135,9 +135,9 @@ set(MG.GUI.Trial,'Enable','off');
 DC2=HF_axesDivide([1.5,.5,.5,1],[1],DC{4},[.2,.3,.2],[]);
 % Remaining Space
 TT='Written Data for current Recording';
-MG.GUI.CurrentFileSize = LF_addText(Panel,DC2{1}+[0,.1,0,-.1],[''],TT);
+MG.GUI.CurrentFileSize = LF_addText(Panel,DC2{1}+[0,.08,0,-.05],[''],TT);
 set(MG.GUI.CurrentFileSize,'FontSize',7,'FontName','Arial');
-MG.GUI.Space = LF_addText(Panel,DC2{1}+[0,-.08,0,-.1],'',TT); 
+MG.GUI.Space = LF_addText(Panel,DC2{1}+[0,-.08,0,-.05],'',TT); 
 M_setDiskspace; set(MG.GUI.Space,'FontSize',7,'FontName','Arial');
 
 % Show Target Directory
@@ -198,11 +198,11 @@ for i=1:length(Vars)
   switch i
     case 1 % HUMBUG
       Loc = ['MG.Disp.Humbug'];
-      MG.GUI.Humbug.State = LF_addCheckbox(Panel,DC2{i,3},MG.Disp.Humbug,...
+      MG.GUI.Humbug.State = LF_addCheckbox(Panel,DC2{i,3}-[0.09,0,0,0],MG.Disp.Humbug,...
         {@M_CBF_setValue,Loc,Vars{i}});
-      h = LF_addText(Panel,DC2{i,4}-[0,0.02,0,0],'Humbug'); set(h,'Horiz','Left');
+      h = LF_addText(Panel,DC2{i,4}-[0.09,0.02,0,0],'Humbug'); set(h,'Horiz','Left');
       Loc = 'MG.Disp.Humbug.Style'; TT='Choose style of 60 Hz elimination';
-      MG.GUI.Humbug.Style = LF_addDropdown(Panel,DC2{i,5},...
+      MG.GUI.Humbug.Style = LF_addDropdown(Panel,DC2{i,5}-[0.11,0.01,-0.12,0],...
         MG.Disp.Filter.Humbug.Styles,...
         find(strcmp(MG.Disp.Filter.Humbug.Style,MG.Disp.Filter.Humbug.Styles)),...
         {@M_CBF_setHumbug,Loc},[],TT);

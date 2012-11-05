@@ -6,13 +6,6 @@ global MG MGold Verbose
 FIG = MG.Disp.FIG; MPos = get(MG.GUI.FIG,'Position');
 MG.Disp.Done = 0;
 
-%% GET GUI PARAMETERS
-MG.Disp.YLim = abs(str2num(get(MG.GUI.YLim,'String')));
-MG.Disp.ScaleFactor = ceil(MG.Disp.DispStepsFull/MG.Disp.MaxSteps);
-%MG.Disp.ScaleFactor = 1; warning('ScaleFactor Set to One');
-MG.Disp.DispSteps = floor(MG.Disp.DispStepsFull/MG.Disp.ScaleFactor);
-MG.Disp.AlterColors = {[1,1,1],[1,1,.7]};
-
 %% PREPARE VARIABLES
 if sum(FIG==get(0,'Children'))  cFigPos = get(FIG,'Position');
 elseif isfield(MG.Disp,'LastPos') 
@@ -46,16 +39,6 @@ colormap(HF_colormap({[1,0,0],[0,0,0],[0,0,1]},[-1,0,1],256));
 Opts = {'ALimMode','manual','CLimMode','manual','FontSize',MG.Disp.AxisSize,'DrawMode','fast','YLimMode','manual','XLimMode','manual','ZLimMode','manual',...
   'YTickMode','manual','XTickMode','manual','ZTickMode','manual','XTickLabelMode','manual','ZTickLabelMode','manual','Clipping','off'};
 NPlot = MG.DAQ.NChannelsTotal; MG.Disp.NPlot = NPlot;
-MG.Disp.YLims = repmat([-MG.Disp.YLim,MG.Disp.YLim],NPlot,1);
-MG.Disp.NDispTotal = ceil(MG.DAQ.TrialLength/MG.Disp.DispDur);
-MG.Disp.RawD = zeros(MG.Disp.DispSteps,NPlot);
-MG.Disp.TraceD = zeros(MG.Disp.DispSteps,NPlot);
-MG.Disp.LFPD = zeros(MG.Disp.DispSteps,NPlot);
-
-%% PREPARE AXES AND HANDLES
-DC = M_computePlotPos;
-MG.Disp.DC.Data = DC;
-
 MG.Disp.AH.Data = zeros(NPlot,1);
 MG.Disp.RPH = zeros(NPlot,1);
 MG.Disp.TPH = zeros(NPlot,1);
@@ -63,13 +46,52 @@ MG.Disp.LPH = zeros(NPlot,1);
 MG.Disp.IPH = zeros(NPlot,1);
 MG.Disp.UH = zeros(NPlot,1);
 MG.Disp.ZPH = zeros(NPlot,1);
-
-Ts = [0:1/MG.DAQ.SR:(MG.Disp.DispStepsFull-1)/MG.DAQ.SR]';
-cInd = [MG.Disp.ScaleFactor:MG.Disp.ScaleFactor:size(Ts,1)];
-Ts = Ts(cInd,:); MG.Disp.TraceInit = zeros(size(Ts));
-MG.Disp.cInd = cInd;
 MG.Disp.ZoomedBool = logical(zeros(NPlot,1));
 MG.Disp.NewSpikes = logical(zeros(NPlot,1));
+
+%% PREPARE AXES AND HANDLES
+DC = M_computePlotPos;
+MG.Disp.DC.Data = DC;
+
+%% COMPUTE MAXIMAL NUMBER OF SAMPLES PER PLOT
+ScreenSize = get(0,'ScreenSize'); ScreenWidth = ScreenSize(3);
+Sizes = cell2mat(DC); MaxWidth = max(Sizes(:,3));
+PixelsPerPlot = ceil(ScreenWidth*MaxWidth);
+
+% Maximal Pixels per plot
+MG.Disp.MaxSteps = PixelsPerPlot;
+
+% Scaling Factor to convert from maximal SR to displayed sampling rate
+MG.Disp.ScaleFactor = ceil(MG.Disp.DispStepsFull/MG.Disp.MaxSteps);
+
+% Actual number of displayed steps 
+% (times 2, since the positive and negative max are displayed)
+MG.Disp.DispSteps = floor(MG.Disp.DispStepsFull/MG.Disp.ScaleFactor);
+MG.Disp.DispStepsPM = 2*MG.Disp.DispSteps; 
+
+% Prepare Time Vector with 2 identical 
+TimeInitFull = [0:1/MG.DAQ.SR:(MG.Disp.DispStepsFull-1)/MG.DAQ.SR]';
+cInd = [MG.Disp.ScaleFactor:MG.Disp.ScaleFactor:size(TimeInitFull,1)];
+TimeInit = TimeInitFull(cInd); TimeInit = repmat(TimeInit,1,2)'; TimeInit = TimeInit(:);
+MG.Disp.TimeInit = TimeInit;
+MG.Disp.TraceInit = zeros(size(TimeInit));
+MG.Disp.TimeInitFull = TimeInitFull;
+MG.Disp.TraceInitFull = zeros(size(TimeInitFull));
+MG.Disp.cInd = cInd;
+
+% ENTIRE NUMBER OF DISPLAY ITERATIONS
+MG.Disp.NDispTotal = ceil(MG.DAQ.TrialLength/MG.Disp.DispDur);
+% PREPARE DATA MATRICES FOR DISPLAY
+MG.Disp.RawD = zeros(MG.Disp.DispStepsPM,NPlot);
+MG.Disp.TraceD = zeros(MG.Disp.DispStepsPM,NPlot);
+MG.Disp.LFPD = zeros(MG.Disp.DispStepsPM,NPlot);
+% PREPARE DATA MATRICES FOR DISPLAY OF SINGLE PLOTS
+MG.Disp.RawA = zeros(MG.Disp.DispStepsFull,NPlot);
+MG.Disp.TraceA = zeros(MG.Disp.DispStepsFull,NPlot);
+MG.Disp.LFPA = zeros(MG.Disp.DispStepsFull,NPlot);
+% YLIMS
+MG.Disp.YLim = abs(str2num(get(MG.GUI.YLim,'String')));
+MG.Disp.YLims = repmat([-MG.Disp.YLim,MG.Disp.YLim],NPlot,1);
 
 %% PREPARE SPECTRUM DISPLAY
 MG.Disp.DC.Spectrum = DC;
@@ -117,8 +139,8 @@ MG.Disp.PPH = zeros(NPlot,1);
 PSTHSteps = MG.DAQ.SR/MG.Disp.SRPSTH;
 NPSTHBins = ceil(MG.Disp.DispStepsFull/PSTHSteps);
 MG.Disp.PSTHBins = [0:PSTHSteps:MG.Disp.DispStepsFull];
-TsP = [PSTHSteps/(2*MG.DAQ.SR):PSTHSteps/MG.DAQ.SR:(MG.Disp.DispStepsFull/PSTHSteps-0.5)*PSTHSteps/MG.DAQ.SR];
-MG.Disp.PSTHInit = zeros(size(TsP));
+TimeInitP = [PSTHSteps/(2*MG.DAQ.SR):PSTHSteps/MG.DAQ.SR:(MG.Disp.DispStepsFull/PSTHSteps-0.5)*PSTHSteps/MG.DAQ.SR];
+MG.Disp.PSTHInit = zeros(size(TimeInitP));
 MG.Disp.cIndP = reshape([1:MG.Disp.NDispTotal*NPSTHBins],NPSTHBins,MG.Disp.NDispTotal)';
 MG.Disp.PSTHs = zeros(numel(MG.Disp.cIndP),NPlot);
 
@@ -127,12 +149,12 @@ MG.Disp.PSTHs = zeros(numel(MG.Disp.cIndP),NPlot);
 if MG.Disp.DepthAvailable  % Sets prong parameters in MG.Disp
   set(MG.GUI.Depth.State,'Enable','on');
   MG.Disp.DC.Depth = HF_axesDivide(MG.Disp.NProngs,1,[0.02,1.05*MG.Disp.DepthYScale,0.96,(1-1.07*MG.Disp.DepthYScale)],[0.3],1);
-  DepthInit = zeros(length(Ts),MG.Disp.NElectrodesPerProng);
+  DepthInit = zeros(length(TimeInit),MG.Disp.NElectrodesPerProng);
   MG.Disp.AH.Depth = zeros(MG.Disp.NProngs,1);
   MG.Disp.DPH = zeros(MG.Disp.NProngs,1);
   for i=1:MG.Disp.NProngs
     MG.Disp.AH.Depth(i,1) = axes('Position',MG.Disp.DC.Depth{i},'CLim',[-1,1]);
-    MG.Disp.DPH(i,1) = imagesc(Ts,MG.Disp.DepthsByColumn{i},DepthInit);
+    MG.Disp.DPH(i,1) = imagesc(TimeInit,MG.Disp.DepthsByColumn{i},DepthInit);
   end
   MG.Disp.DepthD = zeros(MG.Disp.DispSteps,MG.Disp.NElectrodesPerProng,MG.Disp.NProngs);
 else set(MG.GUI.Depth.State,'Enable','off')
@@ -148,10 +170,10 @@ for i=NPlot:-1:1
    % 'Pos',[MG.Disp.DC.Data{i}([1,2]),.013,.013],'Value',MG.Disp.PlotBool(i),...
   %  'Callback',{@M_CBF_selectPlot,i});
   % CREATE PLOT HANDLES FOR THE DATA PLOTS
-  MG.Disp.RPH(i) = plot(Ts,MG.Disp.TraceInit,'Color',MG.Colors.Raw,'LineWidth',0.5,'HitTest','off')';
-  MG.Disp.TPH(i) = plot(Ts,MG.Disp.TraceInit,'Color',MG.Colors.Trace,'LineWidth',0.5,'HitTest','off')';
-  MG.Disp.LPH(i) = plot(Ts,MG.Disp.TraceInit,'Color',MG.Colors.LFP,'LineWidth',0.5,'HitTest','off')';
-  MG.Disp.PPH(i) = plot(TsP,MG.Disp.PSTHInit,'Color',MG.Colors.PSTH,'LineWidth',1.5,'HitTest','off')';
+  MG.Disp.RPH(i) = plot(TimeInit,MG.Disp.TraceInit,'Color',MG.Colors.Raw,'LineWidth',0.5,'HitTest','off')';
+  MG.Disp.TPH(i) = plot(TimeInit,MG.Disp.TraceInit,'Color',MG.Colors.Trace,'LineWidth',0.5,'HitTest','off')';
+  MG.Disp.LPH(i) = plot(TimeInit,MG.Disp.TraceInit,'Color',MG.Colors.LFP,'LineWidth',0.5,'HitTest','off')';
+  MG.Disp.PPH(i) = plot(TimeInitP,MG.Disp.PSTHInit,'Color',MG.Colors.PSTH,'LineWidth',1.5,'HitTest','off')';
   MG.Disp.IPH(i) = plot([0,0],[-1e6,1e6],'Color',MG.Colors.Indicator);
   MG.Disp.ZPH(i) = plot([0,MG.Disp.DispDur],[0,0],'Color',MG.Colors.Indicator);
   set(MG.Disp.AH.Data(i),'ButtonDownFcn',{@M_CBF_axisClick,i});
@@ -176,7 +198,7 @@ for i=NPlot:-1:1
   MG.Disp.SPH(i,:) = plot(SpikeTime,MG.Disp.SpikeInit,'Color',MG.Colors.Trace,'LineWidth',0.5,'HitTest','Off')';
   MG.Disp.ThPH(i) = plot(SpikeTime([1,end]),[MG.Disp.Thresholds(i),MG.Disp.Thresholds(i)],'Color',MG.Colors.Threshold);
   set(MG.Disp.AH.Spike(i),'ButtonDownFcn',{@M_CBF_axisClick,i});
-  %MG.Disp.FR(i) = text(1,.9,'0 Hz','Units','n','Horiz','r','FontSize',6,'Color',MG.Colors.LineColor);
+  MG.Disp.FR(i) = text(1,.9,'0 Hz','Units','n','Horiz','r','FontSize',6,'Color',MG.Colors.LineColor);
 end
 
 set(MG.Disp.AH.Data,Opts{:},'XLim',[0,MG.Disp.DispDur],'Ylim',1.01*[-MG.Disp.YLim,MG.Disp.YLim],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);
@@ -333,6 +355,8 @@ switch SelType
     DC = HF_axesDivide([0.6,0.3],1,[0.08,0.15,.85,.82],0.07,[]);
     set(MG.Disp.AH.Data(Index),'Parent',cFIG,'Position',DC{1});
     set(MG.Disp.AH.Spike(Index),'Parent',cFIG,'Position',DC{2});
+    set([MG.Disp.TPH(Index),MG.Disp.RPH(Index),MG.Disp.LPH(Index)],...
+      'XData',MG.Disp.TimeInitFull,'YData',MG.Disp.TraceInitFull);
     MG.Disp.ZoomedBool(Index) = 1;
     xlabel(MG.Disp.AH.Data(Index),'Time [Seconds]');
     ylabel(MG.Disp.AH.Data(Index),'Voltage [Volts]');
@@ -352,6 +376,8 @@ try
   set(MG.Disp.AH.Data(Index),'Parent',MG.Disp.FIG);
   set(MG.Disp.AH.Spike(Index),'Parent',MG.Disp.FIG);
   MG.Disp.ZoomedBool(Index) = 0;
+  set([MG.Disp.TPH(Index),MG.Disp.RPH(Index),MG.Disp.LPH(Index)],...
+    'XData',MG.Disp.TimeInit,'YData',MG.Disp.TraceInit);
   xlabel(MG.Disp.AH.Data(Index),'');
   ylabel(MG.Disp.AH.Data(Index),'');
   xlabel(MG.Disp.AH.Spike(Index),''); 

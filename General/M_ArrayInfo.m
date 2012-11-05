@@ -93,7 +93,24 @@ switch lower(ArrayName)
     Reference = {{'Electrode',[2.0,0.5,0.0]}};
     Ground = {{'Electrode',[2.0,3.0,0.0]}};
     Comment = 'Chronic recordings';
-    
+  
+     case 'mackenzie_a1_left';
+    PinsByElectrode = [1:32]; Drive = 1;
+    ElecPos = [... % Array Dimensions are 8x4 with 0.5 mm spacing
+      0.0,2.8; 0.5,2.8; 1.0,2.8; 1.5, 2.8;
+      0.0,2.4; 0.5,2.4; 1.0,2.4; 1.5, 2.4;
+      0.0,2.0; 0.5,2.0; 1.0,2.0; 1.5, 2.0;
+      0.0,1.6; 0.5,1.6; 1.0,1.6; 1.5, 1.6;
+      0.0,1.2; 0.5,1.2; 1.0,1.2; 1.5, 1.2;
+      0.0,0.8; 0.5,0.8; 1.0,0.8; 1.5, 0.8;
+      0.0,0.4; 0.5,0.4; 1.0,0.4; 1.5, 0.4;
+      0.0,0.0; 0.5,0.0; 1.0,0.0; 1.5, 0.0;
+      ];
+    Impedances = repmat(5.0,32,1);
+    Reference = {{'Electrode',[2.0,0.5,0.0]}};
+    Ground = {{'Electrode',[2.0,3.0,0.0]}};
+    Comment = 'Chronic recordings';
+        
   case 'mea_1_32'; % Omnetics is assumed to be on top
     PinsByElectrode = [1:32]; Drive = 1;
     ElecPos = [... % Width in both dimensions was 2.5mm
@@ -192,14 +209,44 @@ switch lower(ArrayName)
     Reference = {{'Tip',[NaN,NaN,NaN]}};
     Ground = {{'Tip',[NaN,NaN,NaN]}};
     Comment = '';
-        
-  case 'lma3d_1_96';
-    % - 3D Rotation of plots: RotateMatrix, and RotateMatrixSetup
     
+  case 'lma3d_1_32';		
+    PinsByElectrode = [1:32];
+    Drive = 1; Type = '3d';
+    Nx = 2; Ny = 3; Nz = 4; Dz = 0.15;
+    for iE=1:length(PinsByElectrode)
+      ElecPos(iE,:) = [ ...
+        mod(floor((iE-1)/Nz),Nx) ,...
+        floor((iE-1)/(Nz*Nx)) ,...
+        Dz*(Nz-mod(iE-1,Nz)-1) ]; % Spacing is 1mm in X & Y
+    end
+    Impedances = repmat(0.5,size(PinsByElectrode));
+    WireDiameter =  repmat(25,size(PinsByElectrode));
+    Reference = {{'Tip',[NaN,NaN,NaN]}};
+    Ground = {{'Tip',[NaN,NaN,NaN]}};
+    Comment = '';
+    
+  case 'lma3d_1_96';
     PinsByElectrode = [1:16,25:32,17:24];
     PinsByElectrode = [PinsByElectrode,32+PinsByElectrode,64+PinsByElectrode]; % needs to change
     Drive = 1; Type = '3d';
     Nx = 4; Ny = 3; Nz = 8; Dz = 0.15;
+    for iE=1:length(PinsByElectrode)
+      ElecPos(iE,:) = [ ...
+        mod(floor((iE-1)/Nz),Nx) ,...
+        floor((iE-1)/(Nz*Nx)) ,...
+        Dz*(Nz-mod(iE-1,Nz)-1) ]; % Spacing is 1mm in X & Y
+    end
+    Impedances = repmat(0.5,size(PinsByElectrode));
+    WireDiameter =  repmat(25,size(PinsByElectrode));
+    Reference = {{'Tip',[NaN,NaN,NaN]}};
+    Ground = {{'Tip',[NaN,NaN,NaN]}};
+    Comment = '';
+    
+  case 'nn3d_1_128';	
+    PinsByElectrode = [1:128];
+    Drive = 1; Type = '3d';
+    Nx = 4; Ny = 4; Nz = 8; Dz = 0.15;
     for iE=1:length(PinsByElectrode)
       ElecPos(iE,:) = [ ...
         mod(floor((iE-1)/Nz),Nx) ,...

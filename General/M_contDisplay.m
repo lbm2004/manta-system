@@ -86,11 +86,45 @@ FirstOffset = modnonzero(FirstSample,MG.Disp.ScaleFactor); % Offset of first sam
 LastOffset = mod(LastSample,MG.Disp.ScaleFactor); % same for last sample
 FirstSampleM = FirstSample + MG.Disp.ScaleFactor-FirstOffset; % First sample on displaying grid
 LastSampleM = LastSample - LastOffset; % Last Sample on displaying grid
+
+%% COLLECT ALL DATA FOR DISPLAY ON ZOOMED PLOTS
+cFullInd = modnonzero([FirstSample:LastSample],MG.Disp.DispStepsFull);
+if sum(MG.Disp.ZoomedBool)
+  if MG.Disp.Raw MG.Disp.RawA(cFullInd,:) = MG.Data.Raw; end
+  if MG.Disp.Trace MG.Disp.TraceA(cFullInd,:) = MG.Data.Trace; end
+  if MG.Disp.LFP MG.Disp.LFPA(cFullInd,:) = MG.Data.LFP; end
+end
+
+%% DOWNSAMPLE DATA FOR FAST DISPLAY
 cDispInd = modnonzero([FirstSampleM/ScaleFactor:LastSampleM/ScaleFactor],MG.Disp.DispSteps); % Indices to select displayed samples
 cDataInd = [FirstSampleM-FirstSample+1:ScaleFactor:CurrentSamples-LastOffset]; 
-if MG.Disp.Raw    MG.Disp.RawD(cDispInd,PlotInd) = MG.Data.Raw(cDataInd,PlotInd); end
-if MG.Disp.Trace  MG.Disp.TraceD(cDispInd,PlotInd) = MG.Data.Trace(cDataInd,PlotInd); end
-if MG.Disp.LFP     MG.Disp.LFPD(cDispInd,PlotInd) = MG.Data.LFP(cDataInd,PlotInd); end
+ScaleRadiusL = floor(ScaleFactor/2); ScaleRadiusU = floor(ScaleFactor/2);
+for iD = 1:length(cDispInd)
+    cInd = [max(cDataInd(iD) - ScaleRadiusL,1) : min(cDataInd(iD)+ScaleRadiusU-1,size(MG.Data.Raw,1))];
+  if MG.Disp.Raw
+    cData = MG.Data.Raw(cInd,PlotInd); 
+    MG.Disp.RawD(2*cDispInd(iD)-1,PlotInd) = max(cData);
+    MG.Disp.RawD(2*cDispInd(iD),PlotInd) = min(cData);
+  end
+  if MG.Disp.LFP
+    cData = MG.Data.LFP(cInd,PlotInd); 
+    MG.Disp.LFPD(2*cDispInd(iD)-1,PlotInd) = max(cData);
+    MG.Disp.LFPD(2*cDispInd(iD),PlotInd) = min(cData);
+  end
+  if MG.Disp.Trace
+    cData = MG.Data.Trace(cInd,PlotInd); 
+    MG.Disp.TraceD(2*cDispInd(iD)-1,PlotInd) = max(cData);
+    MG.Disp.TraceD(2*cDispInd(iD),PlotInd) = min(cData);
+  end
+end
+
+%% INTRODUCE WHITE LINE IN EACH PLOT 
+if ~isempty(cDispInd)
+  WhiteInd = modnonzero(2*cDispInd(end)+[2:7],size(MG.Disp.TraceD,1));
+  MG.Disp.TraceD(WhiteInd,:)=0;
+  MG.Disp.LFPD(WhiteInd,:)=0;
+  MG.Disp.RawD(WhiteInd,:)=0;
+end
 
 %% PREPARE DEPTH REPRESENTATION
 if MG.Disp.DepthAvailable & MG.Disp.Depth
@@ -168,8 +202,8 @@ if MG.Disp.Spike
         end
         if ~mod(Iteration,20) MG.Disp.SorterFun(1,i); end
       end
-      %  set(MG.Disp.FR(i),'String',...
-      %    [sprintf('%5.1f Hz',length(SP)/MG.DAQ.TimeTaken(Iteration))]);
+      set(MG.Disp.FR(i),'String',...
+         [sprintf('%5.1f Hz',length(SP)/MG.DAQ.TimeTaken(Iteration))]);
       % SAVE SPIKETIMES WHILE RECORDING (GENERALIZE TO MULTIPLE CELLS)
       if MG.Disp.SaveSpikes % ONLY FOR REMOTELY TRIGGERED RECORDINGS
         MG.Disp.AllSpikes(i).trialid(end+1:end+length(SP)) = MG.DAQ.Trial;
@@ -216,11 +250,16 @@ end
 
 %% PLOT SIGNALS
 for i=PlotInd
-  set(MG.Disp.IPH(i),'XData',[cTime,cTime]);
-  if MG.Disp.Raw          set(MG.Disp.RPH(i),'YData',MG.Disp.RawD(:,i)); end
-  if MG.Disp.Trace        set(MG.Disp.TPH(i),'YData',MG.Disp.TraceD(:,i)); end
-  if MG.Disp.LFP            set(MG.Disp.LPH(i),'YData',MG.Disp.LFPD(:,i)); end
-  if MG.Disp.Spectrum  set(MG.Disp.FPH(i),'YData',F(:,i)); end
+  if ~MG.Disp.ZoomedBool(i) % IF CURRENT CHANNEL IS DOCKED
+    if MG.Disp.Raw          set(MG.Disp.RPH(i),'YData',MG.Disp.RawD(:,i)); end
+    if MG.Disp.Trace        set(MG.Disp.TPH(i),'YData',MG.Disp.TraceD(:,i)); end
+    if MG.Disp.LFP            set(MG.Disp.LPH(i),'YData',MG.Disp.LFPD(:,i)); end
+    if MG.Disp.Spectrum  set(MG.Disp.FPH(i),'YData',F(:,i)); end
+  else % IF CURRENT CHANNEL IS ZOOMED, PLOT ALL DATA POINTS
+    if MG.Disp.Raw          set(MG.Disp.RPH(i),'YData',MG.Disp.RawA(:,i)); end
+    if MG.Disp.Trace        set(MG.Disp.TPH(i),'YData',MG.Disp.TraceA(:,i)); end
+    if MG.Disp.LFP            set(MG.Disp.LPH(i),'YData',MG.Disp.LFPA(:,i)); end
+  end
   if MG.Disp.Spike && MG.Disp.SpikesBool(i)
     set(MG.Disp.ThPH(i),'YData',[MG.Disp.Thresholds(i),MG.Disp.Thresholds(i)]);
     if MG.Disp.NewSpikes(i)
