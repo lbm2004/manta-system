@@ -41,21 +41,21 @@ end
 
 %% FILTER DIFFERENT SIGNALS
 if MG.Disp.Humbug
-  [MG.Data.Raw,MG.Data.IVHumbug] = ...
-    filter(MG.Disp.Filter.Humbug.b,MG.Disp.Filter.Humbug.a,MG.Data.Raw,MG.Data.IVHumbug);
-end
-
-% TESTING 'AUTOCORRELATION FILTERING' : USEFUL FOR IRREGULAR REPEATING SIGNALS
-MG.Disp.Humbug2 =0;
-if MG.Disp.Humbug2
-  NPeriods = floor(size(MG.Data.Raw,1)/417); PeriodSteps = 417; % @  25kHz
-  if NPeriods 
-    NChannels = size(MG.Data.Raw,2);
-    RW = reshape(MG.Data.Raw(1:PeriodSteps*NPeriods,:),[PeriodSteps,NPeriods,NChannels]);
-    R = squeeze(mean(RW,2));
-    R = repmat(R,NPeriods+1,1);
-    R = R(1:CurrentSamples,:);
-    MG.Data.Raw = MG.Data.Raw - R;
+  % 'AUTOCORRELATION FILTERING' : USEFUL FOR IRREGULAR REPEATING SIGNALS
+  if MG.Disp.HumbugSeqAv
+    PeriodSteps = round(MG.DAQ.SR/MG.DAQ.HumFreq);
+    NPeriods = floor(size(MG.Data.Raw,1)/PeriodSteps);
+    if NPeriods
+      NChannels = size(MG.Data.Raw,2);
+      RW = reshape(MG.Data.Raw(1:PeriodSteps*NPeriods,:),[PeriodSteps,NPeriods,NChannels]);
+      R = squeeze(mean(RW,2));
+      R = repmat(R,NPeriods+1,1);
+      R = R(1:CurrentSamples,:);
+      MG.Data.Raw = MG.Data.Raw - R;
+    end
+  else % CLASSICAL NOTCH FILTERING
+    [MG.Data.Raw,MG.Data.IVHumbug] = ...
+      filter(MG.Disp.Filter.Humbug.b,MG.Disp.Filter.Humbug.a,MG.Data.Raw,MG.Data.IVHumbug);
   end
 end
 

@@ -24,6 +24,7 @@ switch Selection
     MG.DAQ.HSDIO.TempFile = 'C:\Code\HSDIO.bin'; % Intermediate storage of acquired data
     MG.DAQ.HSDIO.DebugFile = 'C:\Code\HSDIO.out'; % Debugging information for digital acquisition
     MG.DAQ.HSDIO.EngineCommand = 'C:\Code\baphy\Hardware\hsdio\hsdio_stream_dual';
+    MG.DAQ.HumFreq = 60;
     
   case 'Stim';
     MG.Stim.Host = '128.8.140.157'; % SPR2 Baphy Machine
