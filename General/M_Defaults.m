@@ -22,7 +22,7 @@ if isempty(Location)
 else
   Pos = find(Location==Sep);
   MG.HW.Lab = Location(Pos(end-1)+1:Pos(end)-1);
-  MG.HW.ConfigPath = [SavePath,'..',Sep,'Configurations',Sep,MG.HW.Lab,Sep];
+  MG.HW.ConfigPath = [SavePath,'Configurations',Sep,MG.HW.Lab,Sep];
 end
 
 %% DEFINES HW-DEFAULTS
