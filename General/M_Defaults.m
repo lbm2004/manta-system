@@ -70,6 +70,7 @@ MG.DAQ.Condition = '';
 MG.DAQ.Trial = '';
 MG.DAQ.Recording = 0;
 MG.DAQ.EVPVersion = 5;
+MG.DAQ.HumFreq = 50; % Frequency of Line Noise;
 % OVERRIDE default settings with anything specified in the Hostname file.
 M_loadDefaultsByHostname(MG.HW.Hostname,'DAQ');
 MG.DAQ.BaseName = [tempdir,'testrec'];
@@ -82,7 +83,6 @@ MG.DAQ.TriggerConditionValue.HwDigital = 2.5;
 MG.DAQ.TriggerConditionValue.Immediate = 1;
 MG.DAQ.TriggerConditionValue.Manual = 1;
 MG.DAQ.FirstTrial = 0;
-MG.DAQ.HumFreq = 50; % Frequency of Line Noise;
 % SET TRIGGERS
 % Note : Triggers need to be set for each DAQ system separately
 M_loadDefaultsByHostname(MG.HW.Hostname,'Triggers');
