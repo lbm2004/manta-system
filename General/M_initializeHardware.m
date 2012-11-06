@@ -70,7 +70,9 @@ if isempty(find(MG.DAQ.SR==MG.DAQ.AvailSRs))
 end
 switch cEngine;
   case 'HSDIO'; 
-    MG.DAQ.HSDIO.SRDigital = 33333333;%M_convSRAnalog2Digital(MG.DAQ.SR); 
+      % svd changed to 50Mb because some sort of conflict cropped up b/c
+      % digital sr was set to that value somewhere else.
+    MG.DAQ.HSDIO.SRDigital = 50000000;%M_convSRAnalog2Digital(MG.DAQ.SR); 
     MG.DAQ.HSDIO.StopFile = [MG.DAQ.HSDIO.TempFile,'Stop'];
 end
 
@@ -100,6 +102,9 @@ try
           MG.Audio.ChannelO = addchannel(MG.AudioO,[1,2]);
         end
       end
+    else
+        MG.AudioO = analogoutput('winsound',0);
+        MG.Audio.ChannelO = addchannel(MG.AudioO,[1,2]);
     end
   else fprintf('Audio disabled : DAQ-toolbox not available\n');
   end

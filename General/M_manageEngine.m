@@ -40,6 +40,13 @@ while MG.DAQ.Running
         if StopTimeout>1,
           if Verbose fprintf('\n HSDIO timeout. Stopping Engine ...'); end
           M_stopEngine;
+          if str2double(datestr(now-MG.DAQ.TriggerTime,'SS'))+...
+                 str2double(datestr(now-MG.DAQ.TriggerTime,'MM')).*60>30 &&...
+                 ~MG.DAQ.Recording,
+             disp('HSDIO buffer exhasusted.  Trying auto-restart.');
+             MG.DAQ.RestartHSDIO=1;
+             %keyboard
+          end
           break;
         end
     end
@@ -69,7 +76,10 @@ while MG.DAQ.Running
           end
           Data = fread(MG.DAQ.HSDIO.TempFileID,NElements,MG.DAQ.Precision);
           Data = reshape(Data,MG.HW.Boards(i).NAI,SamplesAvailable)'/MG.DAQ.GainsByBoard(i);
-          MG.Data.Raw(:,MG.DAQ.ChSeqInds{i}) = Data(:,ChannelMap{i});
+          % offset of 19000 (rather than expected 32000) matched to
+          % approximate "true" zero volts, reflecting how digitization
+          % actually happens in the Blackrock headstage according to Mike S.
+          MG.Data.Raw(:,MG.DAQ.ChSeqInds{i}) = Data(:,ChannelMap{i})-19000;
           MG.Data.Raw = bsxfun(@rdivide,MG.Data.Raw,MG.DAQ.int16factors{i}');
       end
     end

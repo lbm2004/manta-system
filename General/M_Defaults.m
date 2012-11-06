@@ -54,9 +54,9 @@ MG.DAQ.WithSpikes = 1;
 MG.DAQ.HSDIO.TempFile = 'D:\HSDIO.bin'; % Intermediate storage of acquired data
 MG.DAQ.HSDIO.DebugFile = 'D:\HSDIO.out'; % Debugging information for digital acquisition
 MG.DAQ.HSDIO.EngineCommand = 'D:\Code\baphy\Hardware\hsdio\hsdio_stream_dual';
-MG.DAQ.HSDIO.SRDigital = 100e6; % Digital sampling rate
+MG.DAQ.HSDIO.SRDigital = 50000000; % Digital sampling rate
 MG.DAQ.HSDIO.SamplesPerIteration = 500; % Analog Samples before checking again on the card
-MG.DAQ.HSDIO.MaxIterations = 2500; % Maximal Number of Iterations to run
+MG.DAQ.HSDIO.MaxIterations = 10000; % Maximal Number of Iterations to run
 
 MG.DAQ.NIDAQ.RingEngineLength = 5; % seconds. Defines Ring Buffer Length for Manual Trigger
 MG.DAQ.NIDAQ.BufferSize = 500; % samples. Packages of samples on the level of the DAQ device
