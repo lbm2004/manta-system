@@ -14,14 +14,16 @@ switch Selection
   case 'DAQ';
     MG.DAQ.DataPath = 'C:\Data\';
     MG.DAQ.Engine='HSDIO';
-    MG.DAQ.HSDIO.TempFile = 'F:\data\HSDIO.bin'; % Intermediate storage of acquired data
-    MG.DAQ.HSDIO.DebugFile = 'F:\data\HSDIO.out'; % Debugging information for digital acquisition
+    %MG.DAQ.HSDIO.TempFile = 'F:\data\HSDIO.bin'; % Intermediate storage of acquired data
+    %MG.DAQ.HSDIO.DebugFile = 'F:\data\HSDIO.out'; % Debugging information for digital acquisition
+    MG.DAQ.HSDIO.TempFile = 'C:\tmp\HSDIO.bin'; % Intermediate storage of acquired data
+    MG.DAQ.HSDIO.DebugFile = 'C:\tmp\HSDIO.out'; % Debugging information for digital acquisition
     MG.DAQ.HSDIO.EngineCommand = 'C:\Code\baphy\Hardware\hsdio\hsdio_stream_dual';
     MG.DAQ.Simulation = 0;
 
   case 'Stim';
-    %MG.Stim.Host = '137.53.80.76';  % weasel.ohsu.edu
-    MG.Stim.Host = '137.53.79.139';  % aardvark.ohsu.edu - not fixed and may be subject to change.
+    MG.Stim.Host = '137.53.80.76';  % weasel.ohsu.edu
+    %MG.Stim.Host = '137.53.79.139';  % aardvark.ohsu.edu - not fixed and may be subject to change.
     
   case 'Triggers';
     
