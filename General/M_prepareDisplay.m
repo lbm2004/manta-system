@@ -312,7 +312,7 @@ end
 
 function M_prepare3DRotation
 global MG Verbose
-set(MG.Disp.FIG,'ButtonDownFcn',{@M_RotateMatrix},...
+set(MG.Disp.FIG,'ButtonDownFcn',{@M_rotateMatrix},...
   'WindowButtonUpFcn','global Rotating_ ; Rotating_ = 0;','Units','norm');
 FN = {'Data','Spike','Spectrum'};
 

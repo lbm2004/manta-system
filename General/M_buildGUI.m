@@ -115,7 +115,7 @@ DC2=HF_axesDivide([1.5,.5],[1],DC{2},.3,[]);
 Loc = 'MG.DAQ.BaseName'; TT=['Current Base Filename'];
 MG.GUI.BaseName = LF_addEdit(Panel,DC2{1},eval(Loc),{@M_CBF_setValue,Loc},TT);
 % Minimal Saving Interval
-Loc = 'MG.DAQ.MinDur'; TT='Minimal Duration for gettting  [Seconds]';
+Loc = 'MG.DAQ.MinDur'; TT='Minimal duration for updating the display  [Seconds]';
 MG.GUI.MinDur = LF_addEdit(Panel,DC2{2},eval(Loc),{@M_CBF_setValue,Loc},TT);
 
 DC2=HF_axesDivide([1,1.6,.6],[1],DC{3},0.3,[]);
@@ -639,6 +639,7 @@ MG.HW.(MG.DAQ.Engine).SystemsByBoard(BoardPhysNum).Name = Opts{Value};
 MG.HW.SystemsByBoard(BoardPhysNum).Name = Opts{Value};
 MG.DAQ.SystemsByBoard(BoardIndex).Name = Opts{Value};
 cSystem = M_RecSystemInfo(Opts{Value}); 
+set(MG.GUI.Gains(BoardPhysNum),'String',n2s(cSystem.Gain))
 cNChannels = length(cSystem.ChannelMap);
 % IF NUMBER OF CHANNELS CHANGED, TRANSFER VALUES REBUILD GUI
 if cNChannels ~= length(MG.GUI.ChannelSelByBoard{BoardIndex})

@@ -37,7 +37,7 @@ for i=1:MG.HW.NBoards % LOOP over physically present boards
       case 'NIDAQ';
         S = DAQmxResetDevice(MG.DAQ.BoardIDs{k}); if S NI_MSG(S); end
         Num = libpointer('doublePtr',0);
-        S = DAQmxGetDevAIMaxMultiChanRate(MG.DAQ.BoardIDs{k},Num); if S dispError(S,NI.params); end
+        S = DAQmxGetDevAIMaxMultiChanRate(MG.DAQ.BoardIDs{k},Num); if S NI_MSG(S); end
       case 'HSDIO'; % DONE IN STREAMING PROGRAM
     end
     
