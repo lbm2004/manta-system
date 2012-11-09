@@ -7,7 +7,7 @@ switch MG.DAQ.Engine; case 'NIDAQ'; SamplesPerChanReadPtr = libpointer('int32Ptr
 
 %% WAIT UNTIL TRIGGER RECEIVED (ESPECIALLY FOR REMOTE TRIGGERING)
 if Verbose fprintf('Waiting for trigger ...'); end 
-while ~M_SamplesAvailable; drawnow; end
+while ~M_SamplesAvailable; pause(0.05); drawnow; end
 MG.DAQ.Running = 1; MG.DAQ.DTs = [];
 
 %% MAIN ACQUISITION LOOP

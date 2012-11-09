@@ -337,7 +337,6 @@ for iF=1:length(FN)
   MG.Disp.PlotPositions3D.(FN{iF})(:,1) = MG.Disp.PlotPositions3D.(FN{iF})(:,1) + Shifts(1);
   MG.Disp.PlotPositions3D.(FN{iF})(:,3) = MG.Disp.PlotPositions3D.(FN{iF})(:,3) + Shifts(2);
 end
-%keyboard
 
 function M_CBF_axisZoom(obj,event,Index,String)
 % TRANSFER A RAW DATA FIGURE TO A SEPARATE WINDOW

@@ -31,11 +31,16 @@ else
       for i=1:MG.Disp.NPlot
         if ~MG.Disp.ZoomedBool(i)
           set([MG.Disp.RPH(i),MG.Disp.TPH(i),MG.Disp.LPH(i)],'YData',MG.Disp.TraceInit(:,1));
+          if isfield(MG.Disp,'RawD') MG.Disp.RawD(:) = 0; end
+          if isfield(MG.Disp,'TraceD') MG.Disp.TraceD(:) = 0; end
+          if isfield(MG.Disp,'LFPD') MG.Disp.LFPD(:) = 0; end
         else
           set([MG.Disp.RPH(i),MG.Disp.TPH(i),MG.Disp.LPH(i)],'YData',MG.Disp.TraceInitFull(:,1));
         end
       end
-    catch; end
+    catch; 
+      fprintf('WARNING : cannot clear plots\n')
+    end
   end
 end
 M_prepareFilters;

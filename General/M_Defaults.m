@@ -62,7 +62,7 @@ MG.DAQ.NIDAQ.RingEngineLength = 5; % seconds. Defines Ring Buffer Length for Man
 MG.DAQ.NIDAQ.BufferSize = 500; % samples. Packages of samples on the level of the DAQ device
 MG.DAQ.SR =25000; % Analog sampling rate per channel
 MG.DAQ.MinDur = 0.04; % seconds. Minimal Duration of the Loop = Video Rate
-MG.DAQ.TrialLength = 20; % second. Maximal Trial length
+MG.DAQ.TrialLength = 200; % second. Maximal Trial length
 MG.DAQ.Precision = 'int16'; % Precision for writing data to disk (if DAQ devices deliver lower precision, it needs to be converted to this value)
 switch MG.DAQ.Precision case 'int16'; MG.DAQ.BytesPerSample = 2; otherwise error('Precision not implemented yet'); end
 MG.DAQ.Animal = '';
