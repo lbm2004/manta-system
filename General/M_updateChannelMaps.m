@@ -36,6 +36,7 @@ for iB = 1:length(MG.DAQ.BoardsNum)
          cStruct.BoardID = MG.DAQ.BoardIDs{cB};
          iCTotal = MG.DAQ.ChSeqInds{cB}(iC);
          MG.DAQ.ElectrodesByChannel(iCTotal) = orderfields(cStruct);
+         MG.DAQ.ChannelsByElectrode(iCTotal).Channel = iCTotal;
          if Verbose fprintf(['Adding El.',n2s(cStruct.Electrode),' of Array ',cStruct.Array,' on Board ',n2s(cB),' (',MG.DAQ.BoardIDs{cB},') Pin ',n2s(cStruct.Pin),' AI.',n2s(iC),' as Channel ',n2s(iCTotal),'\n']); end
        end
     otherwise % PROPER ARRAY SPECIFIED
