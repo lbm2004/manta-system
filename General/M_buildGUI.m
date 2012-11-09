@@ -398,7 +398,19 @@ M_saveConfiguration;
 function M_CBF_startEngine(obj,event)
 global MG Verbose
 
-if get(obj,'Value') M_startEngine('Trigger','Local'); else M_stopEngine; end
+% SVD, sorry, kludge to restart HSDIO engine after temp file runs out of
+% space. This can be fixed once we design a FIFO rolling buffer for the
+% streamer.
+Loopcount=0;
+if get(obj,'Value')
+    while Loopcount==0 || ...
+            (isfield(MG.DAQ,'RestartHSDIO') && MG.DAQ.RestartHSDIO)
+        M_startEngine('Trigger','Local');
+        Loopcount=Loopcount+1;
+    end
+else
+    M_stopEngine;
+end
 
 function M_CBF_startRecording(obj,event)
 % CALLBACK FOR SAVING

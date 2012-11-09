@@ -24,17 +24,17 @@ else
   Array = struct('Name','Generic','Spacing',[0,0,0],'Dimensions',[0,0,0],'Comment','');
 end
 if ~isempty(Array)
-  FigureTitle = ['Array : ',Array.Name,...
+  MG.Disp.FigureTitle = ['Array : ',Array.Name,...
   '   Dimensions : ',n2s(Array.Dimensions(1)),'x',n2s(Array.Dimensions(2)),'x',n2s(Array.Dimensions(3)),'mm',...
   '   Spacing : ',n2s(Array.Spacing(1)),'x',n2s(Array.Spacing(2)),'x',n2s(Array.Spacing(3)),'mm  ',Array.Comment];
 else
-  FigureTitle = ['Recording from custom set of electrodes'];
+  MG.Disp.FigureTitle = ['Recording from custom set of electrodes'];
 end
 
 figure(FIG); delete(get(FIG,'Children')); set(FIG,'Units','normalized','Position',cFigPos,'Color',MG.Colors.Background,...
   'Menubar','none','ToolBar','figure','Renderer',MG.Disp.Renderer,...
   'Visible',Visibility,'DeleteFcn',{@M_CBF_closeDisplay},'ResizeFcn',{@M_CBF_resizeDisplay}, 'WindowScrollWheelFcn',{@M_CBF_axisWheel},...
-  'NumberTitle','off','Name',FigureTitle,'Color',MG.Colors.FigureBackground);
+  'NumberTitle','off','Name',MG.Disp.FigureTitle,'Color',MG.Colors.FigureBackground);
 colormap(HF_colormap({[1,0,0],[0,0,0],[0,0,1]},[-1,0,1],256));
 Opts = {'ALimMode','manual','CLimMode','manual','FontSize',MG.Disp.AxisSize,'DrawMode','fast','YLimMode','manual','XLimMode','manual','ZLimMode','manual',...
   'YTickMode','manual','XTickMode','manual','ZTickMode','manual','XTickLabelMode','manual','ZTickLabelMode','manual','Clipping','off'};
@@ -337,7 +337,6 @@ for iF=1:length(FN)
   MG.Disp.PlotPositions3D.(FN{iF})(:,1) = MG.Disp.PlotPositions3D.(FN{iF})(:,1) + Shifts(1);
   MG.Disp.PlotPositions3D.(FN{iF})(:,3) = MG.Disp.PlotPositions3D.(FN{iF})(:,3) + Shifts(2);
 end
-%keyboard
 
 function M_CBF_axisZoom(obj,event,Index,String)
 % TRANSFER A RAW DATA FIGURE TO A SEPARATE WINDOW
@@ -365,9 +364,10 @@ switch SelType
   case {'alt'}; button = 2; % right
     MG.Disp.HasSpikeBool(Index) = ~MG.Disp.HasSpikeBool(Index);
     if MG.Disp.HasSpikeBool(Index)  Color = MG.Colors.SpikeBackground;
-    else Color = MG.Disp.AlterColors{MG.Disp.AxesAlterInd(Index)+1};
+    else Color = MG.Colors.AlterColors{MG.Disp.AxesAlterInd(Index)+1};
     end
     set([MG.Disp.AH.Data(Index),MG.Disp.AH.Spike(Index)],'Color',Color)
+    set(MG.Disp.FIG,'Name',[MG.Disp.FigureTitle,' (',n2s(sum(MG.Disp.HasSpikeBool)),' Spikes)']);
 end
 
 function M_CBF_returnPlot(obj,event,Index,String)
@@ -415,19 +415,16 @@ if button == 2  % Set Threshold
   MG.Disp.AutoThreshBool(Index) = logical(0);
 end
 if button == 3  % Set Scale to match data
-  if MG.Disp.Raw            PH = MG.Disp.RPH(Index,:);
-  elseif MG.Disp.LFP      PH = MG.Disp.LPH(Index,:);
-  elseif MG.Disp.Trace   PH = MG.Disp.TPH(Index,:);
+  if MG.Disp.Raw            Data = MG.Disp.RawD;
+  elseif MG.Disp.LFP      Data = MG.Disp.LFPD;
+  elseif MG.Disp.Trace   Data = MG.Disp.TraceD;
   end
-  Data = get(PH,'YData')';
-  if length(PH) > 1  Data = cell2mat(Data); end
-  cYLim = zeros(1,2);
-  cYLim(1) = min(Data(:)); 
+  cYLim(1) = min(Data(:));
   cYLim(2) = max(Data(:));
   if ~diff(cYLim) cYLim = [-10,10]; end
-  set(obj,'YLim',cYLim); % Zoom in
-  MG.Disp.YLims(Index,:) = cYLim;
-  M_changeUnits(Index);
+  set([MG.Disp.AH.Data;MG.Disp.AH.Spike],'YLim',cYLim);
+  MG.Disp.YLims = repmat(cYLim,MG.Disp.NPlot,1);
+  M_changeUnits(1:MG.Disp.NPlot);
 end
 
 function M_CBF_axisWheel(obj,event,Index)

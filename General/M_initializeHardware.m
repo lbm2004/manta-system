@@ -70,7 +70,9 @@ if isempty(find(MG.DAQ.SR==MG.DAQ.AvailSRs))
 end
 switch cEngine;
   case 'HSDIO'; 
-    MG.DAQ.HSDIO.SRDigital = 33333333;%M_convSRAnalog2Digital(MG.DAQ.SR); 
+      % svd changed to 50Mb because some sort of conflict cropped up b/c
+      % digital sr was set to that value somewhere else.
+    MG.DAQ.HSDIO.SRDigital = 5000000;%M_convSRAnalog2Digital(MG.DAQ.SR); 
     MG.DAQ.HSDIO.StopFile = [MG.DAQ.HSDIO.TempFile,'Stop'];
 end
 
