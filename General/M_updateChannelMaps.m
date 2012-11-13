@@ -19,7 +19,8 @@ for iB=MG.DAQ.BoardsNum
 end; clear iB
 
 % BASIC STRUCTURES
-try MG.DAQ = rmfield(MG.DAQ,{'ElectrodesByChannel','ChannelsByElectrode'}); end
+try MG.DAQ = rmfield(MG.DAQ,'ElectrodesByChannel'); end
+try MG.DAQ = rmfield(MG.DAQ,'ChannelsByElectrode'); end
 for iB = 1:length(MG.DAQ.BoardsNum)
   cB = MG.DAQ.BoardsNum(iB);
   MG.DAQ.ElectrodesByBoardBool{cB} = logical(zeros(MG.DAQ.NChannelsPhys(cB),1));
@@ -41,13 +42,15 @@ for iB = 1:length(MG.DAQ.BoardsNum)
        end
     otherwise % PROPER ARRAY SPECIFIED
       cStruct.Array = MG.DAQ.ArraysByBoard(cB).Name;
+      
       ArrayInfo = M_ArrayInfo(cStruct.Array);
       cStruct.System = MG.DAQ.SystemsByBoard(cB).Name;
       SystemInfo = M_RecSystemInfo(cStruct.System);
+      SameArrayInd = strcmp(cStruct.Array,{MG.DAQ.ArraysByBoard(MG.DAQ.BoardsNum(1:iB-1)).Name});
       for iC = 1:MG.DAQ.NChannels(cB)
         cChannel = MG.DAQ.ChannelsNum{cB}(iC);
         BPin = find(SystemInfo.ChannelMap==cChannel); % PIN ON ARRAY FOR A CHANNEL ON ONE BOARD
-        BPinTotal = BPin + sum(MG.DAQ.NChannels(MG.DAQ.BoardsNum(1:iB-1)));
+        BPinTotal = BPin + sum(MG.DAQ.NChannels(MG.DAQ.BoardsNum(SameArrayInd))); % PIN ON ARRAY FOR CURRENT BOARD OVER CHANNELS SO FAR
         iAPin = find(BPinTotal==MG.DAQ.ArraysByBoard(cB).Pins);
         if ~isempty(iAPin)
           cStruct.Pin = MG.DAQ.ArraysByBoard(cB).Pins(iAPin);
@@ -64,7 +67,8 @@ for iB = 1:length(MG.DAQ.BoardsNum)
             if Verbose fprintf(['Adding El.',n2s(cStruct.Electrode),' of Array ',cStruct.Array,' on Board ',n2s(cB),' (',MG.DAQ.BoardIDs{cB},') Pin ',n2s(BPin),' AI.',n2s(cChannel),' as Channel ',n2s(iCTotal),'\n']); end
           end
         else
-          warning('There appears to be an error while assigning Pins and Arrays.');
+          if ~exist('WarningShown','var') fprintf(' > M_updateChannelMaps  : One or more electrodes could not be assigned.\n'); end
+          WarningShown = 1;
         end
       end
       if Verbose fprintf('\n'); end
