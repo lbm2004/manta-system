@@ -20,6 +20,8 @@ switch lower(SystemName)
     R = struct('Name',SystemName,'Gain',2000,'InputRange',[-5,5],'ChannelMap',[1:32]);
   case 'alphaomega';
     R = struct('Name',SystemName,'Gain',NaN,'InputRange',[-NaN,NaN],'ChannelMap',[1:32]);
+  case 'am_systems_3000';
+    R = struct('Name',SystemName,'Gain',10000,'InputRange',[-5,5],'ChannelMap',[1:32]);
   case '';
     R = struct('Name',SystemName,'Gain',NaN,'InputRange',[-NaN,NaN],'ChannelMap',NaN);
     

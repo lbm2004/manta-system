@@ -1,4 +1,4 @@
-function Boards = M_getBoardNames
+function Boards = M_getBoardInfo
 
 global MG Verbose
 
@@ -20,10 +20,13 @@ for i=1:length(BoardIDs)
         case '717F'; Boards(i).Interface='PCIe'; Boards(i).Number=6259; Boards(i).NAI = 32;
         case '70B8'; Boards(i).Interface='PCI'; Boards(i).Number=6251; Boards(i).NAI = 16;
         case '70B7'; Boards(i).Interface='PCI'; Boards(i).Number=6254; Boards(i).NAI = 32;
+        case '18B0'; Boards(i).Interface='PCI'; Boards(i).Number=6052; Boards(i).NAI=16;
         otherwise error('DAQ card not implemented yet.');
       end
       Num = libpointer('doublePtr',zeros(2,20));
-      S = DAQmxGetDevAIVoltageRngs('D1',Num,numel(get(Num,'Value'))); if S NI_MSG(S); end
+      % SVD.  changed for systems that don't use D1 naming scheme
+      %S = DAQmxGetDevAIVoltageRngs('D1',Num,numel(get(Num,'Value'))); if S NI_MSG(S); end
+      S = DAQmxGetDevAIVoltageRngs(BoardIDs{1},Num,numel(get(Num,'Value'))); if S NI_MSG(S); end
       InputRanges = get(Num,'Value');
       [i1,i2] = find(InputRanges==0,1,'first');
       InputRanges = InputRanges(:,1:i2-1)';
