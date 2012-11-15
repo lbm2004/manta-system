@@ -6,9 +6,12 @@ global MG Verbose
 % designed using fdatool from the filter design toolbox (butterworth digital, stopband, order 6)
 % and exported as SOS/G, converted using sos2tf
 
-Styles = {'50Hz','60Hz'};
+Styles = {'50Hz','60Hz','SeqAv'};
 
 if exist('Opt','var') & strcmp(Opt,'getstyles') b = Styles; return; end
+
+MG.Disp.HumbugSeqAv = 0;
+b = 1; a = 1;
 
 switch MG.Disp.Filter.Humbug.Style
   case '50Hz'  % EUROPEAN MODE
@@ -39,6 +42,10 @@ switch MG.Disp.Filter.Humbug.Style
       otherwise fprintf(['WARNING : This Humbug not implemented for this SR\n']);
     end
     
+    case 'SeqAv'
+     MG.Disp.HumbugSeqAv = 1;
+     b = 1; a = 1;
+     
   otherwise error('Filter style for humbug not implemented!');  
 end
 

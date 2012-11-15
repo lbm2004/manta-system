@@ -24,17 +24,17 @@ else
   Array = struct('Name','Generic','Spacing',[0,0,0],'Dimensions',[0,0,0],'Comment','');
 end
 if ~isempty(Array)
-  FigureTitle = ['Array : ',Array.Name,...
+  MG.Disp.FigureTitle = ['Array : ',Array.Name,...
   '   Dimensions : ',n2s(Array.Dimensions(1)),'x',n2s(Array.Dimensions(2)),'x',n2s(Array.Dimensions(3)),'mm',...
   '   Spacing : ',n2s(Array.Spacing(1)),'x',n2s(Array.Spacing(2)),'x',n2s(Array.Spacing(3)),'mm  ',Array.Comment];
 else
-  FigureTitle = ['Recording from custom set of electrodes'];
+  MG.Disp.FigureTitle = ['Recording from custom set of electrodes'];
 end
 
 figure(FIG); delete(get(FIG,'Children')); set(FIG,'Units','normalized','Position',cFigPos,'Color',MG.Colors.Background,...
   'Menubar','none','ToolBar','figure','Renderer',MG.Disp.Renderer,...
   'Visible',Visibility,'DeleteFcn',{@M_CBF_closeDisplay},'ResizeFcn',{@M_CBF_resizeDisplay}, 'WindowScrollWheelFcn',{@M_CBF_axisWheel},...
-  'NumberTitle','off','Name',FigureTitle,'Color',MG.Colors.FigureBackground);
+  'NumberTitle','off','Name',MG.Disp.FigureTitle,'Color',MG.Colors.FigureBackground);
 colormap(HF_colormap({[1,0,0],[0,0,0],[0,0,1]},[-1,0,1],256));
 Opts = {'ALimMode','manual','CLimMode','manual','FontSize',MG.Disp.AxisSize,'DrawMode','fast','YLimMode','manual','XLimMode','manual','ZLimMode','manual',...
   'YTickMode','manual','XTickMode','manual','ZTickMode','manual','XTickLabelMode','manual','ZTickLabelMode','manual','Clipping','off'};
@@ -43,6 +43,7 @@ MG.Disp.AH.Data = zeros(NPlot,1);
 MG.Disp.RPH = zeros(NPlot,1);
 MG.Disp.TPH = zeros(NPlot,1);
 MG.Disp.LPH = zeros(NPlot,1);
+MG.Disp.IPH = zeros(NPlot,1);
 MG.Disp.UH = zeros(NPlot,1);
 MG.Disp.ZPH = zeros(NPlot,1);
 MG.Disp.ZoomedBool = logical(zeros(NPlot,1));
@@ -162,10 +163,9 @@ end
 %% START PLOTTING
 for i=NPlot:-1:1   
   % CONTINUOUS PLOTTING
-  MG.Disp.AH.Data(i) = axes('Position',MG.Disp.DC.Data{i},...
-  'ButtonDownFcn',{@M_CBF_axisClick,i},'nextplot','add',Opts{:}); 
+  MG.Disp.AH.Data(i) = axes('Position',MG.Disp.DC.Data{i}); hold on;
   
-  % ADD CHECKBOX (TO TURN RECORDINGS ON AND OFF)
+  % ADD CHECKBOX (TO TURN RECORDINDS ON AND OFF)
   %MG.Disp.CBH(i) = uicontrol('style','checkbox','Units','n',...
    % 'Pos',[MG.Disp.DC.Data{i}([1,2]),.013,.013],'Value',MG.Disp.PlotBool(i),...
   %  'Callback',{@M_CBF_selectPlot,i});
@@ -174,7 +174,9 @@ for i=NPlot:-1:1
   MG.Disp.TPH(i) = plot(TimeInit,MG.Disp.TraceInit,'Color',MG.Colors.Trace,'LineWidth',0.5,'HitTest','off')';
   MG.Disp.LPH(i) = plot(TimeInit,MG.Disp.TraceInit,'Color',MG.Colors.LFP,'LineWidth',0.5,'HitTest','off')';
   MG.Disp.PPH(i) = plot(TimeInitP,MG.Disp.PSTHInit,'Color',MG.Colors.PSTH,'LineWidth',1.5,'HitTest','off')';
+  MG.Disp.IPH(i) = plot([0,0],[-1e6,1e6],'Color',MG.Colors.Indicator);
   MG.Disp.ZPH(i) = plot([0,MG.Disp.DispDur],[0,0],'Color',MG.Colors.Indicator);
+  set(MG.Disp.AH.Data(i),'ButtonDownFcn',{@M_CBF_axisClick,i});
   % SHOW Electrode # (ArrayName) | Overallchannel # (Channel #, BoardID)
   if Verbose
     String = ['E',sprintf('%d',MG.DAQ.ElectrodesByChannel(i).Electrode),' C',sprintf('%d',i),' (',MG.DAQ.ElectrodesByChannel(i).BoardID,',P',n2s(MG.DAQ.ElectrodesByChannel(i).Pin),')'];%,...
@@ -188,25 +190,25 @@ for i=NPlot:-1:1
   MG.Disp.UH(i) = text(-0.08,1,'V','horiz','r','Units','n','FontSize',6,'Interpreter','none','Color',MG.Colors.LineColor);
 
   % SPECTRUM PLOTTING
-  MG.Disp.AH.Spectrum(i) = axes('Position',MG.Disp.DC.Spectrum{i},'nextplot','add',Opts{:}); 
+  MG.Disp.AH.Spectrum(i) = axes('Position',MG.Disp.DC.Spectrum{i}); hold on;
   MG.Disp.FPH(i) = plot(Fs,MG.Disp.SpecInit,'Color',MG.Colors.Spectrum,'LineWidth',0.5,'HitTest','off');
   
   % SPIKE PLOTTING
-  MG.Disp.AH.Spike(i) = axes('Position',MG.Disp.DC.Spike{i},'nextplot','add',Opts{:});
+  MG.Disp.AH.Spike(i) = axes('Position',MG.Disp.DC.Spike{i}); hold on;
   MG.Disp.SPH(i,:) = plot(SpikeTime,MG.Disp.SpikeInit,'Color',MG.Colors.Trace,'LineWidth',0.5,'HitTest','Off')';
   MG.Disp.ThPH(i) = plot(SpikeTime([1,end]),[MG.Disp.Thresholds(i),MG.Disp.Thresholds(i)],'Color',MG.Colors.Threshold);
   set(MG.Disp.AH.Spike(i),'ButtonDownFcn',{@M_CBF_axisClick,i});
-  %MG.Disp.FR(i) = text(1,.9,'0 Hz','Units','n','Horiz','r','FontSize',6,'Color',MG.Colors.LineColor);
+  MG.Disp.FR(i) = text(1,.9,'0 Hz','Units','n','Horiz','r','FontSize',6,'Color',MG.Colors.LineColor);
 end
 
-set(MG.Disp.AH.Data,'XLim',[0,MG.Disp.DispDur],'Ylim',1.01*[-MG.Disp.YLim,MG.Disp.YLim],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);
+set(MG.Disp.AH.Data,Opts{:},'XLim',[0,MG.Disp.DispDur],'Ylim',1.01*[-MG.Disp.YLim,MG.Disp.YLim],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);
 if MG.Disp.DepthAvailable 
   set(MG.Disp.AH.Depth,Opts{:},'XLim',[0,MG.Disp.DispDur]); 
   set(get(MG.Disp.AH.Depth(1),'YLabel'),'String','Depth [mm]','FontSize',6); 
 end
 
-set(MG.Disp.AH.Spike,'XLim',SpikeTime([1,end]),'Ylim',1.01*[-MG.Disp.YLim,MG.Disp.YLim],'YTick',[],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);
-set(MG.Disp.AH.Spectrum,'XLim',Fs([1,end]),'Ylim',[0,1],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);
+set(MG.Disp.AH.Spike,Opts{:},'XLim',SpikeTime([1,end]),'Ylim',1.01*[-MG.Disp.YLim,MG.Disp.YLim],'YTick',[],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);
+set(MG.Disp.AH.Spectrum,Opts{:},'XLim',Fs([1,end]),'Ylim',[0,1],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);
 set([MG.Disp.AH.Data(MG.Disp.HasSpikeBool),MG.Disp.AH.Spike(MG.Disp.HasSpikeBool),MG.Disp.AH.Spectrum(MG.Disp.HasSpikeBool)],'Color',MG.Colors.SpikeBackground);
 if ~MG.Disp.Raw            set(MG.Disp.RPH,'Visible','Off'); end
 if ~MG.Disp.Trace          set(MG.Disp.TPH,'Visible','Off'); end
@@ -220,7 +222,7 @@ M_changeUnits(1:NPlot);
 M_showMain;
 if MG.Disp.Array3D M_prepare3DRotation; end
 % PREPARE SIMULATED DATA (FOR OFFLINE TESTING)
-if ~MG.DAQ.DAQAccess M_prepareSpikes; end
+if strcmp(MG.DAQ.Engine,'SIM') M_prepareSpikes; end
  
 MGold.Disp = MG.Disp; MGold.DAQ = MG.DAQ; % Save to check in M_startEngine
 MG.Disp.Done = 1;
@@ -254,7 +256,8 @@ else % USE THE POSITIONS GIVEN BY THE ARRAY SPECS
   if ~isnan(ElecPos) & length(unique(ElecPos(:,1)))>1 & length(unique(ElecPos(:,2)))>1 & length(unique(ElecPos(:,3)))>1
     MG.Disp.Array3D = 1;
     % GENERATE CHANNELXYZ
-    try MG.Disp = rmfield(MG.Disp,{'ChannelXYZ','PlotPositions3D'}); end
+    try MG.Disp = rmfield(MG.Disp,'ChannelXYZ'); end
+    try MG.Disp = rmfield(MG.Disp,'PlotPositions3D'); end
     for i=1:3
       UPos{i} = unique(ElecPos(:,i)); MinDPos(i) = min(diff(UPos{i}));
       MG.Disp.ChannelXYZ(:,i) = round(ElecPos(:,i)/MinDPos(i));
@@ -310,7 +313,7 @@ end
 
 function M_prepare3DRotation
 global MG Verbose
-set(MG.Disp.FIG,'ButtonDownFcn',{@M_RotateMatrix},...
+set(MG.Disp.FIG,'ButtonDownFcn',{@M_rotateMatrix},...
   'WindowButtonUpFcn','global Rotating_ ; Rotating_ = 0;','Units','norm');
 FN = {'Data','Spike','Spectrum'};
 
@@ -335,7 +338,6 @@ for iF=1:length(FN)
   MG.Disp.PlotPositions3D.(FN{iF})(:,1) = MG.Disp.PlotPositions3D.(FN{iF})(:,1) + Shifts(1);
   MG.Disp.PlotPositions3D.(FN{iF})(:,3) = MG.Disp.PlotPositions3D.(FN{iF})(:,3) + Shifts(2);
 end
-%keyboard
 
 function M_CBF_axisZoom(obj,event,Index,String)
 % TRANSFER A RAW DATA FIGURE TO A SEPARATE WINDOW
@@ -344,6 +346,7 @@ global MG Verbose
 SelType = get(gcf, 'SelectionType');
 switch SelType 
   case {'normal','open'}; button = 1; % left
+    % POP OUT PLOT TO INDIVIDUAL WINDOW
     cFIG = MG.Disp.FIG+Index;
     figure(cFIG); clf;
     set(cFIG,'Position',[10,50,400,200],'DeleteFcn',{@M_CBF_returnPlot,Index,String},...
@@ -361,11 +364,13 @@ switch SelType
     xlabel(MG.Disp.AH.Spike(Index),'Time [Milliseconds]');
     
   case {'alt'}; button = 2; % right
+    % INDICATE SPIKE
     MG.Disp.HasSpikeBool(Index) = ~MG.Disp.HasSpikeBool(Index);
     if MG.Disp.HasSpikeBool(Index)  Color = MG.Colors.SpikeBackground;
-    else Color = MG.Disp.AlterColors{MG.Disp.AxesAlterInd(Index)+1};
+    else Color = MG.Colors.AlterColors{MG.Disp.AxesAlterInd(Index)+1};
     end
     set([MG.Disp.AH.Data(Index),MG.Disp.AH.Spike(Index)],'Color',Color)
+    set(MG.Disp.FIG,'Name',[MG.Disp.FigureTitle,' (',n2s(sum(MG.Disp.HasSpikeBool)),' Spikes)']);
 end
 
 function M_CBF_returnPlot(obj,event,Index,String)
@@ -397,35 +402,35 @@ switch SelType
   case {'open'}; button = 4; % with shift
   otherwise error('Invalid mouse selection.')
 end
-if button == 1 % Change Scale
-  cYLim = get(obj,'YLim');
-  if D(1,2) > (cYLim(1)+cYLim(2))/2
-    NewYLim = 0.5*cYLim; % Zoom out
-  else
-    NewYLim = 2*cYLim; % Zoom in
+switch button 
+  case 1 % Change Scale on both data and spike window
+    cYLim = get(obj,'YLim');
+    if D(1,2) > (cYLim(1)+cYLim(2))/2
+      NewYLim = 0.5*cYLim; % Zoom out
+    else
+      NewYLim = 2*cYLim; % Zoom in
+    end
+    set([MG.Disp.AH.Data(Index),MG.Disp.AH.Spike(Index)],'YLim',NewYLim);
+    MG.Disp.YLims(Index,:) = [NewYLim];
+    M_changeUnits(Index)
+
+  case 2  % Set Threshold for right click in spike window
+    if obj == MG.Disp.AH.Spike(Index)
+      MG.Disp.Thresholds(Index) = D(1,2);
+      MG.Disp.AutoThreshBool(Index) = logical(0);
+    end
+      
+  case 3  % Set Scale to match data
+  if MG.Disp.Raw            Data = MG.Disp.RawD;
+  elseif MG.Disp.LFP      Data = MG.Disp.LFPD;
+  elseif MG.Disp.Trace   Data = MG.Disp.TraceD;
   end
-  set(obj,'YLim',NewYLim);
-  MG.Disp.YLims(Index,:) = [NewYLim];
-  M_changeUnits(Index)
-end
-if button == 2  % Set Threshold
-  MG.Disp.Thresholds(Index) = D(1,2);
-  MG.Disp.AutoThreshBool(Index) = logical(0);
-end
-if button == 3  % Set Scale to match data
-  if MG.Disp.Raw            PH = MG.Disp.RPH(Index,:);
-  elseif MG.Disp.LFP      PH = MG.Disp.LPH(Index,:);
-  elseif MG.Disp.Trace   PH = MG.Disp.TPH(Index,:);
-  end
-  Data = get(PH,'YData')';
-  if length(PH) > 1  Data = cell2mat(Data); end
-  cYLim = zeros(1,2);
-  cYLim(1) = min(Data(:)); 
+  cYLim(1) = min(Data(:));
   cYLim(2) = max(Data(:));
   if ~diff(cYLim) cYLim = [-10,10]; end
-  set(obj,'YLim',cYLim); % Zoom in
-  MG.Disp.YLims(Index,:) = cYLim;
-  M_changeUnits(Index);
+  set([MG.Disp.AH.Data;MG.Disp.AH.Spike],'YLim',cYLim);
+  MG.Disp.YLims = repmat(cYLim,MG.Disp.NPlot,1);
+  M_changeUnits(1:MG.Disp.NPlot);
 end
 
 function M_CBF_axisWheel(obj,event,Index)
@@ -438,7 +443,7 @@ YLims = cell2mat(get([MG.Disp.AH.Data,MG.Disp.AH.Spike],'YLim'));
  [b,m,n] = unique(YLims);
  H = histc(n,[.5:1:length(b)+.5]);
 [MAX,Ind] = max(H); YLim = YLims(Ind);
-NewYLim = 2^(-event.VerticalScrollCount/4)*YLim;
+NewYLim = 2^(event.VerticalScrollCount/4)*YLim;
 if NewYLim == 0 NewYLim = 0.1; end
 if NewYLim<0 NewYLim = -NewYLim; end
 set([MG.Disp.AH.Data,MG.Disp.AH.Spike],'YLim',[-NewYLim,NewYLim]);
@@ -455,9 +460,8 @@ MG.Disp.PlotBool(Index) = get(obj,'Value');
 function M_CBF_closeDisplay(obj,event)
 global MG Verbose
 try 
-  set(MG.GUI.Display,'Value',0,'BackGroundColor',MG.Colors.Button);
+  set(MG.GUI.Display,'Value',0,'BackGroundColor',MG.Colors.Button); MG.Disp.Display = 0;
 end
-MG.Disp.Display = 0;
 MG.Disp.LastPos = get(obj,'Position');
 clear global MGold;
 

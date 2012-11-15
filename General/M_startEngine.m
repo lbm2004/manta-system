@@ -8,10 +8,10 @@ P = parsePairs(varargin);
 if ~isfield(P,'Trigger') P.Trigger = 'Local'; end
 MG.DAQ.Trigger.Type = P.Trigger;
 
-if MG.DAQ.DAQAccess
-  set(MG.GUI.FIG,'Color',MG.Colors.GUIBackground)
-else
+if strcmp(MG.DAQ.Engine,'SIM')  
   set(MG.GUI.FIG,'Color',MG.Colors.GUIBackgroundSim)
+else
+  set(MG.GUI.FIG,'Color',MG.Colors.GUIBackground)
 end
 
 % SET PARAMETERS
@@ -31,24 +31,28 @@ else
       for i=1:MG.Disp.NPlot
         if ~MG.Disp.ZoomedBool(i)
           set([MG.Disp.RPH(i),MG.Disp.TPH(i),MG.Disp.LPH(i)],'YData',MG.Disp.TraceInit(:,1));
+          if isfield(MG.Disp,'RawD') MG.Disp.RawD(:) = 0; end
+          if isfield(MG.Disp,'TraceD') MG.Disp.TraceD(:) = 0; end
+          if isfield(MG.Disp,'LFPD') MG.Disp.LFPD(:) = 0; end
         else
           set([MG.Disp.RPH(i),MG.Disp.TPH(i),MG.Disp.LPH(i)],'YData',MG.Disp.TraceInitFull(:,1));
         end
       end
-    catch; end
+    catch; 
+      fprintf('WARNING : cannot clear plots\n')
+    end
   end
 end
 M_prepareFilters;
 
 % START AI ENGINES
-if MG.DAQ.DAQAccess
-  for i=MG.DAQ.BoardsNum
-    switch MG.DAQ.Engine
-      case 'NIDAQ';
-        S = DAQmxStartTask(MG.AI(i)); if S NI_MSG(S); end;
-      case 'HSDIO';
-        M_startHSDIO;
-    end
+for i=MG.DAQ.BoardsNum
+  switch MG.DAQ.Engine
+    case 'NIDAQ';
+      S = DAQmxStartTask(MG.AI(i)); if S NI_MSG(S); end;
+    case 'HSDIO';
+      M_startHSDIO;
+    case 'SIM';
   end
 end
 % DISABLE BUTTONS FOR CHANNEL SELECTION (to avoid errors)

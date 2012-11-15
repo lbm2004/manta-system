@@ -14,7 +14,7 @@ MG.Disp.PlotInd = find(MG.Disp.PlotBool); PlotInd = MG.Disp.PlotInd;
 NPlot = MG.DAQ.NChannelsTotal; SPAll = [];
 
 %% CHECK IF FIGURE WAS CLOSED AND TURN OFF PLOTTING
-if ~MG.Disp.Display return; end
+if ~sum(MG.Disp.FIG==get(0,'Children')) MG.Disp.Display = 0; return; end
 
 %% REFERENCE SIGNALS DIFFERENTLY
 if MG.Disp.Reference
@@ -41,22 +41,21 @@ end
 
 %% FILTER DIFFERENT SIGNALS
 if MG.Disp.Humbug
-  [MG.Data.Raw,MG.Data.IVHumbug] = ...
-    filter(MG.Disp.Filter.Humbug.b,MG.Disp.Filter.Humbug.a,MG.Data.Raw,MG.Data.IVHumbug);
-end
-
-% TESTING 'AUTOCORRELATION FILTERING' : USEFUL FOR IRREGULARlY REPEATING SIGNALS
-MG.Disp.Humbug2 =0;
-if MG.Disp.Humbug2
-  PeriodSteps = round(1/MG.DAQ.HumFreq*MG.DAQ.SR); 
-  NPeriods = floor(size(MG.Data.Raw,1)/PeriodSteps); 
-  if NPeriods 
-    NChannels = size(MG.Data.Raw,2);
-    RW = reshape(MG.Data.Raw(1:PeriodSteps*NPeriods,:),[PeriodSteps,NPeriods,NChannels]);
-    R = squeeze(mean(RW,2));
-    R = repmat(R,NPeriods+1,1);
-    R = R(1:CurrentSamples,:);
-    MG.Data.Raw = MG.Data.Raw - R;
+  % 'AUTOCORRELATION FILTERING' : USEFUL FOR IRREGULAR REPEATING SIGNALS
+  if MG.Disp.HumbugSeqAv
+    PeriodSteps = round(MG.DAQ.SR/MG.DAQ.HumFreq);
+    NPeriods = floor(size(MG.Data.Raw,1)/PeriodSteps);
+    if NPeriods
+      NChannels = size(MG.Data.Raw,2);
+      RW = reshape(MG.Data.Raw(1:PeriodSteps*NPeriods,:),[PeriodSteps,NPeriods,NChannels]);
+      R = squeeze(mean(RW,2));
+      R = repmat(R,NPeriods+1,1);
+      R = R(1:CurrentSamples,:);
+      MG.Data.Raw = MG.Data.Raw - R;
+    end
+  else % CLASSICAL NOTCH FILTERING
+    [MG.Data.Raw,MG.Data.IVHumbug] = ...
+      filter(MG.Disp.Filter.Humbug.b,MG.Disp.Filter.Humbug.a,MG.Data.Raw,MG.Data.IVHumbug);
   end
 end
 
@@ -100,23 +99,32 @@ end
 cDispInd = modnonzero([FirstSampleM/ScaleFactor:LastSampleM/ScaleFactor],MG.Disp.DispSteps); % Indices to select displayed samples
 cDataInd = [FirstSampleM-FirstSample+1:ScaleFactor:CurrentSamples-LastOffset]; 
 ScaleRadiusL = floor(ScaleFactor/2); ScaleRadiusU = floor(ScaleFactor/2);
-FieldNames = {'Raw','LFP','Trace'};
 for iD = 1:length(cDispInd)
     cInd = [max(cDataInd(iD) - ScaleRadiusL,1) : min(cDataInd(iD)+ScaleRadiusU-1,size(MG.Data.Raw,1))];
-    for iF =1:length(FieldNames)
-      cFieldName = FieldNames{iF};
-      if MG.Disp.(cFieldName)
-        cData = MG.Data.(cFieldName)(cInd,PlotInd);
-        cFieldNameD = [cFieldName,'D'];
-        MG.Disp.(cFieldNameD)(2*cDispInd(iD)-1,PlotInd) = max(cData);
-        MG.Disp.(cFieldNameD)(2*cDispInd(iD),PlotInd) = min(cData);
-      end
-    end
+  if MG.Disp.Raw
+    cData = MG.Data.Raw(cInd,PlotInd); 
+    MG.Disp.RawD(2*cDispInd(iD)-1,PlotInd) = max(cData);
+    MG.Disp.RawD(2*cDispInd(iD),PlotInd) = min(cData);
+  end
+  if MG.Disp.LFP
+    cData = MG.Data.LFP(cInd,PlotInd); 
+    MG.Disp.LFPD(2*cDispInd(iD)-1,PlotInd) = max(cData);
+    MG.Disp.LFPD(2*cDispInd(iD),PlotInd) = min(cData);
+  end
+  if MG.Disp.Trace
+    cData = MG.Data.Trace(cInd,PlotInd); 
+    MG.Disp.TraceD(2*cDispInd(iD)-1,PlotInd) = max(cData);
+    MG.Disp.TraceD(2*cDispInd(iD),PlotInd) = min(cData);
+  end
 end
 
-%% INTRODUCE WHITE LINE IN EACH PLOT
-WhiteInd = modnonzero(2*cDispInd(end)+[3:6],size(MG.Disp.TraceD,1));
-for iF=1:length(FieldNames) MG.Disp.([FieldNames{iF},'D'])(WhiteInd,:)=0; end
+%% INTRODUCE WHITE LINE IN EACH PLOT 
+if ~isempty(cDispInd)
+  WhiteInd = modnonzero(2*cDispInd(end)+[2:7],size(MG.Disp.TraceD,1));
+  MG.Disp.TraceD(WhiteInd,:)=0;
+  MG.Disp.LFPD(WhiteInd,:)=0;
+  MG.Disp.RawD(WhiteInd,:)=0;
+end
 
 %% PREPARE DEPTH REPRESENTATION
 if MG.Disp.DepthAvailable & MG.Disp.Depth
@@ -194,8 +202,8 @@ if MG.Disp.Spike
         end
         if ~mod(Iteration,20) MG.Disp.SorterFun(1,i); end
       end
-      %  set(MG.Disp.FR(i),'String',...
-      %    [sprintf('%5.1f Hz',length(SP)/MG.DAQ.TimeTaken(Iteration))]);
+      set(MG.Disp.FR(i),'String',...
+         [sprintf('%5.1f Hz',length(SP)/MG.DAQ.TimeTaken(Iteration))]);
       % SAVE SPIKETIMES WHILE RECORDING (GENERALIZE TO MULTIPLE CELLS)
       if MG.Disp.SaveSpikes % ONLY FOR REMOTELY TRIGGERED RECORDINGS
         MG.Disp.AllSpikes(i).trialid(end+1:end+length(SP)) = MG.DAQ.Trial;

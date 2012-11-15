@@ -5,7 +5,7 @@ global MG
 % SET COMPUTERSPECIFIC PROPERTIES
 switch Selection
   case 'HW';
-    MG.HW.NIDAQ.BoardIDs = {'Dev2','Dev1'};
+    MG.HW.NIDAQ.BoardIDs = {'Dev2'};
     MG.HW.NIDAQ.BoardsBool = logical([1,0]);
     MG.HW.NIDAQ.SystemsByBoard = struct('Name',{'AM_Systems_3000'});
     MG.HW.NIDAQ.ArraysByBoard(1) = struct('Name','single_clockwise','Pins',1:32);

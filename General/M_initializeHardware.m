@@ -37,7 +37,7 @@ for i=1:MG.HW.NBoards % LOOP over physically present boards
       case 'NIDAQ';
         S = DAQmxResetDevice(MG.DAQ.BoardIDs{k}); if S NI_MSG(S); end
         Num = libpointer('doublePtr',0);
-        S = DAQmxGetDevAIMaxMultiChanRate(MG.DAQ.BoardIDs{k},Num); if S dispError(S,NI.params); end
+        S = DAQmxGetDevAIMaxMultiChanRate(MG.DAQ.BoardIDs{k},Num); if S NI_MSG(S); end
       case 'HSDIO'; % DONE IN STREAMING PROGRAM
     end
     
@@ -70,7 +70,9 @@ if isempty(find(MG.DAQ.SR==MG.DAQ.AvailSRs))
 end
 switch cEngine;
   case 'HSDIO'; 
-    MG.DAQ.HSDIO.SRDigital = 33333333;%M_convSRAnalog2Digital(MG.DAQ.SR); 
+      % svd changed to 50Mb because some sort of conflict cropped up b/c
+      % digital sr was set to that value somewhere else.
+    MG.DAQ.HSDIO.SRDigital = 5000000;%M_convSRAnalog2Digital(MG.DAQ.SR); 
     MG.DAQ.HSDIO.StopFile = [MG.DAQ.HSDIO.TempFile,'Stop'];
 end
 
