@@ -34,7 +34,7 @@ for iB=MG.DAQ.BoardsNum % Iterate over active boards
   
   % SET SENSOR & UNITS RANGE
   MG.DAQ.SensorRangesByBoard{iB} = MG.DAQ.InputRangesByBoard{iB};
-  MG.DAQ.UnitsRangesByBoard{iB} =MG.DAQ.SensorRangesByBoard{iB}/MG.DAQ.GainsByBoard(iB);
+  MG.DAQ.UnitsRangesByBoard{iB} = MG.DAQ.SensorRangesByBoard{iB}/MG.DAQ.GainsByBoard(iB);
   
   % SET INT16FACTOR FOR EACH CHANNEL
   MG.DAQ.int16factors{iB} = 2^15/(MG.DAQ.InputRangesByBoard{iB}(1,2)/MG.DAQ.GainsByBoard(iB)) ...

@@ -25,8 +25,10 @@ MG.HW.ArraysByBoard = MG.HW.(cEngine).ArraysByBoard;
 MG.HW.AvailInputRanges = MG.HW.Boards(1).InputRanges;
 MG.HW.AvailSRs = MG.HW.Boards(1).AvailSRs;
 
+% REMOVE FIELDS FROM PREVIOUS ENGINES
+try MG.DAQ = rmfield(MG.DAQ,'BoardsBool'); end
+
 % TRANSFER INFORMATION OF GLOBALLY SELECTED BOARDS TO MG.DAQ
-if ~isfield(MG.DAQ,'BoardsBool') InitBase = 1; else InitBase =0; end
 k=0;
 for i=1:MG.HW.NBoards % LOOP over physically present boards
   if cBoardsBool(i)  k=k+1;  % Transfer the selected ones
@@ -37,7 +39,7 @@ for i=1:MG.HW.NBoards % LOOP over physically present boards
       case 'NIDAQ';
         S = DAQmxResetDevice(MG.DAQ.BoardIDs{k}); if S NI_MSG(S); end
         Num = libpointer('doublePtr',0);
-        S = DAQmxGetDevAIMaxMultiChanRate(MG.DAQ.BoardIDs{k},Num); if S dispError(S,NI.params); end
+        S = DAQmxGetDevAIMaxMultiChanRate(MG.DAQ.BoardIDs{k},Num); if S NI_MSG(S); end
       case 'HSDIO'; % DONE IN STREAMING PROGRAM
     end
     
@@ -48,17 +50,22 @@ for i=1:MG.HW.NBoards % LOOP over physically present boards
     MG.DAQ.ChannelMapsByBoard{k} = R.ChannelMap;
     MG.DAQ.ArraysByBoard(k) = MG.HW.ArraysByBoard(i);
     MG.DAQ.SystemsByBoard(k) = MG.HW.SystemsByBoard(i);
-    if InitBase % Not loading a configuration
-      MG.DAQ.BoardsBool(k) = 1; 
+    MG.DAQ.BoardsBool(k) = 1;
+    if ~isfield(MG.DAQ,'ChannelsBool') | length(MG.DAQ.ChannelsBool)<k | ...
+        length(MG.DAQ.ChannelsBool{k}) ~= MG.DAQ.NChannelsPhys(k) 
       MG.DAQ.ChannelsBool{k} = repmat(1,MG.DAQ.NChannelsPhys(k),1);
     end
     MG.DAQ.ChannelsNum{k} = find(MG.DAQ.ChannelsBool{k});
+    MG.DAQ.NChannels(k) = sum(MG.DAQ.ChannelsBool{k});
   end
 end
 MG.DAQ.NBoardsUsed = sum(cBoardsBool);
 MG.DAQ.BoardsNames = MG.HW.BoardsNames(cBoardsBool);
 MG.DAQ.Boards = MG.HW.Boards(cBoardsBool);
 MG.DAQ.BoardsNum = find(MG.DAQ.BoardsBool);
+FNs = {'ChannelsBool'};
+for i=1:length(FNs) MG.DAQ.(FNs{i}) = MG.DAQ.(FNs{i})(1:length(MG.DAQ.BoardsNum)); end
+
 MG.DAQ.Triggers = MG.HW.(cEngine).Triggers;
 MG.DAQ.Triggers.All = unique({MG.DAQ.Triggers.Remote,'PFI0','PFI3','DIO1','RTSI0'});
 

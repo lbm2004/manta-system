@@ -11,6 +11,7 @@ Styles = {'50Hz','60Hz','SeqAv'};
 if exist('Opt','var') & strcmp(Opt,'getstyles') b = Styles; return; end
 
 MG.Disp.HumbugSeqAv = 0;
+b = 1; a = 1;
 
 switch MG.Disp.Filter.Humbug.Style
   case '50Hz'  % EUROPEAN MODE

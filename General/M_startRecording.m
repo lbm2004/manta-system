@@ -4,16 +4,14 @@ function M_startRecording
 global MG Verbose
 
 % CHECK IF ENGINE IS RUNNING AND START IF NECESSARY 
-if MG.DAQ.DAQAccess
-  switch MG.DAQ.Engine
-    case 'NIDAQ';
-      for i=MG.DAQ.BoardsNum
-        Done = libpointer('uint32Ptr',0);
-        S =  DAQmxIsTaskDone(MG.AI(i),Done); if S NI_MSG(S); end
-        Stopped(i) = get(Done,'Value');
-      end
-      if any(Stopped) M_startEngine; end
-  end
+switch MG.DAQ.Engine
+  case 'NIDAQ';
+    for i=MG.DAQ.BoardsNum
+      Done = libpointer('uint32Ptr',0);
+      S =  DAQmxIsTaskDone(MG.AI(i),Done); if S NI_MSG(S); end
+      Stopped(i) = get(Done,'Value');
+    end
+    if any(Stopped) M_startEngine; end
 end
 
 % PREPARE FILES FOR SAVING
