@@ -23,6 +23,13 @@ switch Selection
     MG.HW.HSDIO.ArraysByBoard(1) = struct('Name','lma3d_1_96','Pins',[1:96]);
     MG.HW.HSDIO.Triggers = struct('Remote','PFI1','Local','None');
     
+    % SIMULATION MODE
+    MG.HW.SIM.BoardIDs = {'SIM'};
+    MG.HW.SIM.BoardsBool = logical([1]);
+    MG.HW.SIM.SystemsByBoard = struct('Name',{'generic_32Ch_16bit'});
+    MG.HW.SIM.ArraysByBoard(1) = struct('Name','mea_1_32','Pins',[1:32]);
+    MG.HW.SIM.Triggers = struct('Remote','PFI1','Local','None');
+    
   case 'DAQ';
     MG.DAQ.DataPath = 'D:\Data\';
     MG.DAQ.HSDIO.TempFile = 'C:\HSDIO.bin'; % Intermediate storage of acquired data

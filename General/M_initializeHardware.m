@@ -63,8 +63,9 @@ MG.DAQ.NBoardsUsed = sum(cBoardsBool);
 MG.DAQ.BoardsNames = MG.HW.BoardsNames(cBoardsBool);
 MG.DAQ.Boards = MG.HW.Boards(cBoardsBool);
 MG.DAQ.BoardsNum = find(MG.DAQ.BoardsBool);
-FNs = {'ChannelsBool'};
+FNs = {'ChannelsBool','NChannels'};
 for i=1:length(FNs) MG.DAQ.(FNs{i}) = MG.DAQ.(FNs{i})(1:length(MG.DAQ.BoardsNum)); end
+MG.DAQ.NChannelsTotal = sum(MG.DAQ.NChannels);
 
 MG.DAQ.Triggers = MG.HW.(cEngine).Triggers;
 MG.DAQ.Triggers.All = unique({MG.DAQ.Triggers.Remote,'PFI0','PFI3','DIO1','RTSI0'});

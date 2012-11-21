@@ -382,6 +382,7 @@ global MG Verbose
 if exist('Loc','var') M_CBF_setValue(obj,event,Loc); end
 M_initializeHardware;
 for i=1:length(MG.GUI.FIGs) try delete(MG.GUI.FIGs(i)); end; end
+MG.Audio.ElectrodesBool = logical(ones(1,MG.DAQ.NChannelsTotal));
 M_buildGUI;
 
 function M_CBF_loadConfiguration(obj,event)
