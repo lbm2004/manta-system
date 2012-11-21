@@ -643,7 +643,7 @@ DC2 = HF_axesDivide([1,2],1,DC{1,3},[0.1],[]);
 TT = 'Pins on current array assgined to present Board.';
 LF_addText(cFIG,DC2{1},'Selected',TT,[],[],MG.Colors.GUIBackground);
 MG.GUI.PinSelector(BoardIndex) = LF_addEdit(cFIG,DC2{2},...
-  HF_list2colon(MG.DAQ.ArraysByBoard(BoardPhysNum).Pins),...
+  HF_list2colon(MG.HW.ArraysByBoard(BoardPhysNum).Pins),...
   {@M_CBF_setPins,BoardIndex,'Select'},[],TT);
 
 % ADD CHANNEL SELECTOR
@@ -700,13 +700,14 @@ switch Mode
 end
 M_CBF_setArray(obj,event,BoardIndex,'BuildGUI');
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function M_CBF_setArray(obj,event,BoardIndex,Mode)
 global MG Verbose
 BoardPhysNum = MG.HW.BoardsNum(BoardIndex);
 Opts = get(MG.GUI.ArraySelector(BoardIndex),'UserData');
 Value = get(MG.GUI.ArraySelector(BoardIndex),'Value');
 ArrayInfo = M_ArrayInfo(Opts{Value});
-if ~isempty(ArrayInfo) 
+if ~isempty(ArrayInfo) % FOR THE GENERIC ARRAY THAT DOES NOT DEFINE ANY CHANNELS
   ArrayPins = ArrayInfo.PinsByElectrode; 
 else
   ArrayPins = [1:MG.DAQ.NChannels(BoardIndex)];
@@ -722,13 +723,10 @@ switch Mode
 end
 M_CBF_setPins(obj,event,BoardIndex,Mode);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function M_CBF_setPins(obj,event,BoardIndex,Mode)
 global MG Verbose
 BoardPhysNum = MG.HW.BoardsNum(BoardIndex);
-
-Opts = get(MG.GUI.ArraySelector(BoardIndex),'UserData');
-Value = get(MG.GUI.ArraySelector(BoardIndex),'Value');
-ArrayInfo = M_ArrayInfo(Opts{Value});
 
 switch Mode
   case 'BuildGUI';
@@ -742,7 +740,7 @@ end
 % SET THE PINS
 cRecSys = M_RecSystemInfo(MG.DAQ.SystemsByBoard(BoardIndex).Name);
 NChannels = length(cRecSys.ChannelMap);
-RelPins = ArrayPins-ArrayPins(1)+1; 
+RelPins = ArrayPins-ArrayPins(1)+1;
 cAIs = cRecSys.ChannelMap;
 
 % SET PIN COLORS BASED ON WHETHER THE PIN IS SELECTED (USUALLY VIA THE ARRAY)
@@ -765,6 +763,7 @@ for i=1:length(cAIs)
 end
 M_CBF_addChannel(MG.GUI.ChannelSelByBoardCheck{BoardIndex},[],BoardIndex,[1:NChannels]);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function M_CBF_setSelected(obj,event,BoardIndex,Mode)
 % CALL BACK FOR THE CHANNEL SELECTION FIELD
 global MG Verbose
@@ -782,6 +781,7 @@ set(MG.GUI.ChannelSelByBoardCheck{BoardIndex}(setdiff([1:NChannels],SelChannels)
 % ADD THE CORRECT SET OF CHANNELS
 M_CBF_addChannel(MG.GUI.ChannelSelByBoardCheck{BoardIndex},[],BoardIndex,[1:NChannels]);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function M_InitializeChannelsXY(BoardIndex)
 global MG Verbose
 NChannel = MG.DAQ.NChannelsPhys(BoardIndex);
