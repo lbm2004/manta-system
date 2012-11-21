@@ -222,7 +222,7 @@ M_changeUnits(1:NPlot);
 M_showMain;
 if MG.Disp.Array3D M_prepare3DRotation; end
 % PREPARE SIMULATED DATA (FOR OFFLINE TESTING)
-if ~MG.DAQ.DAQAccess M_prepareSpikes; end
+if strcmp(MG.DAQ.Engine,'SIM') M_prepareSpikes; end
  
 MGold.Disp = MG.Disp; MGold.DAQ = MG.DAQ; % Save to check in M_startEngine
 MG.Disp.Done = 1;
@@ -256,7 +256,8 @@ else % USE THE POSITIONS GIVEN BY THE ARRAY SPECS
   if ~isnan(ElecPos) & length(unique(ElecPos(:,1)))>1 & length(unique(ElecPos(:,2)))>1 & length(unique(ElecPos(:,3)))>1
     MG.Disp.Array3D = 1;
     % GENERATE CHANNELXYZ
-    try MG.Disp = rmfield(MG.Disp,{'ChannelXYZ','PlotPositions3D'}); end
+    try MG.Disp = rmfield(MG.Disp,'ChannelXYZ'); end
+    try MG.Disp = rmfield(MG.Disp,'PlotPositions3D'); end
     for i=1:3
       UPos{i} = unique(ElecPos(:,i)); MinDPos(i) = min(diff(UPos{i}));
       MG.Disp.ChannelXYZ(:,i) = round(ElecPos(:,i)/MinDPos(i));
@@ -345,6 +346,7 @@ global MG Verbose
 SelType = get(gcf, 'SelectionType');
 switch SelType 
   case {'normal','open'}; button = 1; % left
+    % POP OUT PLOT TO INDIVIDUAL WINDOW
     cFIG = MG.Disp.FIG+Index;
     figure(cFIG); clf;
     set(cFIG,'Position',[10,50,400,200],'DeleteFcn',{@M_CBF_returnPlot,Index,String},...
@@ -362,6 +364,7 @@ switch SelType
     xlabel(MG.Disp.AH.Spike(Index),'Time [Milliseconds]');
     
   case {'alt'}; button = 2; % right
+    % INDICATE SPIKE
     MG.Disp.HasSpikeBool(Index) = ~MG.Disp.HasSpikeBool(Index);
     if MG.Disp.HasSpikeBool(Index)  Color = MG.Colors.SpikeBackground;
     else Color = MG.Colors.AlterColors{MG.Disp.AxesAlterInd(Index)+1};
@@ -399,22 +402,25 @@ switch SelType
   case {'open'}; button = 4; % with shift
   otherwise error('Invalid mouse selection.')
 end
-if button == 1 % Change Scale
-  cYLim = get(obj,'YLim');
-  if D(1,2) > (cYLim(1)+cYLim(2))/2
-    NewYLim = 0.5*cYLim; % Zoom out
-  else
-    NewYLim = 2*cYLim; % Zoom in
-  end
-  set(obj,'YLim',NewYLim);
-  MG.Disp.YLims(Index,:) = [NewYLim];
-  M_changeUnits(Index)
-end
-if button == 2  % Set Threshold
-  MG.Disp.Thresholds(Index) = D(1,2);
-  MG.Disp.AutoThreshBool(Index) = logical(0);
-end
-if button == 3  % Set Scale to match data
+switch button 
+  case 1 % Change Scale on both data and spike window
+    cYLim = get(obj,'YLim');
+    if D(1,2) > (cYLim(1)+cYLim(2))/2
+      NewYLim = 0.5*cYLim; % Zoom out
+    else
+      NewYLim = 2*cYLim; % Zoom in
+    end
+    set([MG.Disp.AH.Data(Index),MG.Disp.AH.Spike(Index)],'YLim',NewYLim);
+    MG.Disp.YLims(Index,:) = [NewYLim];
+    M_changeUnits(Index)
+
+  case 2  % Set Threshold for right click in spike window
+    if obj == MG.Disp.AH.Spike(Index)
+      MG.Disp.Thresholds(Index) = D(1,2);
+      MG.Disp.AutoThreshBool(Index) = logical(0);
+    end
+      
+  case 3  % Set Scale to match data
   if MG.Disp.Raw            Data = MG.Disp.RawD;
   elseif MG.Disp.LFP      Data = MG.Disp.LFPD;
   elseif MG.Disp.Trace   Data = MG.Disp.TraceD;

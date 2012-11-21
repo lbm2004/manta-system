@@ -66,7 +66,7 @@ for i=1:MG.DAQ.NBoardsUsed  % i is the BoardIndex used below. It is relative to 
   TT=MG.DAQ.BoardsNames{i};
   MG.GUI.Boards(i) = LF_addCheckbox(Panel,DC2{i,1},MG.DAQ.BoardsBool(i),{@M_CBF_addBoard,i},TT);
   String = MG.DAQ.BoardIDs{i}; 
-  LF_addText(Panel,DC2{i,2}-[0,0.02,0,0.1],String);
+  LF_addText(Panel,DC2{i,2}-[0,0.02,0,0.01],String);
   % Input Range
   tmp = MG.HW.AvailInputRanges;
   for iS=1:size(tmp,1) Strings{iS} = ['[',n2s(tmp(iS,1)),',',n2s(tmp(iS,2)),']']; end
@@ -115,7 +115,7 @@ DC2=HF_axesDivide([1.5,.5],[1],DC{2},.3,[]);
 Loc = 'MG.DAQ.BaseName'; TT=['Current Base Filename'];
 MG.GUI.BaseName = LF_addEdit(Panel,DC2{1},eval(Loc),{@M_CBF_setValue,Loc},TT);
 % Minimal Saving Interval
-Loc = 'MG.DAQ.MinDur'; TT='Minimal Duration for gettting  [Seconds]';
+Loc = 'MG.DAQ.MinDur'; TT='Minimal duration for updating the display  [Seconds]';
 MG.GUI.MinDur = LF_addEdit(Panel,DC2{2},eval(Loc),{@M_CBF_setValue,Loc},TT);
 
 DC2=HF_axesDivide([1,1.6,.6],[1],DC{3},0.3,[]);
@@ -377,8 +377,11 @@ PanNum = PanNum + 1;
 
 function M_CBF_reinitHardware(obj,event,Loc)
 
+global MG Verbose
+  
 if exist('Loc','var') M_CBF_setValue(obj,event,Loc); end
 M_initializeHardware;
+for i=1:length(MG.GUI.FIGs) try delete(MG.GUI.FIGs(i)); end; end
 M_buildGUI;
 
 function M_CBF_loadConfiguration(obj,event)
@@ -402,9 +405,11 @@ global MG Verbose
 % space. This can be fixed once we design a FIFO rolling buffer for the
 % streamer.
 Loopcount=0;
+MG.DAQ.RestartHSDIO=0;
 if get(obj,'Value')
     while Loopcount==0 || ...
             (isfield(MG.DAQ,'RestartHSDIO') && MG.DAQ.RestartHSDIO)
+        if Verbose, fprintf('Restarting HSDIO engine\n'); end
         M_startEngine('Trigger','Local');
         Loopcount=Loopcount+1;
     end
@@ -492,7 +497,6 @@ switch location
   case 'MG.DAQ.BaseName'; M_setDiskspace; 
 end
 
-
 function M_CBF_setValueSR(obj,event)
 % Set the analog and digital sampling rate
 global MG Verbose
@@ -574,6 +578,25 @@ catch
 end
 
 function M_CBF_selectChannels(obj,event,BoardIndex)
+% FUNCTIONALITY:
+% When window is not open, read the current configuration and display it.
+% When window is already open, the call back functions write the changes back 
+%
+% The displayed information is:
+% - Recording system connected to the present board
+% - Array connected to the present recording system
+% - Pins of the Array actually connected to the present recording system
+%   (here it is assumed that the Pins connect linearly to the recording system,
+%    a remapping to electrodes can be defined in M_ArrayInfo)
+% - Channels selected for recording (via checkbox)
+% - Color of the Label indicates whether a pin of the array is currently connected
+% - Label indicates the AnalogIN channel, the pin on the frontend, and the pin on the array (to illustrate the remapping)
+% - Callback has to:
+%   - updateChannelMaps
+%   - update GUI
+% - Pins run local to the board
+% - ArrayPins run global on the array
+
 global MG Verbose
 MPos = get(MG.GUI.FIG,'Position');
 cFIG = MG.GUI.FIG+100+BoardIndex; figure(cFIG); clf;
@@ -583,7 +606,7 @@ NX = 4; NY = NChannel/NX+1;
 FH = NY*24; FW = 150*NX;
 Pos = [MPos(1)+MPos(3)+10,SS(4)-FH-MG.GUI.MenuOffset,FW,FH];
 set(cFIG,'Position',Pos,'Toolbar','none','Menubar','none',...
-  'Name',MG.DAQ.BoardIDs{BoardIndex},...
+  'Name',[MG.DAQ.Engine,' : ',MG.DAQ.BoardIDs{BoardIndex}] ,...
   'NumberTitle','off','Color',MG.Colors.GUIBackground);
 MG.GUI.ChannelSelByBoard{BoardIndex} = [];
 
@@ -591,124 +614,166 @@ M_InitializeChannelsXY(BoardIndex);
 
 DC = HF_axesDivide(NX,NY,[0.02,0.02,0.96,0.96],0.2,[0.9,0.3*ones(1,NY-2)]);
 
-% USE POSITION CHECKBOX
-DC2 = HF_axesDivide([0.5,1.5,2],1,DC{1,1},[0.1],[]);
-Loc = ['MG.Disp.UseUserXY'];
-TT = ['Use the positions for the channels specified below. Otherwise the one from M_ArrayInfo are used.'];
-LF_addCheckbox(cFIG,DC2{1},eval(Loc),...
-  {@M_CBF_setValue,Loc},TT,[],MG.Colors.GUIBackground);
-LF_addText(cFIG,DC2{2},'Use Pos.',TT,[],[],MG.Colors.GUIBackground);
-
 % ADD REC SYS SELECTOR
-DC2 = HF_axesDivide([1,2],1,DC{1,2},[0.3],[]);
+DC2 = HF_axesDivide([1,2],1,DC{1,1},[0.1],[]);
 TT = 'Recording system used with the present Board (sets Amplification and Range)';
 LF_addText(cFIG,DC2{1},'RecSys',TT,[],[],MG.Colors.GUIBackground);
-RecSysNames = M_RecSysAll;
 BoardPhysNum = MG.HW.BoardsNum(BoardIndex); % BoardPhysNum is relative to the physically present boards
+RecSysNames = M_RecSysAll(MG.DAQ.Engine);
+RecSysInd = find(strcmpi(lower(MG.HW.SystemsByBoard(BoardPhysNum).Name),RecSysNames));
+if isempty(RecSysInd) RecSysInd = 1; end
 MG.GUI.RecSysSelector(BoardIndex) = LF_addDropdown(cFIG,DC2{2},...
-  RecSysNames,find(strcmpi(lower(MG.HW.SystemsByBoard(BoardPhysNum).Name),RecSysNames)),...
-  {@M_CBF_setRecSys,BoardIndex},RecSysNames,TT);
+  RecSysNames,RecSysInd,{@M_CBF_setRecSys,BoardIndex,'Select'},RecSysNames,TT);
 
 % ADD ARRAY SELECTOR
-DC2 = HF_axesDivide([1,2],1,DC{1,3},[0.3],[]);
+DC2 = HF_axesDivide([1,2],1,DC{1,2},[0.1],[]);
 TT = 'Array used with the present Board';
 LF_addText(cFIG,DC2{1},'Array',TT,[],[],MG.Colors.GUIBackground);
 ArrayNames = M_ArraysAll;
 MG.GUI.ArraySelector(BoardIndex) = LF_addDropdown(cFIG,DC2{2},...
   ArrayNames,find(strcmpi(lower(MG.HW.ArraysByBoard(BoardPhysNum).Name),ArrayNames)),...
-  {@M_CBF_setArray,BoardIndex},ArrayNames,TT);
+  {@M_CBF_setArray,BoardIndex,'Select'},ArrayNames,TT);
 
-% ADD PINS SELECTOR
-DC2 = HF_axesDivide([1,2],1,DC{1,4},[0.3],[]);
-TT = 'Pins/Electrodes on the Array used for the present Board';
-LF_addText(cFIG,DC2{1},'Pins',TT,[],[],MG.Colors.GUIBackground);
+% ADD PIN SELECTOR
+DC2 = HF_axesDivide([1,2],1,DC{1,3},[0.1],[]);
+TT = 'Pins on current array assgined to present Board.';
+LF_addText(cFIG,DC2{1},'Selected',TT,[],[],MG.Colors.GUIBackground);
+MG.GUI.PinSelector(BoardIndex) = LF_addEdit(cFIG,DC2{2},...
+  HF_list2colon(MG.DAQ.ArraysByBoard(BoardPhysNum).Pins),...
+  {@M_CBF_setPins,BoardIndex,'Select'},[],TT);
+
+% ADD CHANNEL SELECTOR
+DC2 = HF_axesDivide([1,2],1,DC{1,4},[0.1],[]);
+TT = 'Channels selected on the present Board';
+LF_addText(cFIG,DC2{1},'Selected',TT,[],[],MG.Colors.GUIBackground);
 cArray = M_ArrayInfo(MG.HW.ArraysByBoard(BoardPhysNum).Name);
-MG.GUI.PinsSelector(BoardIndex) = LF_addEdit(cFIG,DC2{2},...
-  HF_list2colon(MG.HW.ArraysByBoard(BoardPhysNum).Pins),{@M_CBF_setPins,BoardIndex},[],TT);
+MG.GUI.ChannelSelector(BoardIndex) = LF_addEdit(cFIG,DC2{2},...
+  HF_list2colon(find(MG.DAQ.ChannelsBool{BoardIndex})),{@M_CBF_setSelected,BoardIndex,'Select'},[],TT);
 
 DC = DC(2:end,:);
 for i=1:NChannel
-  DC2 = HF_axesDivide([2,0.5,0.6,0.6],1,DC{i},[0.1],[0.3]);
+  DC2 = HF_axesDivide([2,0.3],1,DC{i},[0],[0.3]);
   if MG.DAQ.ElectrodesByBoardBool{BoardIndex}(i)
     cColor =[0,1,0]; else cColor = [1,0,0];  end
-  MG.GUI.ChannelSelByBoard{BoardIndex}(i) = LF_addText(cFIG,DC2{1},'',[],[],cColor,MG.Colors.GUIBackground,'FontSize',7);
+  MG.GUI.ChannelSelByBoard{BoardIndex}(i) = LF_addText(cFIG,DC2{1},'','Pin (on Frontend) and AI (on DAQ card)',[],cColor,MG.Colors.GUIBackground,'FontSize',7);
+  set(MG.GUI.ChannelSelByBoard{BoardIndex}(i),'Horiz','right');
   Loc = ['MG.DAQ.ChannelsBool{',n2s(BoardIndex),'}(',n2s(i),')'];
   MG.GUI.ChannelSelByBoardCheck{BoardIndex}(i) = LF_addCheckbox(cFIG,DC2{2},eval(Loc),...
     {@M_CBF_addChannel,BoardIndex,i},[],[],MG.Colors.GUIBackground);
-  Loc = ['MG.Disp.ChannelsXYByBoard{',n2s(BoardIndex),'}(',n2s(i),',1)'];
-  LF_addEdit(cFIG,DC2{3},eval(Loc),{@M_CBF_setValue,Loc});
-  Loc = ['MG.Disp.ChannelsXYByBoard{',n2s(BoardIndex),'}(',n2s(i),',2)'];
-  LF_addEdit(cFIG,DC2{4},eval(Loc),{@M_CBF_setValue,Loc});
 end
-M_CBF_setRecSys(obj,event,BoardIndex);
+M_CBF_setRecSys(obj,event,BoardIndex,'BuildGUI');
 
-function M_CBF_setRecSys(obj,event,BoardIndex)
+function M_CBF_setRecSys(obj,event,BoardIndex,Mode)
 global MG Verbose
+
+% GET NEW SYSTEM AND SET VALUES
 BoardPhysNum = MG.HW.BoardsNum(BoardIndex);
 Opts = get(MG.GUI.RecSysSelector(BoardIndex),'UserData');
 Value = get(MG.GUI.RecSysSelector(BoardIndex),'Value');
-MG.HW.(MG.DAQ.Engine).SystemsByBoard(BoardPhysNum).Name = Opts{Value};
-MG.HW.SystemsByBoard(BoardPhysNum).Name = Opts{Value};
-MG.DAQ.SystemsByBoard(BoardIndex).Name = Opts{Value};
+if isempty(Value) | Value>length(Opts) Value = 1; end
 cSystem = M_RecSystemInfo(Opts{Value}); 
 cNChannels = length(cSystem.ChannelMap);
-% IF NUMBER OF CHANNELS CHANGED, TRANSFER VALUES REBUILD GUI
-if cNChannels ~= length(MG.GUI.ChannelSelByBoard{BoardIndex})
-  MG.DAQ.ChannelsBool{BoardIndex} = ones(cNChannels,1);
-  MG.DAQ.NChannelsPhys(BoardIndex) = cNChannels;
-  MG.DAQ.ElectrodesByBoardBool{BoardIndex} = ones(cNChannels,1);
-  MG.Disp.ChannelsXYByBoard{BoardIndex} = zeros(cNChannels,2);
-  M_CBF_reinitHardware([],[]);
-  M_CBF_selectChannels(obj,event,BoardIndex);
-end
-% SHOW MAPPING BASED ON THE CABLE/SYSTEM
-M_CBF_setArray(obj,event,BoardIndex);
+set(MG.GUI.Gains(BoardPhysNum),'String',n2s(cSystem.Gain))
+set(MG.GUI.InputRange(BoardPhysNum),'Value',find(MG.DAQ.InputRangesByBoard{BoardPhysNum}(1)==MG.HW.AvailInputRanges(:,1)))
 
-function M_CBF_setArray(obj,event,BoardIndex)
+switch Mode
+  case 'BuildGUI' % BUILD THE SELECTION WINDOW FOR THE FIRST TIME
+    
+  case 'Select' % WRITE CHOICE OF SYSTEM BACK TO MG
+    MG.HW.(MG.DAQ.Engine).SystemsByBoard(BoardPhysNum).Name = Opts{Value};
+    MG.HW.SystemsByBoard(BoardPhysNum).Name = Opts{Value};
+    MG.DAQ.SystemsByBoard(BoardIndex).Name = Opts{Value};
+
+    % IF NUMBER OF CHANNELS CHANGED, TRANSFER VALUES AND REBUILD GUI
+    if cNChannels ~= length(MG.GUI.ChannelSelByBoard{BoardIndex})
+      MG.DAQ.ChannelsBool{BoardIndex} = ones(cNChannels,1);
+      MG.DAQ.NChannelsPhys(BoardIndex) = cNChannels;
+      MG.DAQ.ElectrodesByBoardBool{BoardIndex} = ones(cNChannels,1);
+      MG.Disp.ChannelsXYByBoard{BoardIndex} = zeros(cNChannels,2);
+    end
+    M_CBF_reinitHardware([],[]);
+    M_CBF_selectChannels(obj,event,BoardIndex);
+end
+M_CBF_setArray(obj,event,BoardIndex,'BuildGUI');
+
+function M_CBF_setArray(obj,event,BoardIndex,Mode)
 global MG Verbose
 BoardPhysNum = MG.HW.BoardsNum(BoardIndex);
 Opts = get(MG.GUI.ArraySelector(BoardIndex),'UserData');
 Value = get(MG.GUI.ArraySelector(BoardIndex),'Value');
-MG.HW.(MG.DAQ.Engine).ArraysByBoard(BoardPhysNum).Name = Opts{Value};
-MG.HW.ArraysByBoard(BoardPhysNum).Name = Opts{Value};
-MG.DAQ.ArraysByBoard(BoardIndex).Name = Opts{Value};
 ArrayInfo = M_ArrayInfo(Opts{Value});
-if ~isempty(ArrayInfo)
-  cPins = ArrayInfo.PinsByElectrode;
-  set(MG.GUI.PinsSelector(BoardIndex),'String',HF_list2colon(cPins));
-end
-M_CBF_setPins(obj,event,BoardIndex);
+ArrayPins = ArrayInfo.PinsByElectrode;
 
-function M_CBF_setPins(obj,event,BoardIndex)
+switch Mode
+  case 'BuildGUI';
+    
+  case 'Select';
+    MG.HW.(MG.DAQ.Engine).ArraysByBoard(BoardPhysNum).Name = Opts{Value};
+    MG.HW.ArraysByBoard(BoardPhysNum).Name = Opts{Value};
+    MG.DAQ.ArraysByBoard(BoardIndex).Name = Opts{Value};
+    MG.DAQ.ArraysByBoard(BoardIndex).Pins = ArrayPins;
+end
+M_CBF_setPins(obj,event,BoardIndex,Mode);
+
+function M_CBF_setPins(obj,event,BoardIndex,Mode)
 global MG Verbose
 BoardPhysNum = MG.HW.BoardsNum(BoardIndex);
-Pins = str2num(get(MG.GUI.PinsSelector(BoardIndex),'String'));
-if isempty(Pins) Pins = 1; set(MG.GUI.PinsSelector(BoardIndex),'String',n2s(Pins)); end
-MG.HW.(MG.DAQ.Engine).ArraysByBoard(BoardPhysNum).Pins = Pins;
-MG.HW.ArraysByBoard(BoardPhysNum).Pins = Pins;
-MG.DAQ.ArraysByBoard(BoardIndex).Pins = Pins;
-% SET PIN COLORS BASED ON WHETHER A CHANNEL IS CONNECTED
+
+Opts = get(MG.GUI.ArraySelector(BoardIndex),'UserData');
+Value = get(MG.GUI.ArraySelector(BoardIndex),'Value');
+ArrayInfo = M_ArrayInfo(Opts{Value});
+
+switch Mode
+  case 'BuildGUI';
+    ArrayPins = MG.DAQ.ArraysByBoard(BoardIndex).Pins;
+    
+  case 'Select';
+    ArrayPins = eval(get(MG.GUI.PinSelector(BoardIndex),'String'));
+    MG.DAQ.ArraysByBoard(BoardIndex).Pins = ArrayPins;
+end
+
+% SET THE PINS
 cRecSys = M_RecSystemInfo(MG.DAQ.SystemsByBoard(BoardIndex).Name);
 NChannels = length(cRecSys.ChannelMap);
-RelPins = Pins-Pins(1)+1; 
-cAIs = cRecSys.ChannelMap(RelPins(1:min(length(RelPins),NChannels)));
-for i=1:NChannels
-  Match = find(i==cAIs);
+RelPins = ArrayPins-ArrayPins(1)+1; 
+cAIs = cRecSys.ChannelMap;
+
+% SET PIN COLORS BASED ON WHETHER THE PIN IS SELECTED (USUALLY VIA THE ARRAY)
+RelArrayPins = ArrayPins-ArrayPins(1)+1; 
+
+for i=1:length(cAIs)
+  % CHANGE THE COLORS OF THE LABELS
+  Match = find(cAIs(i)==RelArrayPins);
   if ~isempty(Match)
-    cPin = RelPins(Match)+Pins(1)-1;
+    cPin = RelArrayPins(Match)+ArrayPins(1)-1;
+    cAPin = ArrayPins(Match);
     set(MG.GUI.ChannelSelByBoard{BoardIndex}(i),'ForeGroundColor',[0,1,0]);
-    set(MG.GUI.ChannelSelByBoardCheck{BoardIndex}(i),'Value',1);
   else
     cPin = NaN;
+    cAPin = NaN;
     set(MG.GUI.ChannelSelByBoard{BoardIndex}(i),'ForeGroundColor',[1,0,0]);
-    set(MG.GUI.ChannelSelByBoardCheck{BoardIndex}(i),'Value',0);
   end
-  set(MG.GUI.ChannelSelByBoard{BoardIndex}(i),'String',['P',n2s(cPin),' | AI',n2s(i)],'Horiz','left');
+  % SET LABEL FOR EACH ANALOG IN CHANNEL WITH ARRAY
+  set(MG.GUI.ChannelSelByBoard{BoardIndex}(i),'String',['AI',n2s(i),' | P',n2s(cPin),' | AP',n2s(cAPin)],'Horiz','left');
 end
 M_CBF_addChannel(MG.GUI.ChannelSelByBoardCheck{BoardIndex},[],BoardIndex,[1:NChannels]);
+
+function M_CBF_setSelected(obj,event,BoardIndex,Mode)
+% CALL BACK FOR THE CHANNEL SELECTION FIELD
+global MG Verbose
+
+% GET THE SELECTED CHANNELS
+SelChannels = str2num(get(MG.GUI.ChannelSelector(BoardIndex),'String'));
+if isempty(SelChannels) SelChannels = 1; set(MG.GUI.ChannelSelector(BoardIndex),'String','1'); end
+
+% SET THE CHANNEL CHECK BOXES BASED ON THE EDIT FIELD 
+cRecSys = M_RecSystemInfo(MG.DAQ.SystemsByBoard(BoardIndex).Name);
 NChannels = length(cRecSys.ChannelMap);
-cColor = HF_whiten([1,0,0],RelPins(end)<=length(MG.DAQ.ChannelMapsByBoard{BoardIndex}));
-set(MG.GUI.PinsSelector(BoardIndex),'BackGroundColor',cColor);
+set(MG.GUI.ChannelSelByBoardCheck{BoardIndex}(SelChannels),'Value',1);
+set(MG.GUI.ChannelSelByBoardCheck{BoardIndex}(setdiff([1:NChannels],SelChannels)),'Value',0);
+
+% ADD THE CORRECT SET OF CHANNELS
+M_CBF_addChannel(MG.GUI.ChannelSelByBoardCheck{BoardIndex},[],BoardIndex,[1:NChannels]);
 
 function M_InitializeChannelsXY(BoardIndex)
 global MG Verbose
@@ -719,16 +784,16 @@ if ~isfield(MG.Disp,'ChannelsXYByBoard') ...
   MG.Disp.ChannelsXYByBoard{BoardIndex} = zeros(NChannel,2);
 end
 
-function M_CBF_addChannel(obj,event,iBoard,iCh)
+function M_CBF_addChannel(obj,event,BoardIndex,iCh)
 global MG Verbose
 for i=1:length(iCh)
   cChannel = iCh(i); 
-  MG.DAQ.ChannelsBool{iBoard}(cChannel) = get(obj(i),'Value');
+  MG.DAQ.ChannelsBool{BoardIndex}(cChannel) = get(obj(i),'Value');
 end
 M_updateChannelMaps;
 M_changeNumberOfElectrodesAudio;
-set(MG.GUI.SelectChannels(iBoard),'String',...
-  [n2s(MG.DAQ.NChannels(iBoard)),' Ch']);
+set(MG.GUI.SelectChannels(BoardIndex),'String',[n2s(sum(MG.DAQ.ChannelsBool{BoardIndex})),' Ch']);
+set(MG.GUI.ChannelSelector(BoardIndex),'String',HF_list2colon(find(MG.DAQ.ChannelsBool{BoardIndex})));
 M_updateTiling;
 
 function M_CBF_selectElectrodesAll(obj,event)

@@ -15,6 +15,7 @@ Cmd = [Cmd,sprintf('%d  ',MG.DAQ.Boards(1).DigitalChannels)]; % Digital Channel 
 Cmd = [Cmd,MG.DAQ.Boards(1).TriggerChannel,' ']; % Channel to Trigger on
 Cmd = [Cmd,sprintf('%d  ',MG.HW.Boards(1).NAI)]; % Number of Analog Channels
 Cmd = [Cmd,sprintf('%d  ',MG.DAQ.Boards(1).Bits)]; % Bit Length of the current Headstage
+MG.DAQ.Simulation = 0;
 Cmd = [Cmd,sprintf('%d  ',MG.DAQ.Simulation)]; % Simulation Mode
 Cmd = [Cmd,'  >  ',MG.DAQ.HSDIO.DebugFile]; % Debugging Output
 if Verbose fprintf(escapeMasker(['Executing : [  ',Cmd,'  ]\n'])); end
@@ -28,13 +29,11 @@ delete(MG.DAQ.HSDIO.TempFile);
 % EXECUTE BINARY
 system(['start /b ',Cmd]);
 
-% wait until engine has fully started and is ready to trigger
+% WAIT UNTIL ENGINE HAS FULLY STARTED AND IS READY TO TRIGGER
 tic; TimeoutStop=toc;
 while ~exist(MG.DAQ.HSDIO.TempFile,'file') && TimeoutStop<1,
    TimeoutStop=toc;
    drawnow;
 end
-if TimeoutStop>=1,
-  error('HSDIO engine has not started');
-end
+if TimeoutStop>=1   error('HSDIO engine has not started'); end
 if Verbose disp('HSDIO engine has started successfully'); end

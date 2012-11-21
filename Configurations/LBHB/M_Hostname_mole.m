@@ -16,9 +16,9 @@ switch Selection
     MG.DAQ.Engine='HSDIO';
     %MG.DAQ.HSDIO.TempFile = 'F:\data\HSDIO.bin'; % Intermediate storage of acquired data
     %MG.DAQ.HSDIO.DebugFile = 'F:\data\HSDIO.out'; % Debugging information for digital acquisition
-    MG.DAQ.HSDIO.TempFile = 'C:\tmp\HSDIO.bin'; % Intermediate storage of acquired data
-    MG.DAQ.HSDIO.DebugFile = 'C:\tmp\HSDIO.out'; % Debugging information for digital acquisition
-    MG.DAQ.HSDIO.EngineCommand = 'C:\Code\baphy\Hardware\hsdio\hsdio_stream_dual';
+    MG.DAQ.HSDIO.TempFile = 'R:\HSDIO.bin'; % Intermediate storage of acquired data
+    MG.DAQ.HSDIO.DebugFile = 'R:\HSDIO.out'; % Debugging information for digital acquisition
+    MG.DAQ.HSDIO.EngineCommand = 'C:\Code\baphy\Hardware\hsdio\64-bit\hsdio_stream_dual';
     MG.DAQ.Simulation = 0;
 
   case 'Stim';
