@@ -16,6 +16,9 @@ TitleSize = 12; TitleColor = [1,1,1]; Offset = 0;
 PH = [40*1.15,40*(1+MG.DAQ.NBoardsUsed),160,40*(1.5+7),40*1.2]; 
 NPH = (1-length(PH)*Border)*PH/sum(PH); NPW = 1-2.5*Border; 
 
+Fields = {'LoadConfig','ChooseConfig','SaveConfig','EnginePanel','EngineDriver','SR','Engine','Boards','Gains','InputRange','SelectChannels'};
+for i=1:length(Fields) if isfield(MG.GUI,Fields{i}) MG.GUI = rmfield(MG.GUI,Fields{i}); end; end
+
 %% SETUP CONFIGURATION PANEL
 Panel = LF_addPanel(FIG,['Configuration (',MG.HW.Lab,')'],TitleSize,TitleColor,MG.Colors.Panel,...
   [Border,1-sum(NPH(1:PanNum))-(PanNum-.5)*Border-Offset,NPW,NPH(PanNum)]);
