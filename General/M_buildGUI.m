@@ -706,8 +706,11 @@ BoardPhysNum = MG.HW.BoardsNum(BoardIndex);
 Opts = get(MG.GUI.ArraySelector(BoardIndex),'UserData');
 Value = get(MG.GUI.ArraySelector(BoardIndex),'Value');
 ArrayInfo = M_ArrayInfo(Opts{Value});
-ArrayPins = ArrayInfo.PinsByElectrode;
-
+if ~isempty(ArrayInfo) 
+  ArrayPins = ArrayInfo.PinsByElectrode; 
+else
+  ArrayPins = [1:MG.DAQ.NChannels(BoardIndex)];
+end
 switch Mode
   case 'BuildGUI';
     

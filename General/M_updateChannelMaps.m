@@ -110,7 +110,9 @@ else
   end
   if ~iscell(MG.Disp.RefIndVal)
     MG.Disp.RefIndVal = intersect([1:MG.DAQ.NChannelsTotal],MG.Disp.RefIndVal);
-    set(MG.GUI.Reference.Indices,'String',HF_list2colon(MG.Disp.RefIndVal));
+    if isfield(MG.GUI,'Reference') &&  isfield(MG.GUI.Reference,'Indices') && ishandle(MG.GUI.Reference.Indices)
+      set(MG.GUI.Reference.Indices,'String',HF_list2colon(MG.Disp.RefIndVal));
+    end
   end
 end
 % MAKE SURE A SINGLE CHANNEL IS NOT SUBTRACTED AWAY
