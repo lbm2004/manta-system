@@ -94,7 +94,7 @@ switch lower(ArrayName)
     Ground = {{'Electrode',[2.0,3.0,0.0]}};
     Comment = 'Chronic recordings';
   
-     case 'mackenzie_a1_left';
+  case 'mackenzie_a1_left';
     PinsByElectrode = [1:32]; Drive = 1;
     ElecPos = [... % Array Dimensions are 8x4 with 0.5 mm spacing
       0.0,2.8; 0.5,2.8; 1.0,2.8; 1.5, 2.8;
@@ -111,7 +111,7 @@ switch lower(ArrayName)
     Ground = {{'Electrode',[2.0,3.0,0.0]}};
     Comment = 'Chronic recordings';
         
-     case 'xylo_1_32'; % Omnetics is assumed to be on top
+  case 'xylo_1_32'; 
         PinsByElectrode = [1:32]; Drive = 1;
         ElecPos = [... % Width in both dimensions was 2.5mm
             1.8,0.5;...
@@ -152,7 +152,7 @@ switch lower(ArrayName)
         Ground = {{'Electrode',[2.5,0.0,0.0]}};
         Comment = 'Non-chronic recordings';
     
-  case 'mea_1_32'; % Omnetics is assumed to be on top
+  case 'mea_1_32'; 
     PinsByElectrode = [1:32]; Drive = 1;
     ElecPos = [... % Width in both dimensions was 2.5mm
                    2.0,2.5; 1.5,2.5; 1.0,2.5; 0.5,2.5;...
@@ -167,7 +167,7 @@ switch lower(ArrayName)
     Ground = {{'Electrode',[2.5,0.0,0.0]}};
     Comment = 'Non-chronic recordings';
 
-  case 'mea_1_16'; % Omnetics is assumed to be on top
+  case 'mea_1_16'; 
     PinsByElectrode = [1:16]; Drive = 0;
     ElecPos = [... 
       0,0 ; 0,1 ; 0,2 ; 0,4;...
@@ -194,7 +194,7 @@ switch lower(ArrayName)
   Ground = {{'Wire',[]}};
   Comment = 'Non-chronic recordings';
     
-  case 'mea_1_96'; % Omnetics is assumed to be on top
+  case 'mea_1_96'; 
     PinsByElectrode = [1:96]; Drive = 1;
     dX =0.4; dY=0.4; % 6x2mm
     DepthProfile = [6.0,5.9,5.8,5.7,5.6,5.5,5.4,5.3,5.3,5.3,5.3,5.4,5.5,5.6,5.7,5.8,5.9,6.0];

@@ -45,6 +45,7 @@ while MG.DAQ.Running
                  ~MG.DAQ.Recording,
              disp('HSDIO buffer exhasusted.  Trying auto-restart.');
              MG.DAQ.RestartHSDIO=1;
+             %keyboard
           end
           break;
         end

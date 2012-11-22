@@ -63,8 +63,11 @@ MG.DAQ.NBoardsUsed = sum(cBoardsBool);
 MG.DAQ.BoardsNames = MG.HW.BoardsNames(cBoardsBool);
 MG.DAQ.Boards = MG.HW.Boards(cBoardsBool);
 MG.DAQ.BoardsNum = find(MG.DAQ.BoardsBool);
-FNs = {'ChannelsBool'};
+FNs = {'ChannelsBool','NChannels'};
 for i=1:length(FNs) MG.DAQ.(FNs{i}) = MG.DAQ.(FNs{i})(1:length(MG.DAQ.BoardsNum)); end
+M_updateChannelMaps
+
+%MG.DAQ.NChannelsTotal = sum(MG.DAQ.NChannels);
 
 MG.DAQ.Triggers = MG.HW.(cEngine).Triggers;
 MG.DAQ.Triggers.All = unique({MG.DAQ.Triggers.Remote,'PFI0','PFI3','DIO1','RTSI0'});
@@ -79,7 +82,7 @@ switch cEngine;
   case 'HSDIO'; 
       % svd changed to 50Mb because some sort of conflict cropped up b/c
       % digital sr was set to that value somewhere else.
-    MG.DAQ.HSDIO.SRDigital = 5000000;%M_convSRAnalog2Digital(MG.DAQ.SR); 
+    MG.DAQ.HSDIO.SRDigital = 50000000;%M_convSRAnalog2Digital(MG.DAQ.SR); 
     MG.DAQ.HSDIO.StopFile = [MG.DAQ.HSDIO.TempFile,'Stop'];
 end
 
@@ -109,6 +112,9 @@ try
           MG.Audio.ChannelO = addchannel(MG.AudioO,[1,2]);
         end
       end
+    else
+        MG.AudioO = analogoutput('winsound',0);
+        MG.Audio.ChannelO = addchannel(MG.AudioO,[1,2]);
     end
   else fprintf('Audio disabled : DAQ-toolbox not available\n');
   end

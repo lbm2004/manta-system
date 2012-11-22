@@ -16,6 +16,9 @@ TitleSize = 12; TitleColor = [1,1,1]; Offset = 0;
 PH = [40*1.15,40*(1+MG.DAQ.NBoardsUsed),160,40*(1.5+7),40*1.2]; 
 NPH = (1-length(PH)*Border)*PH/sum(PH); NPW = 1-2.5*Border; 
 
+Fields = {'LoadConfig','ChooseConfig','SaveConfig','EnginePanel','EngineDriver','SR','Engine','Boards','Gains','InputRange','SelectChannels'};
+for i=1:length(Fields) if isfield(MG.GUI,Fields{i}) MG.GUI = rmfield(MG.GUI,Fields{i}); end; end
+
 %% SETUP CONFIGURATION PANEL
 Panel = LF_addPanel(FIG,['Configuration (',MG.HW.Lab,')'],TitleSize,TitleColor,MG.Colors.Panel,...
   [Border,1-sum(NPH(1:PanNum))-(PanNum-.5)*Border-Offset,NPW,NPH(PanNum)]);
@@ -382,6 +385,7 @@ global MG Verbose
 if exist('Loc','var') M_CBF_setValue(obj,event,Loc); end
 M_initializeHardware;
 for i=1:length(MG.GUI.FIGs) try delete(MG.GUI.FIGs(i)); end; end
+MG.Audio.ElectrodesBool = logical(ones(1,MG.DAQ.NChannelsTotal));
 M_buildGUI;
 
 function M_CBF_loadConfiguration(obj,event)
@@ -405,9 +409,11 @@ global MG Verbose
 % space. This can be fixed once we design a FIFO rolling buffer for the
 % streamer.
 Loopcount=0;
+MG.DAQ.RestartHSDIO=0;
 if get(obj,'Value')
     while Loopcount==0 || ...
             (isfield(MG.DAQ,'RestartHSDIO') && MG.DAQ.RestartHSDIO)
+        if Verbose, fprintf('Restarting HSDIO engine\n'); end
         M_startEngine('Trigger','Local');
         Loopcount=Loopcount+1;
     end
@@ -637,7 +643,7 @@ DC2 = HF_axesDivide([1,2],1,DC{1,3},[0.1],[]);
 TT = 'Pins on current array assgined to present Board.';
 LF_addText(cFIG,DC2{1},'Selected',TT,[],[],MG.Colors.GUIBackground);
 MG.GUI.PinSelector(BoardIndex) = LF_addEdit(cFIG,DC2{2},...
-  HF_list2colon(MG.DAQ.ArraysByBoard(BoardPhysNum).Pins),...
+  HF_list2colon(MG.HW.ArraysByBoard(BoardPhysNum).Pins),...
   {@M_CBF_setPins,BoardIndex,'Select'},[],TT);
 
 % ADD CHANNEL SELECTOR
@@ -694,14 +700,18 @@ switch Mode
 end
 M_CBF_setArray(obj,event,BoardIndex,'BuildGUI');
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function M_CBF_setArray(obj,event,BoardIndex,Mode)
 global MG Verbose
 BoardPhysNum = MG.HW.BoardsNum(BoardIndex);
 Opts = get(MG.GUI.ArraySelector(BoardIndex),'UserData');
 Value = get(MG.GUI.ArraySelector(BoardIndex),'Value');
 ArrayInfo = M_ArrayInfo(Opts{Value});
-ArrayPins = ArrayInfo.PinsByElectrode;
-
+if ~isempty(ArrayInfo) % FOR THE GENERIC ARRAY THAT DOES NOT DEFINE ANY CHANNELS
+  ArrayPins = ArrayInfo.PinsByElectrode; 
+else
+  ArrayPins = [1:MG.DAQ.NChannels(BoardIndex)];
+end
 switch Mode
   case 'BuildGUI';
     
@@ -713,13 +723,10 @@ switch Mode
 end
 M_CBF_setPins(obj,event,BoardIndex,Mode);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function M_CBF_setPins(obj,event,BoardIndex,Mode)
 global MG Verbose
 BoardPhysNum = MG.HW.BoardsNum(BoardIndex);
-
-Opts = get(MG.GUI.ArraySelector(BoardIndex),'UserData');
-Value = get(MG.GUI.ArraySelector(BoardIndex),'Value');
-ArrayInfo = M_ArrayInfo(Opts{Value});
 
 switch Mode
   case 'BuildGUI';
@@ -733,7 +740,7 @@ end
 % SET THE PINS
 cRecSys = M_RecSystemInfo(MG.DAQ.SystemsByBoard(BoardIndex).Name);
 NChannels = length(cRecSys.ChannelMap);
-RelPins = ArrayPins-ArrayPins(1)+1; 
+RelPins = ArrayPins-ArrayPins(1)+1;
 cAIs = cRecSys.ChannelMap;
 
 % SET PIN COLORS BASED ON WHETHER THE PIN IS SELECTED (USUALLY VIA THE ARRAY)
@@ -756,6 +763,7 @@ for i=1:length(cAIs)
 end
 M_CBF_addChannel(MG.GUI.ChannelSelByBoardCheck{BoardIndex},[],BoardIndex,[1:NChannels]);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function M_CBF_setSelected(obj,event,BoardIndex,Mode)
 % CALL BACK FOR THE CHANNEL SELECTION FIELD
 global MG Verbose
@@ -773,6 +781,7 @@ set(MG.GUI.ChannelSelByBoardCheck{BoardIndex}(setdiff([1:NChannels],SelChannels)
 % ADD THE CORRECT SET OF CHANNELS
 M_CBF_addChannel(MG.GUI.ChannelSelByBoardCheck{BoardIndex},[],BoardIndex,[1:NChannels]);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function M_InitializeChannelsXY(BoardIndex)
 global MG Verbose
 NChannel = MG.DAQ.NChannelsPhys(BoardIndex);

@@ -3,6 +3,9 @@ function M_prepareRecording
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
 global MG Verbose
 
+% ENSURE PATH EXISTS
+mkdirAll(MG.DAQ.BaseName);
+
 % OPEN FILES FOR SAVING
 for i=1:MG.DAQ.NChannelsTotal
   MG.DAQ.Files(i).name = [MG.DAQ.BaseName,'.',n2s(i),'.evp'];
