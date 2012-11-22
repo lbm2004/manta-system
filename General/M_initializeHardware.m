@@ -1,7 +1,7 @@
 function M_initializeHardware
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
 % 
-% MG.HW.NIDAQ/HSDIO hold the default information for the two engines
+% MG.HW.NIDAQ/HSDIO/SIM hold the default information for the different engines
 % MG.HW holds the devices selected by MG.HW.(Engine).BoardsBool
 % MG.DAQ holds the devices used for the current data acquisition
 % MG.AI holds the engines for the boards selected in MG.HW.(Engine).BoardsBool
