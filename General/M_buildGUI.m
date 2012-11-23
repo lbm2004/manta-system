@@ -583,8 +583,8 @@ end
 
 function M_CBF_selectChannels(obj,event,BoardIndex)
 % FUNCTIONALITY:
-% When window is not open, read the current configuration and display it.
-% When window is already open, the call back functions write the changes back 
+% If window is not open, read the current configuration and display it.
+% If window is already open, the call back functions write the changes back 
 %
 % The displayed information is:
 % - Recording system connected to the present board
@@ -599,7 +599,7 @@ function M_CBF_selectChannels(obj,event,BoardIndex)
 %   - updateChannelMaps
 %   - update GUI
 % - Pins run local to the board
-% - ArrayPins run global on the array
+% - ArrayPins run continuous on the array
 
 global MG Verbose
 MPos = get(MG.GUI.FIG,'Position');
@@ -641,7 +641,7 @@ MG.GUI.ArraySelector(BoardIndex) = LF_addDropdown(cFIG,DC2{2},...
 % ADD PIN SELECTOR
 DC2 = HF_axesDivide([1,2],1,DC{1,3},[0.1],[]);
 TT = 'Pins on current array assgined to present Board.';
-LF_addText(cFIG,DC2{1},'Selected',TT,[],[],MG.Colors.GUIBackground);
+LF_addText(cFIG,DC2{1},'Pins',TT,[],[],MG.Colors.GUIBackground);
 MG.GUI.PinSelector(BoardIndex) = LF_addEdit(cFIG,DC2{2},...
   HF_list2colon(MG.HW.ArraysByBoard(BoardPhysNum).Pins),...
   {@M_CBF_setPins,BoardIndex,'Select'},[],TT);
@@ -677,8 +677,8 @@ Value = get(MG.GUI.RecSysSelector(BoardIndex),'Value');
 if isempty(Value) | Value>length(Opts) Value = 1; end
 cSystem = M_RecSystemInfo(Opts{Value}); 
 cNChannels = length(cSystem.ChannelMap);
-set(MG.GUI.Gains(BoardPhysNum),'String',n2s(cSystem.Gain))
-set(MG.GUI.InputRange(BoardPhysNum),'Value',find(MG.DAQ.InputRangesByBoard{BoardPhysNum}(1)==MG.HW.AvailInputRanges(:,1)))
+set(MG.GUI.Gains(BoardIndex),'String',n2s(cSystem.Gain))
+set(MG.GUI.InputRange(BoardIndex),'Value',find(MG.DAQ.InputRangesByBoard{BoardIndex}(1)==MG.HW.AvailInputRanges(:,1)))
 
 switch Mode
   case 'BuildGUI' % BUILD THE SELECTION WINDOW FOR THE FIRST TIME

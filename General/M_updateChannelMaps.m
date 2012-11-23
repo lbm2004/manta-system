@@ -48,14 +48,18 @@ for iB = 1:length(MG.DAQ.BoardsNum)
       SystemInfo = M_RecSystemInfo(cStruct.System);
       SameArrayInd = strcmp(cStruct.Array,{MG.DAQ.ArraysByBoard(MG.DAQ.BoardsNum(1:iB-1)).Name});
       for iC = 1:MG.DAQ.NChannels(cB)
-        cChannel = MG.DAQ.ChannelsNum{cB}(iC);
-        BPin = find(SystemInfo.ChannelMap==cChannel); % PIN ON ARRAY FOR A CHANNEL ON ONE BOARD
-        BPinTotal = BPin + sum(MG.DAQ.NChannels(MG.DAQ.BoardsNum(SameArrayInd))); % PIN ON ARRAY FOR CURRENT BOARD OVER CHANNELS SO FAR
-        iAPin = find(BPinTotal==MG.DAQ.ArraysByBoard(cB).Pins);
-        if ~isempty(iAPin)
-          cStruct.Pin = MG.DAQ.ArraysByBoard(cB).Pins(iAPin);
+        cBoardChannel = MG.DAQ.ChannelsNum{cB}(iC);
+        ArrayPin = find(SystemInfo.ChannelMap==cBoardChannel); % LOCAL PIN ON ARRAY FOR A CHANNEL ON ONE BOARD
+        ArrayPinTotal = ArrayPin + sum(MG.DAQ.NChannels(MG.DAQ.BoardsNum(SameArrayInd))); % OVERALL PIN ON ARRAY, ASSUMING CONSECUTIVE INDEXING
+        iArrayPin = find(ArrayPinTotal==MG.DAQ.ArraysByBoard(cB).Pins); % FIND THE INDEX OF THE CURRENT PIN
+        % iArrayPin can be empty for two reasons:
+        % - multiple arrays, i.e. non consecutive pins of one big array
+        % - non-existent Pin (which we cannot fix automatically)
+        if isempty(iArrayPin)  iArrayPin = find(ArrayPin==MG.DAQ.ArraysByBoard(cB).Pins); end    
+        if ~isempty(iArrayPin)
+          cStruct.Pin = MG.DAQ.ArraysByBoard(cB).Pins(iArrayPin);
           cStruct.Electrode = find(ArrayInfo.PinsByElectrode==cStruct.Pin); % FIND ELECTRODE (MAY BE EMPTY ON CERTAIN ARRAYS)
-          if ~isempty(cStruct.Electrode) MG.DAQ.ElectrodesByBoardBool{cB}(cChannel) = 1; end
+          if ~isempty(cStruct.Electrode) MG.DAQ.ElectrodesByBoardBool{cB}(cBoardChannel) = 1; end
           cStruct.ElecPos = ArrayInfo.ElecPos(cStruct.Electrode,:);
           cStruct.ChannelXY = ArrayInfo.ChannelXY(cStruct.Electrode,:);
           cStruct.Prong = ArrayInfo.ProngsByElectrode(cStruct.Electrode);
@@ -64,7 +68,7 @@ for iB = 1:length(MG.DAQ.BoardsNum)
           if ~isempty(cStruct.Electrode)
             MG.DAQ.ElectrodesByChannel(iCTotal) = orderfields(cStruct); % COLLECT MAP FROM CHANNEL TO ELECTRODE
             MG.DAQ.ChannelsByElectrode(cStruct.Electrode).Channel = iCTotal;
-            if Verbose fprintf(['Adding El.',n2s(cStruct.Electrode),' of Array ',cStruct.Array,' on Board ',n2s(cB),' (',MG.DAQ.BoardIDs{cB},') Pin ',n2s(BPin),' AI.',n2s(cChannel),' as Channel ',n2s(iCTotal),'\n']); end
+            if Verbose fprintf(['Adding El.',n2s(cStruct.Electrode),' of Array ',cStruct.Array,' on Board ',n2s(cB),' (',MG.DAQ.BoardIDs{cB},') Pin ',n2s(ArrayPin),' AI.',n2s(cBoardChannel),' as Channel ',n2s(iCTotal),'\n']); end
           end
         else
           if ~exist('WarningShown','var') fprintf(' > M_updateChannelMaps  : One or more electrodes could not be assigned.\n'); end

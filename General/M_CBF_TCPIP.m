@@ -31,7 +31,7 @@ switch COMMAND
   case 'INIT';
     BaseName = DATA;
     MG.DAQ.BaseName = BaseName;
-    MG.DAQ.BasePath = BaseName(1:find(BaseName==filesep,1,'last'))
+    MG.DAQ.BasePath = BaseName(1:find(BaseName==filesep,1,'last'));
     % UPDATE DISPLAY
     set(MG.GUI.BaseName,'String',BaseName);
     set(MG.GUI.CurrentFileSize,'String','');

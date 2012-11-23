@@ -21,6 +21,7 @@ switch MG.DAQ.Engine
     if isfield(MG,'DIO')
       for i=1:length(MG.DIO) if MG.DIO(i) S = DAQmxStopTask(MG.DIO(i)); if S NI_MSG(S); end; end; end
     end
+    M_clearTasks;
     
   case 'HSDIO';
     if isfield(MG,'AI') % KILL PROCESS
