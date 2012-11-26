@@ -6,7 +6,10 @@ global MG Verbose
 switch MG.DAQ.Engine; case 'NIDAQ'; SamplesPerChanReadPtr = libpointer('int32Ptr',0); end
 
 %% WAIT UNTIL TRIGGER RECEIVED (ESPECIALLY FOR REMOTE TRIGGERING)
-if Verbose fprintf('Waiting for trigger ...'); end 
+if Verbose fprintf('Waiting for trigger ...'); end
+pause(0.1); % TO WAIT UNTIL THE TAST STARTS OR THE TRIGGER OCCURS
+% HERE IT WOULD BE BEST TO INQUIRE WHETHER THE IT IS ALREADY SAMPLING
+% BUT WE HAVE NOT FOUND THIS OPTION YET IN THE DOCUMENTATION OF NIDAQmx
 while ~M_SamplesAvailable; pause(0.05); drawnow; end
 MG.DAQ.Running = 1; MG.DAQ.DTs = [];
 
@@ -211,6 +214,7 @@ switch MG.DAQ.Engine
   case 'NIDAQ';
     SamplesAvailablePtr = libpointer('uint32Ptr',1);
     S = DAQmxGetReadAvailSampPerChan(MG.AI(MG.DAQ.BoardsNum(1)),SamplesAvailablePtr); if S NI_MSG(S); end
+    % USEFUL TO KEEP ABSOLUTE TIMING : DAQmxGetReadTotalSampPerChanAcquired 
     SamplesAvailable = double(get(SamplesAvailablePtr,'Value'));
   case 'HSDIO';
     TempFile = dir(MG.DAQ.HSDIO.TempFile);
