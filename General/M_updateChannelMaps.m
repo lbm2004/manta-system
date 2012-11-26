@@ -1,4 +1,13 @@
 function M_updateChannelMaps
+% M_updateChannelMaps
+% Assigns the properties of each electrode 
+% to the corresponding plotting channel.
+% It takes into account the mapping of the recording system,
+% but also the channel selections and the array mappings.
+% The 'generic' array is handled differently, since it does not 
+% have a defined number of channels, but is only limited 
+% by the number of channels on the current board.
+%
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
 global MG Verbose
 
@@ -27,6 +36,7 @@ for iB = 1:length(MG.DAQ.BoardsNum)
   switch MG.DAQ.ArraysByBoard(cB).Name
     case 'generic'; % IF A CUSTOM LAYOUT IS USED, DON'T TRY TO PULL OUT DATA FROM THE ARRAYINFO
        for iC = 1:MG.DAQ.NChannels(cB)
+         cBoardChannel = MG.DAQ.ChannelsNum{cB}(iC);
          cStruct.Array = MG.DAQ.ArraysByBoard(cB).Name;
          cStruct.Pin = iC;
          cStruct.Electrode = iC;
@@ -38,9 +48,9 @@ for iB = 1:length(MG.DAQ.BoardsNum)
          iCTotal = MG.DAQ.ChSeqInds{cB}(iC);
          MG.DAQ.ElectrodesByChannel(iCTotal) = orderfields(cStruct);
          MG.DAQ.ChannelsByElectrode(iCTotal).Channel = iCTotal;
-         if Verbose fprintf(['Adding El.',n2s(cStruct.Electrode),' of Array ',cStruct.Array,' on Board ',n2s(cB),' (',MG.DAQ.BoardIDs{cB},') Pin ',n2s(cStruct.Pin),' AI.',n2s(iC),' as Channel ',n2s(iCTotal),'\n']); end
+         if Verbose fprintf(['Adding El.',n2s(cStruct.Electrode),' of Array ',cStruct.Array,' on Board ',n2s(cB),' (',MG.DAQ.BoardIDs{cB},') Pin ',n2s(cStruct.Pin),' AI.',n2s(cBoardChannel),' as Channel ',n2s(iCTotal),'\n']); end
        end
-    otherwise % PROPER ARRAY SPECIFIED
+    otherwise % PROPER ARRAY SPECIFIED (TYPICAL CASE)
       cStruct.Array = MG.DAQ.ArraysByBoard(cB).Name;
       
       ArrayInfo = M_ArrayInfo(cStruct.Array);
