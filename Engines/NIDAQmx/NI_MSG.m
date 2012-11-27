@@ -8,7 +8,8 @@ if isempty(MG) MG.DAQ.Engine = 'NIDAQ'; end
 switch upper(MG.DAQ.Engine)
   case 'NIDAQ';
     if isempty(p) p = loadnidaqmx; end
-    warning('nidaqmx: Error : %s\n',p.defines{find(p.values==status,1,'last')});    
+    cError = p.defines{find(p.values==status,1,'last')};
+    fprintf(['WARNING (from NIDAQmx) : ',cError,' (Code: ',n2s(status),')\n']);    
   case 'HSDIO';
     %if isempty(p) p = loadhsdio; end
     %warning('hsdio: Error : %s\n',p.defines{find(p.values==status,1,'last')});

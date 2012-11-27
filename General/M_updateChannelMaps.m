@@ -1,4 +1,13 @@
 function M_updateChannelMaps
+% M_updateChannelMaps
+% Assigns the properties of each electrode 
+% to the corresponding plotting channel.
+% It takes into account the mapping of the recording system,
+% but also the channel selections and the array mappings.
+% The 'generic' array is handled differently, since it does not 
+% have a defined number of channels, but is only limited 
+% by the number of channels on the current board.
+%
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
 global MG Verbose
 
@@ -19,13 +28,15 @@ for iB=MG.DAQ.BoardsNum
 end; clear iB
 
 % BASIC STRUCTURES
-try MG.DAQ = rmfield(MG.DAQ,{'ElectrodesByChannel','ChannelsByElectrode'}); end
+try MG.DAQ = rmfield(MG.DAQ,'ElectrodesByChannel'); end
+try MG.DAQ = rmfield(MG.DAQ,'ChannelsByElectrode'); end
 for iB = 1:length(MG.DAQ.BoardsNum)
   cB = MG.DAQ.BoardsNum(iB);
   MG.DAQ.ElectrodesByBoardBool{cB} = logical(zeros(MG.DAQ.NChannelsPhys(cB),1));
   switch MG.DAQ.ArraysByBoard(cB).Name
     case 'generic'; % IF A CUSTOM LAYOUT IS USED, DON'T TRY TO PULL OUT DATA FROM THE ARRAYINFO
        for iC = 1:MG.DAQ.NChannels(cB)
+         cBoardChannel = MG.DAQ.ChannelsNum{cB}(iC);
          cStruct.Array = MG.DAQ.ArraysByBoard(cB).Name;
          cStruct.Pin = iC;
          cStruct.Electrode = iC;
@@ -37,22 +48,28 @@ for iB = 1:length(MG.DAQ.BoardsNum)
          iCTotal = MG.DAQ.ChSeqInds{cB}(iC);
          MG.DAQ.ElectrodesByChannel(iCTotal) = orderfields(cStruct);
          MG.DAQ.ChannelsByElectrode(iCTotal).Channel = iCTotal;
-         if Verbose fprintf(['Adding El.',n2s(cStruct.Electrode),' of Array ',cStruct.Array,' on Board ',n2s(cB),' (',MG.DAQ.BoardIDs{cB},') Pin ',n2s(cStruct.Pin),' AI.',n2s(iC),' as Channel ',n2s(iCTotal),'\n']); end
+         if Verbose fprintf(['Adding El.',n2s(cStruct.Electrode),' of Array ',cStruct.Array,' on Board ',n2s(cB),' (',MG.DAQ.BoardIDs{cB},') Pin ',n2s(cStruct.Pin),' AI.',n2s(cBoardChannel),' as Channel ',n2s(iCTotal),'\n']); end
        end
-    otherwise % PROPER ARRAY SPECIFIED
+    otherwise % PROPER ARRAY SPECIFIED (TYPICAL CASE)
       cStruct.Array = MG.DAQ.ArraysByBoard(cB).Name;
+      
       ArrayInfo = M_ArrayInfo(cStruct.Array);
       cStruct.System = MG.DAQ.SystemsByBoard(cB).Name;
       SystemInfo = M_RecSystemInfo(cStruct.System);
+      SameArrayInd = strcmp(cStruct.Array,{MG.DAQ.ArraysByBoard(MG.DAQ.BoardsNum(1:iB-1)).Name});
       for iC = 1:MG.DAQ.NChannels(cB)
-        cChannel = MG.DAQ.ChannelsNum{cB}(iC);
-        BPin = find(SystemInfo.ChannelMap==cChannel); % PIN ON ARRAY FOR A CHANNEL ON ONE BOARD
-        BPinTotal = BPin + sum(MG.DAQ.NChannels(MG.DAQ.BoardsNum(1:iB-1)));
-        iAPin = find(BPinTotal==MG.DAQ.ArraysByBoard(cB).Pins);
-        if ~isempty(iAPin)
-          cStruct.Pin = MG.DAQ.ArraysByBoard(cB).Pins(iAPin);
+        cBoardChannel = MG.DAQ.ChannelsNum{cB}(iC);
+        ArrayPin = find(SystemInfo.ChannelMap==cBoardChannel); % LOCAL PIN ON ARRAY FOR A CHANNEL ON ONE BOARD
+        ArrayPinTotal = ArrayPin + sum(MG.DAQ.NChannels(MG.DAQ.BoardsNum(SameArrayInd))); % OVERALL PIN ON ARRAY, ASSUMING CONSECUTIVE INDEXING
+        iArrayPin = find(ArrayPinTotal==MG.DAQ.ArraysByBoard(cB).Pins); % FIND THE INDEX OF THE CURRENT PIN
+        % iArrayPin can be empty for two reasons:
+        % - multiple arrays, i.e. non consecutive pins of one big array
+        % - non-existent Pin (which we cannot fix automatically)
+        if isempty(iArrayPin)  iArrayPin = find(ArrayPin==MG.DAQ.ArraysByBoard(cB).Pins); end    
+        if ~isempty(iArrayPin)
+          cStruct.Pin = MG.DAQ.ArraysByBoard(cB).Pins(iArrayPin);
           cStruct.Electrode = find(ArrayInfo.PinsByElectrode==cStruct.Pin); % FIND ELECTRODE (MAY BE EMPTY ON CERTAIN ARRAYS)
-          if ~isempty(cStruct.Electrode) MG.DAQ.ElectrodesByBoardBool{cB}(cChannel) = 1; end
+          if ~isempty(cStruct.Electrode) MG.DAQ.ElectrodesByBoardBool{cB}(cBoardChannel) = 1; end
           cStruct.ElecPos = ArrayInfo.ElecPos(cStruct.Electrode,:);
           cStruct.ChannelXY = ArrayInfo.ChannelXY(cStruct.Electrode,:);
           cStruct.Prong = ArrayInfo.ProngsByElectrode(cStruct.Electrode);
@@ -61,10 +78,11 @@ for iB = 1:length(MG.DAQ.BoardsNum)
           if ~isempty(cStruct.Electrode)
             MG.DAQ.ElectrodesByChannel(iCTotal) = orderfields(cStruct); % COLLECT MAP FROM CHANNEL TO ELECTRODE
             MG.DAQ.ChannelsByElectrode(cStruct.Electrode).Channel = iCTotal;
-            if Verbose fprintf(['Adding El.',n2s(cStruct.Electrode),' of Array ',cStruct.Array,' on Board ',n2s(cB),' (',MG.DAQ.BoardIDs{cB},') Pin ',n2s(BPin),' AI.',n2s(cChannel),' as Channel ',n2s(iCTotal),'\n']); end
+            if Verbose fprintf(['Adding El.',n2s(cStruct.Electrode),' of Array ',cStruct.Array,' on Board ',n2s(cB),' (',MG.DAQ.BoardIDs{cB},') Pin ',n2s(ArrayPin),' AI.',n2s(cBoardChannel),' as Channel ',n2s(iCTotal),'\n']); end
           end
         else
-          warning('There appears to be an error while assigning Pins and Arrays.');
+          if ~exist('WarningShown','var') fprintf(' > M_updateChannelMaps  : One or more electrodes could not be assigned.\n'); end
+          WarningShown = 1;
         end
       end
       if Verbose fprintf('\n'); end
@@ -106,7 +124,9 @@ else
   end
   if ~iscell(MG.Disp.RefIndVal)
     MG.Disp.RefIndVal = intersect([1:MG.DAQ.NChannelsTotal],MG.Disp.RefIndVal);
-    set(MG.GUI.Reference.Indices,'String',HF_list2colon(MG.Disp.RefIndVal));
+    if isfield(MG.GUI,'Reference') &&  isfield(MG.GUI.Reference,'Indices') && ishandle(MG.GUI.Reference.Indices)
+      set(MG.GUI.Reference.Indices,'String',HF_list2colon(MG.Disp.RefIndVal));
+    end
   end
 end
 % MAKE SURE A SINGLE CHANNEL IS NOT SUBTRACTED AWAY

@@ -39,6 +39,7 @@ M_loadDefaultsByHostname(MG.HW.Hostname,'HW');
 MG.HW.Engines = {}; 
 if isfield(MG.HW,'NIDAQ') MG.HW.Engines{end+1} = 'NIDAQ'; end;
 if isfield(MG.HW,'HSDIO') MG.HW.Engines{end+1} = 'HSDIO'; end;
+if isfield(MG.HW,'SIM') MG.HW.Engines{end+1} = 'SIM'; end;
 
 %% CONNECTION TO STIMULATION MACHINE DEFAULTS
 MG.Stim.COMterm = 124; % '|'
@@ -49,19 +50,18 @@ M_loadDefaultsByHostname(MG.HW.Hostname,'Stim');
 
 %% DAQ DEFAULTS
 MG.DAQ.Engine = 'NIDAQ';
-MG.DAQ.Simulation = 0;
 MG.DAQ.WithSpikes = 1;
 MG.DAQ.HSDIO.TempFile = 'D:\HSDIO.bin'; % Intermediate storage of acquired data
 MG.DAQ.HSDIO.DebugFile = 'D:\HSDIO.out'; % Debugging information for digital acquisition
 MG.DAQ.HSDIO.EngineCommand = 'D:\Code\baphy\Hardware\hsdio\hsdio_stream_dual';
-MG.DAQ.HSDIO.SRDigital = 100e6; % Digital sampling rate
+MG.DAQ.HSDIO.SRDigital = 50000000; % Digital sampling rate
 MG.DAQ.HSDIO.SamplesPerIteration = 500; % Analog Samples before checking again on the card
 MG.DAQ.HSDIO.MaxIterations = 10000; % Maximal Number of Iterations to run
 
 MG.DAQ.NIDAQ.RingEngineLength = 5; % seconds. Defines Ring Buffer Length for Manual Trigger
 MG.DAQ.NIDAQ.BufferSize = 500; % samples. Packages of samples on the level of the DAQ device
-MG.DAQ.SR =25000; % Analog sampling rate per channel
-MG.DAQ.MinDur = 0.04; % seconds. Minimal Duration of the Loop = Video Rate
+MG.DAQ.SR = 25000; % Analog sampling rate per channel
+MG.DAQ.MinDur = 0.15; % seconds. Minimal Duration of the Loop = Video Rate
 MG.DAQ.TrialLength = 200; % second. Maximal Trial length
 MG.DAQ.Precision = 'int16'; % Precision for writing data to disk (if DAQ devices deliver lower precision, it needs to be converted to this value)
 switch MG.DAQ.Precision case 'int16'; MG.DAQ.BytesPerSample = 2; otherwise error('Precision not implemented yet'); end
@@ -98,7 +98,8 @@ MG.Disp.LFP = 0;
 MG.Disp.Depth = 0;
 % Display limits
 MG.Disp.DispDur = 1; % seconds. Displayed Duration
-if ~isfield(MG.Disp,'YLim') MG.Disp.YLim = 1; end
+% SET YLIM BY DEFAULT TO A REASONABLE VALUE FOR SEEING SPIKES
+if ~isfield(MG.Disp,'YLim') MG.Disp.YLim = 100e-6; end
 % Filtering
 MG.Disp.Humbug = 0;
 MG.Disp.Filter.Raw.Lowpass = inf;

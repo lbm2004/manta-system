@@ -1,7 +1,7 @@
 function M_initializeHardware
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
 % 
-% MG.HW.NIDAQ/HSDIO hold the default information for the two engines
+% MG.HW.NIDAQ/HSDIO/SIM hold the default information for the different engines
 % MG.HW holds the devices selected by MG.HW.(Engine).BoardsBool
 % MG.DAQ holds the devices used for the current data acquisition
 % MG.AI holds the engines for the boards selected in MG.HW.(Engine).BoardsBool
@@ -25,8 +25,10 @@ MG.HW.ArraysByBoard = MG.HW.(cEngine).ArraysByBoard;
 MG.HW.AvailInputRanges = MG.HW.Boards(1).InputRanges;
 MG.HW.AvailSRs = MG.HW.Boards(1).AvailSRs;
 
+% REMOVE FIELDS FROM PREVIOUS ENGINES
+try MG.DAQ = rmfield(MG.DAQ,'BoardsBool'); end
+
 % TRANSFER INFORMATION OF GLOBALLY SELECTED BOARDS TO MG.DAQ
-if ~isfield(MG.DAQ,'BoardsBool') InitBase = 1; else InitBase =0; end
 k=0;
 for i=1:MG.HW.NBoards % LOOP over physically present boards
   if cBoardsBool(i)  k=k+1;  % Transfer the selected ones
@@ -48,17 +50,25 @@ for i=1:MG.HW.NBoards % LOOP over physically present boards
     MG.DAQ.ChannelMapsByBoard{k} = R.ChannelMap;
     MG.DAQ.ArraysByBoard(k) = MG.HW.ArraysByBoard(i);
     MG.DAQ.SystemsByBoard(k) = MG.HW.SystemsByBoard(i);
-    if InitBase % Not loading a configuration
-      MG.DAQ.BoardsBool(k) = 1; 
+    MG.DAQ.BoardsBool(k) = 1;
+    if ~isfield(MG.DAQ,'ChannelsBool') | length(MG.DAQ.ChannelsBool)<k | ...
+        length(MG.DAQ.ChannelsBool{k}) ~= MG.DAQ.NChannelsPhys(k) 
       MG.DAQ.ChannelsBool{k} = repmat(1,MG.DAQ.NChannelsPhys(k),1);
     end
     MG.DAQ.ChannelsNum{k} = find(MG.DAQ.ChannelsBool{k});
+    MG.DAQ.NChannels(k) = sum(MG.DAQ.ChannelsBool{k});
   end
 end
 MG.DAQ.NBoardsUsed = sum(cBoardsBool);
 MG.DAQ.BoardsNames = MG.HW.BoardsNames(cBoardsBool);
 MG.DAQ.Boards = MG.HW.Boards(cBoardsBool);
 MG.DAQ.BoardsNum = find(MG.DAQ.BoardsBool);
+FNs = {'ChannelsBool','NChannels'};
+for i=1:length(FNs) MG.DAQ.(FNs{i}) = MG.DAQ.(FNs{i})(1:length(MG.DAQ.BoardsNum)); end
+M_updateChannelMaps
+
+%MG.DAQ.NChannelsTotal = sum(MG.DAQ.NChannels);
+
 MG.DAQ.Triggers = MG.HW.(cEngine).Triggers;
 MG.DAQ.Triggers.All = unique({MG.DAQ.Triggers.Remote,'PFI0','PFI3','DIO1','RTSI0'});
 
@@ -72,7 +82,7 @@ switch cEngine;
   case 'HSDIO'; 
       % svd changed to 50Mb because some sort of conflict cropped up b/c
       % digital sr was set to that value somewhere else.
-    MG.DAQ.HSDIO.SRDigital = 5000000;%M_convSRAnalog2Digital(MG.DAQ.SR); 
+    MG.DAQ.HSDIO.SRDigital = 50000000;%M_convSRAnalog2Digital(MG.DAQ.SR); 
     MG.DAQ.HSDIO.StopFile = [MG.DAQ.HSDIO.TempFile,'Stop'];
 end
 
@@ -102,6 +112,9 @@ try
           MG.Audio.ChannelO = addchannel(MG.AudioO,[1,2]);
         end
       end
+    else
+        MG.AudioO = analogoutput('winsound',0);
+        MG.Audio.ChannelO = addchannel(MG.AudioO,[1,2]);
     end
   else fprintf('Audio disabled : DAQ-toolbox not available\n');
   end

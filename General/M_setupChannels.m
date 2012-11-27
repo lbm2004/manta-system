@@ -5,7 +5,7 @@ global MG Verbose;
 M_stopEngine;
 
 % DELETE ALL PREVIOUS CHANNELS FROM ENGINE
-M_clearTasks
+M_clearTasks;
 
 MG.DAQ.Channels = cell(1,MG.DAQ.NBoardsUsed);
 for i=MG.DAQ.BoardsNum

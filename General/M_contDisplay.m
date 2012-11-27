@@ -222,17 +222,19 @@ if CollectPSTH
   LastPSTHType = MG.Disp.PSTHType;
   switch MG.Disp.PSTHType
     case 'Spikes';
-      for i=PlotInd
-        if MG.Disp.NewSpikes(i)
-          if ~isempty(SPAll)
-            SPAllAbs = SPAll{i}+FirstSample-1;
-            cSP = SPAllAbs(SPAllAbs>(DispIteration-1)*MG.Disp.DispStepsFull);
-            cHist = hist(cSP-(DispIteration-1)*MG.Disp.DispStepsFull,MG.Disp.PSTHBins);
-            MG.Disp.PSTHs(MG.Disp.cIndP(DispIteration,:),i) = MG.Disp.PSTHs(MG.Disp.cIndP(DispIteration,:),i) + cHist(1:end-1)';
-            cSP = SPAllAbs(SPAllAbs<=(DispIteration-1)*MG.Disp.DispStepsFull);
-            if ~isempty(cSP)
-              cHist = hist(cSP-(DispIteration-2)*MG.Disp.DispStepsFull,MG.Disp.PSTHBins);
-              MG.Disp.PSTHs(MG.Disp.cIndP(DispIteration-1,:),i) = MG.Disp.PSTHs(MG.Disp.cIndP(DispIteration-1,:),i) + cHist(1:end-1)';
+      if DispIteration <= size(MG.Disp.cIndP) % DispIteration CAN BE LONGER THAN cIndP FOR VARIABLE TRIAL LENGTHS, E.G. DURING BEHAVIOR
+        for i=PlotInd
+          if MG.Disp.NewSpikes(i)
+            if ~isempty(SPAll)
+              SPAllAbs = SPAll{i}+FirstSample-1;
+              cSP = SPAllAbs(SPAllAbs>(DispIteration-1)*MG.Disp.DispStepsFull);
+              cHist = hist(cSP-(DispIteration-1)*MG.Disp.DispStepsFull,MG.Disp.PSTHBins);
+              MG.Disp.PSTHs(MG.Disp.cIndP(DispIteration,:),i) = MG.Disp.PSTHs(MG.Disp.cIndP(DispIteration,:),i) + cHist(1:end-1)';
+              cSP = SPAllAbs(SPAllAbs<=(DispIteration-1)*MG.Disp.DispStepsFull);
+              if ~isempty(cSP)
+                cHist = hist(cSP-(DispIteration-2)*MG.Disp.DispStepsFull,MG.Disp.PSTHBins);
+                MG.Disp.PSTHs(MG.Disp.cIndP(DispIteration-1,:),i) = MG.Disp.PSTHs(MG.Disp.cIndP(DispIteration-1,:),i) + cHist(1:end-1)';
+              end
             end
           end
         end
@@ -269,7 +271,7 @@ for i=PlotInd
     else set(MG.Disp.SPH(i,:),'Color',MG.Colors.Inactive);
     end
   end
-  if CollectPSTH & MG.Disp.PSTH
+  if CollectPSTH & MG.Disp.PSTH & DispIteration <= size(MG.Disp.cIndP) 
     MAX = max(abs(MG.Disp.PSTHs(3:end,i)));
     if MAX Factor = MG.Disp.YLims(i,2)/1.3/MAX; else Factor = 1; end
     set(MG.Disp.PPH(i),'YData',Factor*MG.Disp.PSTHs(MG.Disp.cIndP(DispIteration,:),i));

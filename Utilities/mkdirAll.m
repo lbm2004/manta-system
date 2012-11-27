@@ -6,5 +6,5 @@ function mkdirAll(BaseName)
 DirBounds = find(BaseName == filesep);
 for i=1:length(DirBounds)
   Directory{i} = [BaseName(1:DirBounds(i))];
-  if ~exist(Directory{i}) mkdir(Directory{i}); end
+  if ~exist(Directory{i},'dir')  mkdir(Directory{i});  end
 end
