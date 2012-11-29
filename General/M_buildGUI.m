@@ -13,7 +13,7 @@ set(FIG,'Position',[5,SS(4)-FH-MG.GUI.MenuOffset,FW,FH],...
 
 Border = 0.01; BorderPix = Border*FW; PBorder = 0.05; cSep = 0.03;
 TitleSize = 12; TitleColor = [1,1,1]; Offset = 0;
-PH = [40*1.15,40*(1+MG.DAQ.NBoardsUsed),160,40*(1.5+7),40*1.2]; 
+PH = [40*1.15,40*(1+MG.DAQ.NBoardsUsed),160,38*(1.5+8),40*1.2]; 
 NPH = (1-length(PH)*Border)*PH/sum(PH); NPW = 1-2.5*Border; 
 
 Fields = {'LoadConfig','ChooseConfig','SaveConfig','EnginePanel','EngineDriver','SR','Engine','Boards','Gains','InputRange','SelectChannels'};
@@ -113,13 +113,10 @@ MG.GUI.TCPIP = LF_addTogglebutton(Panel,DC2{3},'Connect',0,...
   {@M_CBF_startTCPIP},TT,[],[],MG.Colors.Button);
 
 % SAVING FILE NAME 
-DC2=HF_axesDivide([1.5,.5],[1],DC{2},.3,[]);
+DC2=HF_axesDivide([1],[1],DC{2},[],[]);
 % Current Save File
 Loc = 'MG.DAQ.BaseName'; TT=['Current Base Filename'];
 MG.GUI.BaseName = LF_addEdit(Panel,DC2{1},eval(Loc),{@M_CBF_setValue,Loc},TT);
-% Minimal Saving Interval
-Loc = 'MG.DAQ.MinDur'; TT='Minimal duration for updating the display  [Seconds]';
-MG.GUI.MinDur = LF_addEdit(Panel,DC2{2},eval(Loc),{@M_CBF_setValue,Loc},TT);
 
 DC2=HF_axesDivide([1,1.6,.6],[1],DC{3},0.3,[]);
 % Animal
@@ -158,10 +155,25 @@ MG.GUI.Record = LF_addTogglebutton(Panel,DC2{4},'Record',0,...
 Panel = LF_addPanel(FIG,'Display',TitleSize,TitleColor,MG.Colors.Panel,...
   [Border,1-sum(NPH(1:PanNum))-(PanNum-.5)*Border-Offset,NPW,NPH(PanNum)]);
 
-DC=HF_axesDivide([1],[.7,.7,7],[PBorder,PBorder,1-2*PBorder,1-2*PBorder],[],.5);
+DC=HF_axesDivide([1],[.7,.7,.7,7],[PBorder,PBorder,1-2*PBorder,1-2*PBorder],[],.5);
 
-DC2=HF_axesDivide([0.5,1.2,.5,1],1,DC{1},[.1,.2,.2],[]);
-% Nx X Ny -Chooser
+DC2=HF_axesDivide([0.7,1,0.5,1,0.7,1],1,DC{1},[.1,.2,.1,.2,.1],[]);
+% PLOTTING RANGE : TIME
+h = LF_addText(Panel,DC2{1}-[0,0.02,0,0],'<T>');
+Loc = 'MG.Disp.DispDur'; TT = 'Time Range for all plots in seconds. Rounds to tenths of a second!';
+MG.GUI.DispDur = LF_addEdit(Panel,DC2{2},eval(Loc),{@M_CBF_setValue,Loc},TT);
+% MINIMAL UPDATE INTERVAL
+h = LF_addText(Panel,DC2{3}-[0,0.02,0,0],'dT');
+Loc = 'MG.DAQ.MinDur'; TT='Minimal duration for updating the display  [Seconds]';
+MG.GUI.MinDur = LF_addEdit(Panel,DC2{4},eval(Loc),{@M_CBF_setValue,Loc},TT);
+% PLOTTING RANGE : VOLTS
+h = LF_addText(Panel,DC2{5}-[0,0.02,0,0],'<V>');
+Loc = 'MG.Disp.YLim'; TT = 'Y-Range for all plots in Volts';
+MG.GUI.YLim = LF_addEdit(Panel,DC2{6},n2s(MG.Disp.YLim,2),...
+  {@M_CBF_globalYLim},TT);
+
+DC2=HF_axesDivide([0.4,1,0.4,1],1,DC{2},[.1,.2,0.1],[]);
+% Nx X Ny -CHOOSER
 Loc = 'MG.Disp.Tiling.State'; TT = 'Toggle using Tiling or not';
 MG.GUI.Tiling.State = LF_addCheckbox(Panel,DC2{1},eval(Loc),...
     {@M_CBF_setValue,Loc},TT);
@@ -171,15 +183,14 @@ MG.GUI.Tiling.Selections = ...
   LF_addDropdown(Panel,DC2{2},Strings,ceil(length(Div)/2),...
   {@M_CBF_setValue,Loc},Tilings,TT);
 M_CBF_setValue(MG.GUI.Tiling.Selections,[],Loc);
-% PLOTTING RANGE : TIME
-Loc = 'MG.Disp.DispDur'; TT = 'Time Range for all plots in seconds. Rounds to tenths of a second!';
-MG.GUI.DispDur = LF_addEdit(Panel,DC2{3},eval(Loc),{@M_CBF_setValue,Loc},TT);
-% PLOTTING RANGE : VOLTS
-Loc = 'MG.Disp.YLim'; TT = 'Y-Range for all plots in Volts';
-MG.GUI.YLim = LF_addEdit(Panel,DC2{4},n2s(MG.Disp.YLim,2),...
-  {@M_CBF_globalYLim},TT);
+%% COMPENSATE IMPEDANCES
+Loc = 'MG.Disp.CompensateImpedance';
+MG.GUI.CompensateImpedance = LF_addCheckbox(Panel,DC2{3},MG.Disp.CompensateImpedance,...
+  {@M_CBF_setValue,Loc});
+h = LF_addText(Panel,DC2{4}-[0,0.02,0,0],'Comp. Imp.');
 
-DC2=HF_axesDivide([0.9,4,6],1,DC{2},[.1],[]);
+
+DC2=HF_axesDivide([0.9,4,6],1,DC{3},[.1],[]);
 % REFERENCING
 Loc = 'MG.Disp.Reference';
 MG.GUI.Reference.State = LF_addCheckbox(Panel,DC2{1},MG.Disp.Reference,...
@@ -189,7 +200,7 @@ Loc = 'MG.Disp.Reference'; TT = 'Reference channels to sets of other channels. S
 MG.GUI.Reference.Indices = LF_addEdit(Panel,DC2{3},HF_list2colon(MG.Disp.RefInd),...
   {@M_CBF_Reference},TT);
 
-DC2=HF_axesDivide([.4,1.2,.4,1,1],[1,1,1,1,1,1,1],DC{3},.1,.4);
+DC2=HF_axesDivide([.4,1.2,.4,1,1],[1,1,1,1,1,1,1],DC{4},.1,.4);
 % FILTERING
 Vars = {'Raw','Trace','LFP','Spike','PSTH','Depth','Spectrum'};
 Plots = {'R','T','L','S','P','D','F'};
