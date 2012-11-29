@@ -16,6 +16,20 @@ NPlot = MG.DAQ.NChannelsTotal; SPAll = [];
 %% CHECK IF FIGURE WAS CLOSED AND TURN OFF PLOTTING
 if ~sum(MG.Disp.FIG==get(0,'Children')) MG.Disp.Display = 0; return; end
 
+%% TRACK STANDARD DEVIATIONS OF ALL CHANNELS
+if (MG.Disp.Spike & MG.Disp.AutoThresh) | MG.Disp.CompensateImpedance
+  SDInds = [max(1,CurrentSamples-500):CurrentSamples];
+  Weights = [0.9,0.1];
+  MG.Disp.SDsByChannel = Weights(1)*MG.Disp.SDsByChannel +  Weights(2)*mean(MG.Data.Raw(SDInds,:).^2).^0.5;
+end
+
+%% EQUALIZE RAW DATA FOR THE DIFFERENT IMPEDANCES (VIA THE SDs)
+if MG.Disp.CompensateImpedance
+  AverageImpedance = mean(MG.Disp.SDsByChannel);
+  MG.Disp.ImpCorrsByChannel = AverageImpedance./MG.Disp.SDsByChannel;
+  MG.Data.Raw = bsxfun(@times,MG.Data.Raw,MG.Disp.ImpCorrsByChannel);
+end
+
 %% REFERENCE SIGNALS DIFFERENTLY
 if MG.Disp.Reference
   if isnumeric(MG.Disp.RefIndVal) && ~isempty(MG.Disp.RefIndVal) % Reference All Channels the Same

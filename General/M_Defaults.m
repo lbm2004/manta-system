@@ -136,6 +136,8 @@ MG.Disp.NSpikes = 10;
 MG.Disp.PSTH = 0;
 MG.Disp.PSTHType = 'Spikes';
 MG.Disp.SRPSTH = 100;
+% Compensate Impedance
+MG.Disp.CompensateImpedance = 0;
 % Common Referencing
 MG.Disp.Reference = 1;
 MG.Disp.RefInd = 'all';

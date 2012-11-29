@@ -87,9 +87,10 @@ while MG.DAQ.Running
         if ~isfield(MG.DAQ,'SimulationSource') MG.DAQ.SimulationSource = 'Artificial'; end
         switch MG.DAQ.SimulationSource
           case 'Artificial'; % CREATE REALISTIC DATA USING SOME PRESETS
+            NoiseScale = 8;
             MG.Data.Raw = randn(size(MG.Data.Raw));
+            if Iteration == 1 NoiseValues = 0.6*(rand(1,size(MG.Data.Raw,2))-0.5) + 1; end
             if MG.DAQ.WithSpikes
-              NoiseScale = 8;
               Time = 2*pi*(MG.DAQ.SamplesAcquired+[0:SamplesAvailable-1]')/MG.DAQ.SR;
               Noise = NoiseScale*(sin(MG.DAQ.HumFreq*Time) + sin(3.25*Time) + sin(0.231*Time));
               MG.Data.Raw = MG.Data.Raw + repmat(Noise,1,size(MG.Data.Raw,2));
@@ -102,6 +103,7 @@ while MG.DAQ.Running
               end
             end
             MG.Data.Raw = MG.Data.Raw/10;
+            MG.Data.Raw = bsxfun(@times,MG.Data.Raw,NoiseValues);
             
           case 'Real'; % LOAD DATA FROM A SAVED RECORDING (e.g. for publication pictures)
             % NOT FINISHED YET

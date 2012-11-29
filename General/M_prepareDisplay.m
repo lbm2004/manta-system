@@ -48,6 +48,7 @@ MG.Disp.UH = zeros(NPlot,1);
 MG.Disp.ZPH = zeros(NPlot,1);
 MG.Disp.ZoomedBool = logical(zeros(NPlot,1));
 MG.Disp.NewSpikes = logical(zeros(NPlot,1));
+MG.Disp.SDsByChannel = ones(1,NPlot);
 
 %% PREPARE AXES AND HANDLES
 DC = M_computePlotPos;
