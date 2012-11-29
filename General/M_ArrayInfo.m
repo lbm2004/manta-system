@@ -94,6 +94,20 @@ switch lower(ArrayName)
     Ground = {{'Electrode',[2.0,3.0,0.0]}};
     Comment = 'Chronic recordings';
   
+  case 'amazon_a12_left'; % Totally screwy mapping my Microprobes.
+    % Entering  the remapped positions already
+    PinsByElectrode = [1:32]; Drive = 1;
+    ElecPos = [... % Array Dimensions are 8x4 with 0.5 mm spacing
+      1.5,0.0;1.5,0.5;1.5,1.0;1.5,1.5;1.5,2.0;1.5,2.5;1.5,3.0;1.5,3.5;...
+      1.0,0.0;1.0,0.5;1.0,1.0;1.0,1.5;1.0,2.0;1.0,2.5;1.0,3.0;1.0,3.5;...
+      0.5,0.0;0.5,0.5;0.5,1.0;0.5,1.5;0.5,2.0;0.5,2.5;0.5,3.0;0.5,3.5;...
+      0.0,0.0;0.0,0.5;0.0,1.0;0.0,1.5;0.0,2.0;0.0,2.5;0.0,3.0;0.0,3.5;...
+    ];    Impedances = [];
+    Reference = {{'Electrode',[2.0,0.5,0.0]}};
+    Ground = {{'Electrode',[2.0,3.0,0.0]}};
+    Comment = 'Chronic recordings';
+    
+    
   case 'mackenzie_a1_left';
     PinsByElectrode = [1:32]; Drive = 1;
     ElecPos = [... % Array Dimensions are 8x4 with 0.5 mm spacing
