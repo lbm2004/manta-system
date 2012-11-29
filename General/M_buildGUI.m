@@ -588,6 +588,7 @@ String = get(obj,'String');
 MG.Disp.RefInd = String;
 try 
   MG.Disp.RefIndVal = eval(String);
+  global REFSTRING; REFSTRING = String;
 catch
   fprintf('Reference String could not be evaluated... please correct format.\n');
 end
