@@ -17,7 +17,7 @@ NPlot = MG.DAQ.NChannelsTotal; SPAll = [];
 if ~sum(MG.Disp.FIG==get(0,'Children')) MG.Disp.Display = 0; return; end
 
 %% TRACK STANDARD DEVIATIONS OF ALL CHANNELS
-if (MG.Disp.Spike & MG.Disp.AutoThresh) | MG.Disp.CompensateImpedance
+if (MG.Disp.Spike & MG.Disp.AutoThresh.State) | MG.Disp.CompensateImpedance
   SDInds = [max(1,CurrentSamples-500):CurrentSamples];
   Weights = [0.9,0.1];
   MG.Disp.SDsByChannel = Weights(1)*MG.Disp.SDsByChannel +  Weights(2)*mean(MG.Data.Raw(SDInds,:).^2).^0.5;
