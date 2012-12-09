@@ -31,24 +31,11 @@ if MG.Disp.CompensateImpedance
 end
 
 %% REFERENCE SIGNALS DIFFERENTLY
-if MG.Disp.Reference
-  if isnumeric(MG.Disp.RefIndVal) && ~isempty(MG.Disp.RefIndVal) % Reference All Channels the Same
-    MG.Data.Raw = MG.Data.Raw - repmat(mean(MG.Data.Raw(:,MG.Disp.RefIndVal),2),1,size(MG.Data.Raw,2));
-  elseif iscell(MG.Disp.RefIndVal)
-    if iscell(MG.Disp.RefIndVal{1}) % REFERENCING ACROSS SUBSETS
-      for iR = 1:length(MG.Disp.RefIndVal)
-        cInd = MG.Disp.RefIndVal{iR}{1};
-        if length(MG.Disp.RefIndVal{iR}) == 1 cIndAv = cInd;
-        else           cIndAv = MG.Disp.RefIndVal{iR}{2}; end
-        MG.Data.Raw(:,cInd) = MG.Data.Raw(:,cInd) - repmat(mean(MG.Data.Raw(:,cIndAv),2),1,length(cInd));
-      end
-    else % REFERENCING ACROSS BANKS 
-      if length(MG.Disp.RefIndVal)==round(MG.DAQ.NChannelsTotal/MG.Disp.BankSize)
-        for i=1:length(MG.Disp.RefIndVal)
-          cInd = (i-1)*MG.Disp.BankSize+1:i*MG.Disp.BankSize;
-          MG.Data.Raw(:,cInd) = MG.Data.Raw(:,cInd) - repmat(mean(MG.Data.Raw(:,MG.Disp.RefIndVal{i}),2),1,MG.Disp.BankSize);
-        end
-      end
+if MG.Disp.Reference  
+  for i=1:length(MG.Disp.Referencing.StateBySet)
+    if MG.Disp.Referencing.StateBySet(i) & sum(MG.Disp.Referencing.BoolBySet(i,:))
+      cInd = MG.Disp.Referencing.BoolBySet(i,:);
+      MG.Data.Raw(:,cInd) = MG.Data.Raw(:,cInd) - repmat(mean(MG.Data.Raw(:,cInd),2),1,sum(cInd));      
     end
   end
 end
