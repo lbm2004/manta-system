@@ -140,8 +140,10 @@ MG.Disp.SRPSTH = 100;
 MG.Disp.CompensateImpedance = 0;
 % Common Referencing
 MG.Disp.Reference = 1;
-MG.Disp.RefInd = 'all';
-MG.Disp.BankSize = 16; % Number of channels over which common referencing occurs
+MG.Disp.Referencing.NSets = 6;
+MG.Disp.Referencing.StateBySet = logical(zeros(1,MG.Disp.Referencing.NSets));
+MG.Disp.Referencing.BoolBySet = logical(zeros(MG.Disp.Referencing.NSets,0));
+MG.Disp.Referencing.BankSize = 16; % Number of channels over which common referencing occurs
 % Depth
 MG.Disp.DepthYScale = 0.9;
 MG.Disp.DepthType = 'LFP';

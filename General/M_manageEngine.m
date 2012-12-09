@@ -113,7 +113,7 @@ while MG.DAQ.Running
               MG.Data.Raw(:,i) = tmp(MG.DAQ.SamplesAcquired+1:min(MG.DAQ.SamplesAcquired+SamplesAvailable,end));
             end
         end
-        if Verbose && Iteration == 1 fprintf('\n\n     [   Warning : Using simulated Data     ]    \\n'); end
+        if Verbose && Iteration == 1 fprintf('\n\n     [   Warning : Using simulated Data     ]    \n\n'); end
     end
   end      
   MG.DAQ.SamplesAcquired = MG.DAQ.SamplesAcquired + SamplesAvailable;
