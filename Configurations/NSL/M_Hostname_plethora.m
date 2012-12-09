@@ -8,7 +8,7 @@ switch Selection
     % ANALOG (NIDAQ) BOARDS
     MG.HW.NIDAQ.BoardIDs = {'D1','D2','D3','D0'};
     MG.HW.NIDAQ.BoardsBool = logical([1,1,1,0]);
-    MG.HW.NIDAQ.SystemsByBoard = struct('Name',{'Plexon','Plexon','Plexon2','Plexon'});
+    MG.HW.NIDAQ.SystemsByBoard = struct('Name',{'Plexon','Plexon2','Plexon2','Plexon'});
     MG.HW.NIDAQ.ArraysByBoard(1) = struct('Name','amazon_a12_left','Pins',[1:32]);
     MG.HW.NIDAQ.ArraysByBoard(2) = struct('Name','amazon_a12_left','Pins',[1:32]);
     MG.HW.NIDAQ.ArraysByBoard(3) = struct('Name','amazon_a12_left','Pins',[1:32]);

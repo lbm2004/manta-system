@@ -35,6 +35,7 @@ for i=MG.DAQ.BoardsNum
         MG.DAQ.NIDAQ.RingEngineLength*MG.DAQ.SR); % size of engine per channel
       if S NI_MSG(S); end
       % GET TASKS READY
+      S = DAQmxTaskControl(MG.AI(i),NI_decode('DAQmx_Val_Task_Reserve')); if S NI_MSG(S); end;
       S = DAQmxTaskControl(MG.AI(i),NI_decode('DAQmx_Val_Task_Verify')); if S NI_MSG(S); end
       S = DAQmxTaskControl(MG.AI(i),NI_decode('DAQmx_Val_Task_Commit')); if S NI_MSG(S); end
     case 'HSDIO'; % MOSTLY PERFORMED IN THE STREAMING PROGRAM      
