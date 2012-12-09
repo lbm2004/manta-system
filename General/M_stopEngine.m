@@ -16,7 +16,11 @@ while ~MG.DAQ.AcquisitionDone pause(0.02); end
 switch MG.DAQ.Engine
   case 'NIDAQ';
     if isfield(MG,'AI')
-      for i=1:length(MG.AI) if MG.AI(i) S = DAQmxStopTask(MG.AI(i)); if S NI_MSG(S); end; end; end
+      for i=1:length(MG.AI) 
+        if MG.AI(i) 
+          S = DAQmxStopTask(MG.AI(i)); if S NI_MSG(S); end;
+        end; 
+      end
     end
     if isfield(MG,'DIO')
       for i=1:length(MG.DIO) if MG.DIO(i) S = DAQmxStopTask(MG.DIO(i)); if S NI_MSG(S); end; end; end
