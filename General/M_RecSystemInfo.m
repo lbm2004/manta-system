@@ -20,6 +20,9 @@ switch lower(SystemName)
     R = struct('Name',SystemName,'Gain',2000,'InputRange',[-5,5],'ChannelMap',[1:32],'Engine','NIDAQ');
   case 'am_systems_3000';
     R = struct('Name',SystemName,'Gain',10000,'InputRange',[-5,5],'ChannelMap',[1:32],'Engine','NIDAQ');
+  case 'alphaomega';
+    R = struct('Name',SystemName,'Gain',10000,'InputRange',[-5,5],'ChannelMap',[1:32],'Engine','AO');
+    
     
   % DIGITAL SYSTEMS
   case 'blackrock_96ch_16bit';
