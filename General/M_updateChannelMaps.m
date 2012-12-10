@@ -113,22 +113,12 @@ if length(MG.Audio.ElectrodesBool) ~= MG.DAQ.NChannelsTotal
   MG.Audio.ElectrodesBool = tmp;
 end
   
-% INITIALIZE DIGITAL REFERENCING ACROSS CHANNELS
-if strcmp(MG.Disp.RefInd,'all')
-  MG.Disp.RefInd = [1:MG.DAQ.NChannelsTotal];
+% % INITIALIZE DIGITAL REFERENCING ACROSS CHANNELS
+if MG.DAQ.NChannelsTotal <= size(MG.Disp.Referencing.BoolBySet,2)
+  MG.Disp.Referencing.BoolBySet = MG.Disp.Referencing.BoolBySet(:,1:MG.DAQ.NChannelsTotal);
 else
-  if ~isnumeric(MG.Disp.RefInd) 
-    MG.Disp.RefIndVal = eval(MG.Disp.RefInd);
-  else
-        MG.Disp.RefIndVal = MG.Disp.RefInd;
-  end
-  if ~iscell(MG.Disp.RefIndVal)
-    MG.Disp.RefIndVal = intersect([1:MG.DAQ.NChannelsTotal],MG.Disp.RefIndVal);
-    if isfield(MG.GUI,'Reference') &&  isfield(MG.GUI.Reference,'Indices') && ishandle(MG.GUI.Reference.Indices)
-      set(MG.GUI.Reference.Indices,'String',HF_list2colon(MG.Disp.RefIndVal));
-    end
-  end
-end
+  MG.Disp.Referencing.BoolBySet(end,MG.DAQ.NChannelsTotal) = 0;
+ end
 % MAKE SURE A SINGLE CHANNEL IS NOT SUBTRACTED AWAY
 if MG.DAQ.NChannelsTotal  == 1; M_setState('Reference',0); end
 

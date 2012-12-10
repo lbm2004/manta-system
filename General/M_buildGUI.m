@@ -193,12 +193,15 @@ h = LF_addText(Panel,DC2{4}-[0,0.02,0,0],'Comp. Imp.');
 DC2=HF_axesDivide([0.9,4,6],1,DC{3},[.1],[]);
 % REFERENCING
 Loc = 'MG.Disp.Reference';
-MG.GUI.Reference.State = LF_addCheckbox(Panel,DC2{1},MG.Disp.Reference,...
+MG.GUI.Reference.State = LF_addCheckbox(Panel,DC2{1},eval(Loc),...
   {@M_CBF_setValue,Loc});
 h = LF_addText(Panel,DC2{2}-[0,0.02,0,0],'Reference');
-Loc = 'MG.Disp.Reference'; TT = 'Reference channels to sets of other channels. Syntax: subtract set from all : [vector] , subtract sets from sets {{[from],[avset]},...,{[from],[avset]}}';      
-MG.GUI.Reference.Indices = LF_addEdit(Panel,DC2{3},HF_list2colon(MG.Disp.RefInd),...
-  {@M_CBF_Reference},TT);
+
+TT = 'Define Referencing Sets';
+%RefString = M_Referencing2String;
+RefString = 'Define';
+MG.GUI.ReferencingGUI = LF_addPushbutton(Panel,DC2{3},RefString,...
+  {@M_CBF_selectReferencing},TT);
 
 DC2=HF_axesDivide([.4,1.2,.4,1,1],[1,1,1,1,1,1,1],DC{4},.1,.4);
 % FILTERING
@@ -581,6 +584,88 @@ try
   set([MG.Disp.AH.Data,MG.Disp.AH.Spike],'YLim',[-V,V]);
 end
 
+% BUILD REFERENCING GUI (BASED ON ELECTRODES!!!)
+function M_CBF_selectReferencing(obj,event)
+
+global MG Verbose
+
+% ADAPT POSITION AND LOCATION TO BUTTON
+PH = get(obj,'Parent'); FH = get(PH,'Parent');  FigPos = get(FH,'Position');
+set(PH,'Units','Pixels'); PanelPos = get(PH,'Position');
+set(obj,'Units','Pixels'); ButtonPos = get(obj,'Position');
+
+StartPos = ButtonPos([1:2]) + FigPos([1:2]) + PanelPos([1:2]);
+StartPos = StartPos + ButtonPos([3,4]) + [20,0];
+
+NY = 6; FH = NY*24; FW = 250;
+Pos = [StartPos-[0,FH],FW,FH];
+
+MPos = get(MG.GUI.ReferencingGUI,'Position');
+cFIG = MG.GUI.FIG+1000; figure(cFIG); clf;
+MG.GUI.FIGs(end+1) = cFIG;
+
+set(cFIG,'Position',Pos,'Toolbar','none','Menubar','none',...
+  'Name','Select Referencing Sets' ,...
+  'NumberTitle','off','Color',MG.Colors.GUIBackground,'DeleteFcn',@M_CBF_ReferencingClose);
+
+DC = HF_axesDivide([0.1,0.6,0.3],NY,[0.02,0.02,0.96,0.96],0.1,0.3);
+for i=1:NY
+  % ADD REFERENCING CHECKBOX 
+  Loc = ['MG.Disp.Referencing.StateBySet(',n2s(i),')'];
+  MG.GUI.Referencing.Checkbox(i) = LF_addCheckbox(cFIG,DC{i,1},eval(Loc),...
+    {@M_CBF_setValue,Loc},[],[],MG.Colors.GUIBackground);
+  % ADD REFERENCING EDIT 
+  Electrodes = M_Channels2Electrodes(find(MG.Disp.Referencing.BoolBySet(i,:)));
+  cString = HF_list2colon(Electrodes);
+  MG.GUI.Referencing.Edit(i) = LF_addEdit(cFIG,DC{i,2},cString,...
+    {@M_CBF_ReferencingShow,i});  
+  % ADD SHOW BUTTON
+  TT = 'Show the selection of the current referencing set on the plot window';
+  MG.GUI.Referencing.Show(i) = LF_addPushbutton(cFIG,DC{i,3},'Show',...
+    {@M_CBF_ReferencingShow,i},TT);
+end
+
+function M_CBF_ReferencingShow(obj,event,SetIndex)
+global MG Verbose
+
+set([MG.GUI.Referencing.Show,MG.GUI.Referencing.Edit],'ForeGroundColor',[0,0,0]);
+set([MG.GUI.Referencing.Show(SetIndex),MG.GUI.Referencing.Edit(SetIndex)],'ForeGroundColor',[1,0,0]);
+MG.Disp.Referencing.CurrentSet = SetIndex;
+
+try 
+  SelectionElec = eval(['[',get(MG.GUI.Referencing.Edit(SetIndex),'String'),']']);
+catch
+   fprintf('Warning : Format corrupt, cannot interpret.\n'); 
+  return;
+end
+if ~isnumeric(SelectionElec) fprintf('Warning : Format corrupt, cannot interpret.\n'); return; end
+if sum(abs(mod(SelectionElec,1))) fprintf('Warning : Electrode Selection for Referencing contains non-integers!\n'); return; end
+
+AllElectrodes = [MG.DAQ.ElectrodesByChannel.Electrode];
+SelectionChan = [];
+for i=1:length(SelectionElec)
+  ChannelInd = find(SelectionElec(i)==AllElectrodes);
+  if isempty(ChannelInd) fprintf('Warning : Non-existent Electrode selected.\n'); return; end
+  SelectionChan(i) = ChannelInd;
+end
+
+if min(SelectionChan) < 1 | max(SelectionChan) > MG.DAQ.NChannelsTotal
+  fprintf('Warning : Non-existant electrode selected.\n'); return; end
+
+MG.Disp.Referencing.BoolBySet(SetIndex,:) = 0;
+MG.Disp.Referencing.BoolBySet(SetIndex,SelectionChan) = 1;
+if ~isfield(MG.Disp,'CBH') || ~ishandle(MG.Disp.CBH(1)) M_prepareDisplay; end
+
+  for iC=1:length(MG.Disp.CBH)
+  set(MG.Disp.CBH(iC),'Value',MG.Disp.Referencing.BoolBySet(SetIndex,iC)); 
+end
+set(MG.Disp.CBH,'Visible','On')    
+
+function M_CBF_ReferencingClose(obj,event)
+global MG Verbose
+
+if isfield(MG.Disp,'CBH') && ishandle(MG.Disp.CBH(1)) set(MG.Disp.CBH,'Visible','Off'); end
+
 function M_CBF_Reference(obj,event)
 % SET REFERENCING INDICES
 global MG Verbose
@@ -593,7 +678,9 @@ catch
   fprintf('Reference String could not be evaluated... please correct format.\n');
 end
 
-function M_CBF_selectChannels(obj,event,BoardIndex)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  function M_CBF_selectChannels(obj,event,BoardIndex)
 % FUNCTIONALITY:
 % If window is not open, read the current configuration and display it.
 % If window is already open, the call back functions write the changes back 

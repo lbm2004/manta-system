@@ -28,7 +28,7 @@ else
   DATA = Messages{end}(Pos+1:end);
 end
 switch COMMAND
-  case 'INIT';
+  case 'INIT';    
     BaseName = DATA;
     MG.DAQ.BaseName = BaseName;
     MG.DAQ.BasePath = BaseName(1:find(BaseName==filesep,1,'last'));
@@ -40,33 +40,13 @@ switch COMMAND
     M_sendMessage([COMMAND,' OK']);
 
   case 'START';
-    BaseName = DATA;
-    RE = ['(?<Path>[a-zA-Z0-9_:\\]+)\\'...
-      '(?<Animal>[a-zA-Z]+)\\'...
-      '(?<PenetrationPath>[a-zA-Z]+[0-9]+)\\raw\\'...
-      '(?<RecID>[a-zA-Z0-9]+)\\'...
-      '(?<Penetration>[a-zA-Z]+[0-9]+)'...
-      '(?<Condition>[a-z][0-9]{2,3}[a-zA-Z0-9_]+)\.'...
-      '(?<Trial>[0-9]{3,10})'];
-    Names = regexp(BaseName,RE,'names','once');
-    if isempty(Names)
-      Names = struct('Path','','Animal','','Penetration','','Condition','','Trial','');
-    end
-    Names.Trial = str2num(Names.Trial);
-    MG.DAQ.FirstTrial = Names.Trial == 1;
-    MG.DAQ.Trial = Names.Trial;
-    
-    MG.DAQ.BaseName = BaseName;
-    MG.DAQ.PenetrationPath = [Names.Path,Sep,Names.Animal,Sep,Names.PenetrationPath,Sep]; 
-    MG.DAQ.TmpPath = [MG.DAQ.PenetrationPath,'tmp',Sep];
-    if ~exist(MG.DAQ.TmpPath) mkdir(MG.DAQ.TmpPath); end
-    MG.DAQ.TmpFileBase = [MG.DAQ.PenetrationPath,'tmp',Sep,Names.Penetration,Names.Condition,'.001.1'];
+    M_parseFilename(DATA);
    
     % UPDATE DISPLAY
-    set(MG.GUI.Animal,'String',Names.Penetration);
-    set(MG.GUI.Condition,'String',Names.Condition);
-    set(MG.GUI.Trial,'String',Names.Trial);
-    set(MG.GUI.BaseName,'String',BaseName);
+    set(MG.GUI.BaseName,'String',MG.DAQ.BaseName);
+    set(MG.GUI.Animal,'String',MG.DAQ.Penetration);
+    set(MG.GUI.Condition,'String',MG.DAQ.Condition);
+    set(MG.GUI.Trial,'String',MG.DAQ.Trial);
     set(MG.GUI.CurrentFileSize,'String','');
     
     % START ENGINE TO BE READY FOR RECORDING
@@ -94,7 +74,7 @@ switch COMMAND
     eval(DATA); % NO RESPONSE MESSAGE SENT, SINCE SOME COMMANDS DON'T TERMINATE (here M_startEndine)
      
   case 'GETVAR';
-    String = HF_var2string(eval(DATA));
+    String = HF_var2string(eval(DATA)),
     M_sendMessage(String);
     
   case 'COMTEST';

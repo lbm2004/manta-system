@@ -18,7 +18,7 @@ switch Selection
     MG.HW.SIM.ArraysByBoard(1) = struct('Name','lma3d_1_96','Pins',[1:32]);
     MG.HW.SIM.ArraysByBoard(2) = struct('Name','lma3d_1_96','Pins',[33:64]);
     MG.HW.SIM.ArraysByBoard(3) = struct('Name','lma3d_1_96','Pins',[65:96]);
-    MG.HW.SIM.Triggers = struct('Remote','PFI1','Local','None');h
+    MG.HW.SIM.Triggers = struct('Remote','PFI1','Local','None');
     
   case 'DAQ';
     MG.DAQ.Engine = 'SIM';

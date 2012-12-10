@@ -166,10 +166,11 @@ for i=NPlot:-1:1
   % CONTINUOUS PLOTTING
   MG.Disp.AH.Data(i) = axes('Position',MG.Disp.DC.Data{i}); hold on;
   
-  % ADD CHECKBOX (TO TURN RECORDINDS ON AND OFF)
-  %MG.Disp.CBH(i) = uicontrol('style','checkbox','Units','n',...
-   % 'Pos',[MG.Disp.DC.Data{i}([1,2]),.013,.013],'Value',MG.Disp.PlotBool(i),...
-  %  'Callback',{@M_CBF_selectPlot,i});
+  % ADD CHECKBOX (FOR REFERENCING SELECTION)
+  MG.Disp.CBH(i) = uicontrol('style','checkbox','Units','n',...
+    'Pos',[MG.Disp.DC.Data{i}([1,2]),.02,.03],'Value',0,...
+    'Callback',{@M_CBF_selectPlot,i}); %,'Visible','off');
+  
   % CREATE PLOT HANDLES FOR THE DATA PLOTS
   MG.Disp.RPH(i) = plot(TimeInit,MG.Disp.TraceInit,'Color',MG.Colors.Raw,'LineWidth',0.5,'HitTest','off')';
   MG.Disp.TPH(i) = plot(TimeInit,MG.Disp.TraceInit,'Color',MG.Colors.Trace,'LineWidth',0.5,'HitTest','off')';
@@ -456,7 +457,11 @@ M_changeUnits(1:MG.DAQ.NChannelsTotal);
 function M_CBF_selectPlot(obj,event,Index)
 global MG Verbose
 
-MG.Disp.PlotBool(Index) = get(obj,'Value');
+cSetIndex = MG.Disp.Referencing.CurrentSet;
+MG.Disp.Referencing.BoolBySet(cSetIndex,Index) = get(obj,'Value');
+Electrodes = M_Channels2Electrodes(find(MG.Disp.Referencing.BoolBySet(cSetIndex,:)));
+String = HF_list2colon(Electrodes);
+set(MG.GUI.Referencing.Edit(cSetIndex),'String',String);
 
 function M_CBF_closeDisplay(obj,event)
 global MG Verbose

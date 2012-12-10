@@ -124,9 +124,9 @@ MG.Disp.Spectrum = 0;
 MG.Disp.SpecFrac = 0.35;
 MG.Disp.NFFT = 1024;
 % Spike Triggering
-MG.Disp.Spike = 0;
+MG.Disp.Spike = 1;
 MG.Disp.SpikeFrac = 0.4;
-MG.Disp.AutoThresh.State = 0;
+MG.Disp.AutoThresh.State = 1;
 MG.Disp.ISIDur = 0.001;
 MG.Disp.PreDur = 0.002;
 MG.Disp.PostDur = 0.005;
@@ -140,8 +140,10 @@ MG.Disp.SRPSTH = 100;
 MG.Disp.CompensateImpedance = 0;
 % Common Referencing
 MG.Disp.Reference = 1;
-MG.Disp.RefInd = 'all';
-MG.Disp.BankSize = 16; % Number of channels over which common referencing occurs
+MG.Disp.Referencing.NSets = 6;
+MG.Disp.Referencing.StateBySet = logical(zeros(1,MG.Disp.Referencing.NSets));
+MG.Disp.Referencing.BoolBySet = logical(zeros(MG.Disp.Referencing.NSets,0));
+MG.Disp.Referencing.BankSize = 16; % Number of channels over which common referencing occurs
 % Depth
 MG.Disp.DepthYScale = 0.9;
 MG.Disp.DepthType = 'LFP';
