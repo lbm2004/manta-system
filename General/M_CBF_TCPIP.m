@@ -74,7 +74,7 @@ switch COMMAND
     eval(DATA); % NO RESPONSE MESSAGE SENT, SINCE SOME COMMANDS DON'T TERMINATE (here M_startEndine)
      
   case 'GETVAR';
-    String = HF_var2string(eval(DATA));
+    String = HF_var2string(eval(DATA)),
     M_sendMessage(String);
     
   case 'COMTEST';

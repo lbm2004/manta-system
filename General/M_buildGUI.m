@@ -654,7 +654,7 @@ if min(SelectionChan) < 1 | max(SelectionChan) > MG.DAQ.NChannelsTotal
 
 MG.Disp.Referencing.BoolBySet(SetIndex,:) = 0;
 MG.Disp.Referencing.BoolBySet(SetIndex,SelectionChan) = 1;
-if ~ishandle(MG.Disp.CBH(1)) M_prepareDisplay; end
+if ~isfield(MG.Disp,'CBH') || ~ishandle(MG.Disp.CBH(1)) M_prepareDisplay; end
 
   for iC=1:length(MG.Disp.CBH)
   set(MG.Disp.CBH(iC),'Value',MG.Disp.Referencing.BoolBySet(SetIndex,iC)); 
@@ -664,7 +664,7 @@ set(MG.Disp.CBH,'Visible','On')
 function M_CBF_ReferencingClose(obj,event)
 global MG Verbose
 
-if isfield(MG.Disp,'CBH') set(MG.Disp.CBH,'Visible','Off'); end
+if isfield(MG.Disp,'CBH') && ishandle(MG.Disp.CBH(1)) set(MG.Disp.CBH,'Visible','Off'); end
 
 function M_CBF_Reference(obj,event)
 % SET REFERENCING INDICES

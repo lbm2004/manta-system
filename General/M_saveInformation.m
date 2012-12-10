@@ -5,7 +5,7 @@ global MG Verbose
 
 % REMOVE UNNECESSARY & LARGE FIELDS
 MGSave = rmfield(MG,{'Data','Colors','GUI','Audio','Disp'});
-if isfield(MG,'AI') MGSave = rmfield(MGSave,AI); end
+if isfield(MG,'AI') MGSave = rmfield(MGSave,'AI'); end
 if isfield(MGSave,'DIO') MGSave = rmfield(MGSave,'DIO'); end
 try MGSave = rmfield(MGSave,{'AudioI','AudioO'}); end
 MGSave.DAQ = rmfield(MGSave.DAQ,{'Channels'});

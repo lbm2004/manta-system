@@ -124,9 +124,9 @@ MG.Disp.Spectrum = 0;
 MG.Disp.SpecFrac = 0.35;
 MG.Disp.NFFT = 1024;
 % Spike Triggering
-MG.Disp.Spike = 0;
+MG.Disp.Spike = 1;
 MG.Disp.SpikeFrac = 0.4;
-MG.Disp.AutoThresh.State = 0;
+MG.Disp.AutoThresh.State = 1;
 MG.Disp.ISIDur = 0.001;
 MG.Disp.PreDur = 0.002;
 MG.Disp.PostDur = 0.005;

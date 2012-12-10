@@ -168,8 +168,8 @@ for i=NPlot:-1:1
   
   % ADD CHECKBOX (FOR REFERENCING SELECTION)
   MG.Disp.CBH(i) = uicontrol('style','checkbox','Units','n',...
-    'Pos',[MG.Disp.DC.Data{i}([1,2]),.1,.05],'Value',0,...
-    'Callback',{@M_CBF_selectPlot,i});%,'Visible','off');
+    'Pos',[MG.Disp.DC.Data{i}([1,2]),.02,.03],'Value',0,...
+    'Callback',{@M_CBF_selectPlot,i}); %,'Visible','off');
   
   % CREATE PLOT HANDLES FOR THE DATA PLOTS
   MG.Disp.RPH(i) = plot(TimeInit,MG.Disp.TraceInit,'Color',MG.Colors.Raw,'LineWidth',0.5,'HitTest','off')';

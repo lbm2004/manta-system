@@ -19,9 +19,7 @@ MG.DAQ.StopRecording = 0; MG.DAQ.StopRecTime = NaN;
 MG.DAQ.StartRecording = 1; MG.DAQ.StartRecTime = NaN;
 MG.DAQ.Recording = 1;
 MG.DAQ.IterationRec = 0;
-if MG.DAQ.FirstTrial
-  MG.Disp.AutoThresh.State = 0; set(MG.GUI.Spike.AutoThresh,'Value',0); % AVOID CHANGING THRESHOLDS DURING A RECORDING
-end
+MG.Disp.AutoThresh.State = 0; set(MG.GUI.Spike.AutoThresh,'Value',0); % AVOID CHANGING THRESHOLDS DURING A RECORDING
 
 % SETUP SPIKETIME SAVING DURING RECORDING
 MG.Disp.SaveSpikes = strcmp(MG.DAQ.Trigger.Type,'Remote');

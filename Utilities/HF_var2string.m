@@ -8,7 +8,7 @@ elseif isnumeric(Var) % MATRICES
   String = '[';
   for i=1:size(Var,1)
     for j=1:size(Var,2)
-      String = [String,sprintf('%10.20e',Var(i,j)),','];
+      String = [String,sprintf('%1.10g',Var(i,j)),','];      
     end
     String(end) = ';';
   end

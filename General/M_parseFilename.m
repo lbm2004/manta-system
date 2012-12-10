@@ -3,7 +3,7 @@ function M_parseFilename(DATA)
 global MG Verbose
 
 switch architecture
-  case 'WIN'; SepRE = '\\';
+  case 'PCWIN'; SepRE = '\\';
   otherwise SepRE = '\/';
 end
 Sep = filesep;
@@ -41,7 +41,7 @@ switch MG.DAQ.Format
     MG.DAQ.Condition = Names.Condition;
     MG.DAQ.Penetration = Names.Penetration;
     
-    MG.DAQ.PenetrationPath = [Names.Path,Sep,Names.Animal,Sep,Names.PenetrationPath,Sep];
+    MG.DAQ.PenetrationPath = [Names.Path,Sep,Names.Animal,Sep,Names.Penetration,Sep];
     MG.DAQ.TmpPath = [MG.DAQ.PenetrationPath,'tmp',Sep];
     if ~exist(MG.DAQ.TmpPath) mkdir(MG.DAQ.TmpPath); end
     MG.DAQ.TmpFileBase = [MG.DAQ.PenetrationPath,'tmp',Sep,Names.Penetration,Names.Condition,'.001.1'];
