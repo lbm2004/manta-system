@@ -22,7 +22,7 @@ if isempty(Location)
   MG.HW.HostnameFile = ['M_Hostname_',MG.HW.Hostname];
   MG.HW.Lab = 'Generic';
   MG.HW.ConfigPath = [SavePath,'Configurations',Sep,MG.HW.Lab,Sep];
-  fprintf(['WARNING : \tNo configuration file for current hostname "',MG.HW.Hostname,'". \n\tAdd a file named ''',MG.HW.HostnameFile,''' to a subdirectory with your labname\n\tin the directory <MANTAROOT>/Configurations.\n\tUsing  "',MG.HW.ConfigPath,MG.HW.HostnameFile,'.m" until then.\n']);
+  fprintf(['WARNING : \tNo configuration file for current hostname "',escapeMasker(MG.HW.Hostname),'". \n\tAdd a file named ''',MG.HW.HostnameFile,''' to a subdirectory with your labname\n\tin the directory <MANTAROOT>/Configurations.\n\tUsing  "',escapeMasker([MG.HW.ConfigPath,MG.HW.HostnameFile]),'.m" until then.\n']);
 else
   Pos = find(Location==Sep);
   MG.HW.Lab = Location(Pos(end-1)+1:Pos(end)-1);
