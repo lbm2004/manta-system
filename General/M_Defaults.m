@@ -57,6 +57,7 @@ MG.DAQ.HSDIO.EngineCommand = 'D:\Code\baphy\Hardware\hsdio\hsdio_stream_dual';
 MG.DAQ.HSDIO.SRDigital = 50000000; % Digital sampling rate
 MG.DAQ.HSDIO.SamplesPerIteration = 500; % Analog Samples before checking again on the card
 MG.DAQ.HSDIO.MaxIterations = 10000; % Maximal Number of Iterations to run
+MG.DAQ.HSDIO.Simulation = 0; 
 
 MG.DAQ.NIDAQ.RingEngineLength = 5; % seconds. Defines Ring Buffer Length for Manual Trigger
 MG.DAQ.NIDAQ.BufferSize = 500; % samples. Packages of samples on the level of the DAQ device

@@ -166,11 +166,11 @@ for i=NPlot:-1:1
   % CONTINUOUS PLOTTING
   MG.Disp.AH.Data(i) = axes('Position',MG.Disp.DC.Data{i}); hold on;
   
-  % ADD CHECKBOX (FOR REFERENCING SELECTION)
+    % ADD CHECKBOX (FOR REFERENCING SELECTION)
   MG.Disp.CBH(i) = uicontrol('style','checkbox','Units','n',...
     'Pos',[MG.Disp.DC.Data{i}([1,2]),.02,.03],'Value',0,...
-    'Callback',{@M_CBF_selectPlot,i}); %,'Visible','off');
-  
+    'Callback',{@M_CBF_selectPlot,i},'Visible','off');
+
   % CREATE PLOT HANDLES FOR THE DATA PLOTS
   MG.Disp.RPH(i) = plot(TimeInit,MG.Disp.TraceInit,'Color',MG.Colors.Raw,'LineWidth',0.5,'HitTest','off')';
   MG.Disp.TPH(i) = plot(TimeInit,MG.Disp.TraceInit,'Color',MG.Colors.Trace,'LineWidth',0.5,'HitTest','off')';

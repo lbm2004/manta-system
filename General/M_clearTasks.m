@@ -15,7 +15,7 @@ switch MG.DAQ.Engine
     for i=1:length(MG.DAQ.BoardIDs) S = DAQmxResetDevice(MG.DAQ.BoardIDs{i});  if S NI_MSG(S); end; end
     
   case 'HSDIO';
-    if isfield(MG,'AI') & ~MG.DAQ.Simulation
+    if isfield(MG,'AI') &  ~MG.DAQ.HSDIO.Simulation
      % for i=1:length(MG.AI) S = HSDIOClearTask(MG.AI(i)); if S NI_MSG(S); end; end 
     end
 end

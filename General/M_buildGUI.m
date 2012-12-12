@@ -155,7 +155,7 @@ MG.GUI.Record = LF_addTogglebutton(Panel,DC2{4},'Record',0,...
 Panel = LF_addPanel(FIG,'Display',TitleSize,TitleColor,MG.Colors.Panel,...
   [Border,1-sum(NPH(1:PanNum))-(PanNum-.5)*Border-Offset,NPW,NPH(PanNum)]);
 
-DC=HF_axesDivide([1],[.7,.7,.7,7],[PBorder,PBorder,1-2*PBorder,1-2*PBorder],[],.5);
+DC=HF_axesDivide([1],[.7,.7,.7,7],[PBorder,PBorder/2,1-2*PBorder,1-PBorder],[],.5);
 
 DC2=HF_axesDivide([0.7,1,0.5,1,0.7,1],1,DC{1},[.1,.2,.1,.2,.1],[]);
 % PLOTTING RANGE : TIME
@@ -942,5 +942,5 @@ function M_CBF_closeMANTA(obj,event)
 global MG Verbose
 fclose all;
 try, M_stopEngine; M_clearTasks; end
-for i=1:length(MG.GUI.FIGs) try close(MG.GUI.FIGs(i)); end; end
+try for i=1:length(MG.GUI.FIGs) try close(MG.GUI.FIGs(i)); end; end; end
     
