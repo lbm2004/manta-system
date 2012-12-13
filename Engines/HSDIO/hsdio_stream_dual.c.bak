@@ -191,10 +191,9 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   int WriteDigital=0, WriteAnalog=1;
   char FileNameD[255];
   char FileNameStop[255];
-  char FileNameStatus[255];
   int *StopBit;
   
-  FILE *DataFile, *DataFileD, *StopFile, *StatusFile;
+  FILE *DataFile, *DataFileD, *StopFile;
 
   /* GENERATION PARAMETERS */
   ViConstString genChannelList = "1";
@@ -255,10 +254,7 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   printf("OutFile: %s\n",FileName);
   strcpy(FileNameStop,FileName);
   strcat(FileNameStop,"Stop");
-  printf("Stop Bit File: %s\n",FileNameStop);
-  strcpy(FileNameStatus,FileName);
-  strcat(FileNameStatus,"Stop");
-  printf("Status File Name: %s\n",FileNameStatus);
+  printf("OutFileStop: %s\n",FileNameStop);
   
   // GENERATION CODE
   /* create data for output */
@@ -393,9 +389,8 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   Error:
     if (error == VI_SUCCESS) { /* print result */
       printf("Done without error.\n");
-      printf("Number of digital samples read = %d.\n", DTotalSamplesRead);
-      printf("Number of analog samples written = %d.\n", ATotalSamplesWritten);
-    } else { /* Get error description and print */
+      printf("Number of samples read = %d.\n", DTotalSamplesRead);}
+    else { /* Get error description and print */
       niHSDIO_GetError(vi, &error, sizeof(errDesc)/sizeof(ViChar), errDesc);
       printf("\nError encountered\n===================\n%s\n", errDesc);}
     
