@@ -11,6 +11,7 @@ function R = M_ArrayInfo(ArrayName,NElectrodes,Plot)
 % An angle can be added to indicate absolute rotation (w.r.t. to the rostro-caudal axis)
 
 Comment = ''; Angle = NaN; Type = '2d_planar'; Floating = 0; % could also be linear
+
 switch lower(ArrayName)
   case 'generic'; % USED IN MANTA TO ALLOW USER DEFINED ARRAYS
     PinsByElectrode = []; Drive = 0;
@@ -94,6 +95,20 @@ switch lower(ArrayName)
     Ground = {{'Electrode',[2.0,3.0,0.0]}};
     Comment = 'Chronic recordings';
   
+  case 'amazon_a12_left'; % Totally screwy mapping my Microprobes.
+    % Entering  the remapped positions already
+    PinsByElectrode = [1:32]; Drive = 1;
+    ElecPos = [... % Array Dimensions are 8x4 with 0.5 mm spacing
+      1.5,0.0;1.5,0.5;1.5,1.0;1.5,1.5;1.5,2.0;1.5,2.5;1.5,3.0;1.5,3.5;...
+      1.0,0.0;1.0,0.5;1.0,1.0;1.0,1.5;1.0,2.0;1.0,2.5;1.0,3.0;1.0,3.5;...
+      0.5,0.0;0.5,0.5;0.5,1.0;0.5,1.5;0.5,2.0;0.5,2.5;0.5,3.0;0.5,3.5;...
+      0.0,3.5;0.0,3.0;0.0,2.5;0.0,2.0;0.0,1.5;0.0,1.0;0.0,0.5;0.0,0.0;...
+    ];    Impedances = [];
+    Reference = {{'Electrode',[2.0,0.5,0.0]}};
+    Ground = {{'Electrode',[2.0,3.0,0.0]}};
+    Comment = 'Chronic recordings';
+    
+    
   case 'mackenzie_a1_left';
     PinsByElectrode = [1:32]; Drive = 1;
     ElecPos = [... % Array Dimensions are 8x4 with 0.5 mm spacing
@@ -308,6 +323,7 @@ switch lower(ArrayName)
     WireDiameter = repmat(15,1,NChannels);
     Reference = {{'None',[NaN,NaN,NaN]}};
     Ground = {{'Shaft',[NaN,NaN,NaN]}};
+    Tip = {[0,0,ElecPos(end)+0.2]}; % Tip Position relative to other electrodes
     Comment = '';
     
   case 'plextrode_24_75';
@@ -318,6 +334,7 @@ switch lower(ArrayName)
     WireDiameter = repmat(15,1,NChannels);
     Reference = {{'None',[NaN,NaN,NaN]}};
     Ground = {{'Shaft',[NaN,NaN,NaN]}};
+    Tip = {[0,0,ElecPos(end)+0.2]}; % Tip Position relative to other electrodes
     Comment = '';
     
   case 'single_clockwise';
@@ -365,6 +382,7 @@ switch lower(ArrayName)
     Ground = {{'Wire',[-5,-5,0]}};
   
   otherwise error('Array not defined!');
+    
 end
 % COMPUTE DERIVED PROPERTIES (DISCRETE CHANNEL LAYOUT)
 [ElecPos,Prongs] = LF_completeElecPos(ElecPos,Type);

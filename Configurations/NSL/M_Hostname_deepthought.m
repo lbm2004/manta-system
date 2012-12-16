@@ -6,21 +6,12 @@ global MG
 switch Selection
   case 'HW';
     % ANALOG (NIDAQ) BOARDS
-    MG.HW.NIDAQ.BoardIDs = {'D1','D2','D3'};
-    MG.HW.NIDAQ.BoardsBool = logical([1,1,1]);
-    MG.HW.NIDAQ.ArraysByBoard(1) = struct('Name','lma3d_1_96','Pins',[1:32]); % 32 pin connector
-    MG.HW.NIDAQ.ArraysByBoard(2) = struct('Name','lma3d_1_96','Pins',[33:64]); % 32 pin connector
-    MG.HW.NIDAQ.ArraysByBoard(3) = struct('Name','lma3d_1_96','Pins',[65:96]); % 32 pin connector
-    MG.HW.NIDAQ.SystemsByBoard = struct('Name',{'Plexon','Plexon1','Plexon1'});
+    MG.HW.NIDAQ.BoardIDs = {'D1'};
+    MG.HW.NIDAQ.BoardsBool = logical([1]);
+    MG.HW.NIDAQ.ArraysByBoard(1) = struct('Name','mea_1_32','Pins',[1:32]); % 32 pin connector
+     MG.HW.NIDAQ.SystemsByBoard = struct('Name',{'Plexon'});
     MG.HW.NIDAQ.Triggers = struct('Remote','PFI0','Local','PFI0');  % WHEN USED WITH SPR2 (CABLES NEED TO BE SETUP)
-    
-    % DIGITAL (HSDIO) BOARDS
-    MG.HW.HSDIO.BoardIDs = {'D10'};
-    MG.HW.HSDIO.BoardsBool = logical([1]);
-    MG.HW.HSDIO.SystemsByBoard = struct('Name',{'Blackrock_96Ch_16bit'});
-    MG.HW.HSDIO.ArraysByBoard(1) = struct('Name','lma3d_1_96','Pins',[1:96]);
-    MG.HW.HSDIO.Triggers = struct('Remote','DIO1','Local','None');
-    
+     
   case 'DAQ';
     MG.DAQ.DataPath = 'D:\Data\';
     MG.DAQ.HSDIO.TempFile = 'C:\Code\HSDIO.bin'; % Intermediate storage of acquired data

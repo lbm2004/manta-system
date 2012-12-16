@@ -22,7 +22,7 @@ if isempty(Location)
   MG.HW.HostnameFile = ['M_Hostname_',MG.HW.Hostname];
   MG.HW.Lab = 'Generic';
   MG.HW.ConfigPath = [SavePath,'Configurations',Sep,MG.HW.Lab,Sep];
-  fprintf(['WARNING : \tNo configuration file for current hostname "',MG.HW.Hostname,'". \n\tAdd a file named ''',MG.HW.HostnameFile,''' to a subdirectory with your labname\n\tin the directory <MANTAROOT>/Configurations.\n\tUsing  "',MG.HW.ConfigPath,MG.HW.HostnameFile,'.m" until then.\n']);
+  fprintf(['WARNING : \tNo configuration file for current hostname "',escapeMasker(MG.HW.Hostname),'". \n\tAdd a file named ''',MG.HW.HostnameFile,''' to a subdirectory with your labname\n\tin the directory <MANTAROOT>/Configurations.\n\tUsing  "',escapeMasker([MG.HW.ConfigPath,MG.HW.HostnameFile]),'.m" until then.\n']);
 else
   Pos = find(Location==Sep);
   MG.HW.Lab = Location(Pos(end-1)+1:Pos(end)-1);
@@ -57,6 +57,7 @@ MG.DAQ.HSDIO.EngineCommand = 'D:\Code\baphy\Hardware\hsdio\hsdio_stream_dual';
 MG.DAQ.HSDIO.SRDigital = 50000000; % Digital sampling rate
 MG.DAQ.HSDIO.SamplesPerIteration = 500; % Analog Samples before checking again on the card
 MG.DAQ.HSDIO.MaxIterations = 10000; % Maximal Number of Iterations to run
+MG.DAQ.HSDIO.Simulation = 0; 
 
 MG.DAQ.NIDAQ.RingEngineLength = 5; % seconds. Defines Ring Buffer Length for Manual Trigger
 MG.DAQ.NIDAQ.BufferSize = 500; % samples. Packages of samples on the level of the DAQ device
@@ -124,9 +125,9 @@ MG.Disp.Spectrum = 0;
 MG.Disp.SpecFrac = 0.35;
 MG.Disp.NFFT = 1024;
 % Spike Triggering
-MG.Disp.Spike = 0;
+MG.Disp.Spike = 1;
 MG.Disp.SpikeFrac = 0.4;
-MG.Disp.AutoThresh.State = 0;
+MG.Disp.AutoThresh.State = 1;
 MG.Disp.ISIDur = 0.001;
 MG.Disp.PreDur = 0.002;
 MG.Disp.PostDur = 0.005;
@@ -136,10 +137,14 @@ MG.Disp.NSpikes = 10;
 MG.Disp.PSTH = 0;
 MG.Disp.PSTHType = 'Spikes';
 MG.Disp.SRPSTH = 100;
+% Compensate Impedance
+MG.Disp.CompensateImpedance = 0;
 % Common Referencing
 MG.Disp.Reference = 1;
-MG.Disp.RefInd = 'all';
-MG.Disp.BankSize = 16; % Number of channels over which common referencing occurs
+MG.Disp.Referencing.NSets = 6;
+MG.Disp.Referencing.StateBySet = logical(zeros(1,MG.Disp.Referencing.NSets));
+MG.Disp.Referencing.BoolBySet = logical(zeros(MG.Disp.Referencing.NSets,0));
+MG.Disp.Referencing.BankSize = 16; % Number of channels over which common referencing occurs
 % Depth
 MG.Disp.DepthYScale = 0.9;
 MG.Disp.DepthType = 'LFP';

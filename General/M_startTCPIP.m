@@ -9,7 +9,7 @@ global MG Verbose
  % if Verbose   fprintf('Trying to reuse previous connection with stimulator.\n');  end
 %else
   if Verbose fprintf(['Establishing connection with Host ',MG.Stim.Host,':',n2s(MG.Stim.Port),'...\n']); end
-  MG.Stim.TCPIP = tcpip(MG.Stim.Host,MG.Stim.Port,'TimeOut',.4,'OutputBufferSize',2^17);
+  MG.Stim.TCPIP = tcpip(MG.Stim.Host,MG.Stim.Port,'TimeOut',.4,'OutputBufferSize',2^18);
 %end
 
 % SET PROPERTIES

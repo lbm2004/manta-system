@@ -176,6 +176,10 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   ViUInt32 ASamplesTotal;
   ViUInt32 DSamplesTotal;
   
+  // circular output buffer
+  ViUInt32 ASamplesLoopSize=50000;
+  ViUInt32 ASamplesWrittenThisLoop=0, ALoopCount=0, ABytesWrittenThisLoop[2];
+  
   // circular buffer variables
   ViUInt32 ASamplesPerChannelBuffer;
   ViUInt32 ASamplesBuffer;
@@ -257,7 +261,7 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   strcat(FileNameStop,"Stop");
   printf("Stop Bit File: %s\n",FileNameStop);
   strcpy(FileNameStatus,FileName);
-  strcat(FileNameStatus,"Stop");
+  strcat(FileNameStatus,"Status");
   printf("Status File Name: %s\n",FileNameStatus);
   
   // GENERATION CODE
@@ -318,7 +322,6 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
       DTotalSamplesWritten = DTotalSamplesWritten + DSamplesWritten;
     }
     
-   
     /* Check Remaining Samples */
     checkErr(niHSDIO_GetAttributeViInt32 (vi, "",NIHSDIO_ATTR_FETCH_BACKLOG, &BackLogSamples));
     //printf("\tSamples left in buffer %d\n",BackLogSamples);
@@ -337,6 +340,14 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
       ATotalSamplesWritten = ATotalSamplesWritten + ASamplesWritten;
       fclose(DataFile);
       DataFile=fopen(FileName,"ab");
+      
+      StatusFile = fopen(FileNameStatus, "wb");
+      ASamplesWrittenThisLoop=ATotalSamplesWritten;
+      ABytesWrittenThisLoop[0]=ASamplesWrittenThisLoop*2;
+      ABytesWrittenThisLoop[1]=ALoopCount;
+      if (DEBUG) printf("Bytes this loop : %d\n",ABytesWrittenThisLoop[0]);
+      fwrite(ABytesWrittenThisLoop, sizeof(ViUInt32),  (size_t)1, StatusFile);
+      fclose(StatusFile);
     }
     
     time2=clock();

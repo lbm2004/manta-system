@@ -6,7 +6,10 @@ global MG Verbose
 switch MG.DAQ.Engine; case 'NIDAQ'; SamplesPerChanReadPtr = libpointer('int32Ptr',0); end
 
 %% WAIT UNTIL TRIGGER RECEIVED (ESPECIALLY FOR REMOTE TRIGGERING)
-if Verbose fprintf('Waiting for trigger ...'); end 
+if Verbose fprintf('Waiting for trigger ...'); end
+pause(0.2); % TO WAIT UNTIL THE TAST STARTS OR THE TRIGGER OCCURS
+% HERE IT WOULD BE BEST TO INQUIRE WHETHER THE IT IS ALREADY SAMPLING
+% BUT WE HAVE NOT FOUND THIS OPTION YET IN THE DOCUMENTATION OF NIDAQmx
 while ~M_SamplesAvailable; pause(0.05); drawnow; end
 MG.DAQ.Running = 1; MG.DAQ.DTs = [];
 
@@ -84,9 +87,10 @@ while MG.DAQ.Running
         if ~isfield(MG.DAQ,'SimulationSource') MG.DAQ.SimulationSource = 'Artificial'; end
         switch MG.DAQ.SimulationSource
           case 'Artificial'; % CREATE REALISTIC DATA USING SOME PRESETS
+            NoiseScale = 8;
             MG.Data.Raw = randn(size(MG.Data.Raw));
+            if Iteration == 1 NoiseValues = 0.6*(rand(1,size(MG.Data.Raw,2))-0.5) + 1; end
             if MG.DAQ.WithSpikes
-              NoiseScale = 8;
               Time = 2*pi*(MG.DAQ.SamplesAcquired+[0:SamplesAvailable-1]')/MG.DAQ.SR;
               Noise = NoiseScale*(sin(MG.DAQ.HumFreq*Time) + sin(3.25*Time) + sin(0.231*Time));
               MG.Data.Raw = MG.Data.Raw + repmat(Noise,1,size(MG.Data.Raw,2));
@@ -99,6 +103,7 @@ while MG.DAQ.Running
               end
             end
             MG.Data.Raw = MG.Data.Raw/10;
+            MG.Data.Raw = bsxfun(@times,MG.Data.Raw,NoiseValues);
             
           case 'Real'; % LOAD DATA FROM A SAVED RECORDING (e.g. for publication pictures)
             % NOT FINISHED YET
@@ -108,7 +113,7 @@ while MG.DAQ.Running
               MG.Data.Raw(:,i) = tmp(MG.DAQ.SamplesAcquired+1:min(MG.DAQ.SamplesAcquired+SamplesAvailable,end));
             end
         end
-        if Verbose && Iteration == 1 fprintf('\n\n     [   Warning : Using simulated Data     ]    \\n'); end
+        if Verbose && Iteration == 1 fprintf('\n\n     [   Warning : Using simulated Data     ]    \n\n'); end
     end
   end      
   MG.DAQ.SamplesAcquired = MG.DAQ.SamplesAcquired + SamplesAvailable;
@@ -211,6 +216,7 @@ switch MG.DAQ.Engine
   case 'NIDAQ';
     SamplesAvailablePtr = libpointer('uint32Ptr',1);
     S = DAQmxGetReadAvailSampPerChan(MG.AI(MG.DAQ.BoardsNum(1)),SamplesAvailablePtr); if S NI_MSG(S); end
+    % USEFUL TO KEEP ABSOLUTE TIMING : DAQmxGetReadTotalSampPerChanAcquired 
     SamplesAvailable = double(get(SamplesAvailablePtr,'Value'));
   case 'HSDIO';
     TempFile = dir(MG.DAQ.HSDIO.TempFile);
