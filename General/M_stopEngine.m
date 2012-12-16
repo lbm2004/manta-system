@@ -35,7 +35,7 @@ switch MG.DAQ.Engine
       %if Verbose fprintf(Output); end
       % SOFT STOP
       FID = fopen(MG.DAQ.HSDIO.StopFile,'w');
-        fwrite(FID,1,'uint32'); fclose(FID);
+      fwrite(FID,1,'uint32'); fclose(FID);
     end
     try fclose(MG.DAQ.HSDIO.TempFileID); end
   case 'SIM'; % NOTHING TO BE DONE
