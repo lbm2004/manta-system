@@ -300,7 +300,7 @@ switch lower(ArrayName)
     Ground = {{'Tip',[NaN,NaN,NaN]}};
     Comment = '';
     
-  case 'plextrode_24_100';
+  case {'plextrode_24','plextrode_24_100'};
     NChannels = 24;
     PinsByElectrode = [1:NChannels]; Drive = 1; Type = '1d_depth';
     dZ = 0.1; ElecPos = [0:dZ:(NChannels-1)*dZ];
