@@ -11,6 +11,7 @@ function R = M_ArrayInfo(ArrayName,NElectrodes,Plot)
 % An angle can be added to indicate absolute rotation (w.r.t. to the rostro-caudal axis)
 
 Comment = ''; Angle = NaN; Type = '2d_planar'; Floating = 0; % could also be linear
+
 switch lower(ArrayName)
   case 'generic'; % USED IN MANTA TO ALLOW USER DEFINED ARRAYS
     PinsByElectrode = []; Drive = 0;
@@ -322,6 +323,7 @@ switch lower(ArrayName)
     WireDiameter = repmat(15,1,NChannels);
     Reference = {{'None',[NaN,NaN,NaN]}};
     Ground = {{'Shaft',[NaN,NaN,NaN]}};
+    Tip = {[0,0,ElecPos(end)+0.2]}; % Tip Position relative to other electrodes
     Comment = '';
     
   case 'plextrode_24_75';
@@ -332,6 +334,7 @@ switch lower(ArrayName)
     WireDiameter = repmat(15,1,NChannels);
     Reference = {{'None',[NaN,NaN,NaN]}};
     Ground = {{'Shaft',[NaN,NaN,NaN]}};
+    Tip = {[0,0,ElecPos(end)+0.2]}; % Tip Position relative to other electrodes
     Comment = '';
     
   case 'single_clockwise';
@@ -379,6 +382,7 @@ switch lower(ArrayName)
     Ground = {{'Wire',[-5,-5,0]}};
   
   otherwise error('Array not defined!');
+    
 end
 % COMPUTE DERIVED PROPERTIES (DISCRETE CHANNEL LAYOUT)
 [ElecPos,Prongs] = LF_completeElecPos(ElecPos,Type);
