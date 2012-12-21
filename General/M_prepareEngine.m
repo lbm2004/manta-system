@@ -19,8 +19,7 @@ M_setRanges;
 M_Humbug;
 
 % INITIALIZE DATA MATRIX
-MG.Disp.DispDur = M_roundSign(MG.Disp.DispDur,2);
-MG.Disp.DispStepsFull = floor(MG.Disp.DispDur*MG.DAQ.SR);
+M_refreshTimeSteps;
 MG.Data.Raw = zeros(MG.Disp.DispStepsFull,MG.DAQ.NChannelsTotal);
 if isfield(MG.Data,'Offset') MG.Data = rmfield(MG.Data,'Offset'); end
 
