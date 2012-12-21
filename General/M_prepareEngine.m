@@ -40,10 +40,12 @@ for i=MG.DAQ.BoardsNum
       S = DAQmxTaskControl(MG.AI(i),NI_decode('DAQmx_Val_Task_Verify')); if S NI_MSG(S); end
       S = DAQmxTaskControl(MG.AI(i),NI_decode('DAQmx_Val_Task_Reserve')); if S NI_MSG(S); end;
       S = DAQmxTaskControl(MG.AI(i),NI_decode('DAQmx_Val_Task_Commit')); if S NI_MSG(S); end
-      S = DAQmxTaskControl(MG.DIO(i),NI_decode('DAQmx_Val_Task_Verify')); if S NI_MSG(S); end
-      S = DAQmxTaskControl(MG.DIO(i),NI_decode('DAQmx_Val_Task_Reserve')); if S NI_MSG(S); end;
-      S = DAQmxTaskControl(MG.DIO(i),NI_decode('DAQmx_Val_Task_Commit')); if S NI_MSG(S); end
-            
+      if strcmp(MG.DAQ.Trigger.Type,'Local')
+        S = DAQmxTaskControl(MG.DIO(i),NI_decode('DAQmx_Val_Task_Verify')); if S NI_MSG(S); end
+        S = DAQmxTaskControl(MG.DIO(i),NI_decode('DAQmx_Val_Task_Reserve')); if S NI_MSG(S); end;
+        S = DAQmxTaskControl(MG.DIO(i),NI_decode('DAQmx_Val_Task_Commit')); if S NI_MSG(S); end
+      end
+      
     case 'HSDIO'; % MOSTLY PERFORMED IN THE STREAMING PROGRAM      
       if exist(MG.DAQ.HSDIO.TempFile,'file') FID = fopen(MG.DAQ.HSDIO.TempFile,'w'); fclose(FID); end
       if exist(MG.DAQ.HSDIO.DebugFile,'file') FID = fopen(MG.DAQ.HSDIO.DebugFile,'w'); fclose(FID); end
