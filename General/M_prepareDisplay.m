@@ -63,6 +63,7 @@ PixelsPerPlot = ceil(ScreenWidth*MaxWidth);
 MG.Disp.MaxSteps = PixelsPerPlot;
 
 % Scaling Factor to convert from maximal SR to displayed sampling rate
+M_refreshTimeSteps;
 MG.Disp.ScaleFactor = ceil(MG.Disp.DispStepsFull/MG.Disp.MaxSteps);
 
 % Actual number of displayed steps 
