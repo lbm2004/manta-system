@@ -26,7 +26,6 @@ if strcmp(MG.Stim.TCPIP.Status,'closed')
     M_Logger('Connection to stimulator established.\n');  
   else % not opened
     M_Logger(['Connection to stimulator could not be established.\n']);
-    end
   end
 end
 
