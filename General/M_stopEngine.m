@@ -3,7 +3,7 @@ function M_stopEngine
 % Called from: External, Display, Engine, Record
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
 
-global MG Verbose
+global MG 
 
 if MG.DAQ.Recording M_stopRecording; end % To make sure we are not recording
 
@@ -19,6 +19,7 @@ switch MG.DAQ.Engine
       for i=1:length(MG.AI) 
         if MG.AI(i) 
           S = DAQmxStopTask(MG.AI(i)); if S NI_MSG(S); end;
+          S = DAQmxTaskControl(MG.AI(i),NI_decode('DAQmx_Val_Task_Unreserve')); if S NI_MSG(S); end;
         end; 
       end
     end
@@ -32,7 +33,7 @@ switch MG.DAQ.Engine
       % HARD KILL
       %[Path,Name] = fileparts(MG.DAQ.HSDIO.EngineCommand);
       %[R,Output] = system(['Taskkill /F /IM ',Name,'.exe']);
-      %if Verbose fprintf(Output); end
+      %M_Logger(Output); 
       % SOFT STOP
       FID = fopen(MG.DAQ.HSDIO.StopFile,'w');
       fwrite(FID,1,'uint32'); fclose(FID);
@@ -42,7 +43,7 @@ switch MG.DAQ.Engine
 end
 
 try set(MG.GUI.Engine,'Value',0,'BackGroundColor',MG.Colors.Button); catch; end
-if Verbose fprintf(['\n => Engines stopped ...\n']); end
+M_Logger(['\n => Engines stopped ...\n']);
 
 % RUN SPIKESORTER FOR CURRENT TRIAL
 for i=1:MG.DAQ.NChannelsTotal MG.Disp.SorterFun(1,i); end

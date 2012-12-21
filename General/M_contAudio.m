@@ -1,6 +1,6 @@
 function M_contAudio
 
-global MG Verbose
+global MG 
 
 if any(MG.Audio.ElectrodesBool) && isfield(MG.Data,'Trace')
   cData = MG.Data.Trace(:,[MG.DAQ.ChannelsByElectrode(MG.Audio.ElectrodesBool).Channel])'; % Transpose to make extraction of position easier below
@@ -11,6 +11,6 @@ if any(MG.Audio.ElectrodesBool) && isfield(MG.Data,'Trace')
   if NAudio<2000 cData = [zeros(2000-NAudio,2);cData]; end
   putdata(MG.AudioO,cData);
   if strcmp(get(MG.AudioO,'Running'),'Off')
-    start(MG.AudioO); if Verbose fprintf('restarting audio...\n'); end;
+    start(MG.AudioO); M_Logger('restarting audio...\n');
   end
 end

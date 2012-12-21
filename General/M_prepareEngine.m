@@ -12,11 +12,13 @@ MG.DAQ.SamplesAcquired = 0;
 MG.DAQ.SamplesRecovered = 0;
 MG.DAQ.AcquisitionDone = 1;
 
-% SETUP CHANNELS AND RANGES
+% SETUP CHANNELS, RANGES AND FILTERS
 M_updateChannelMaps;
 M_setupChannels;
 M_setRanges;
-[MG.Disp.Filter.Humbug.b,MG.Disp.Filter.Humbug.a] = M_Humbug;
+M_Humbug;
+
+% INITIALIZE DATA MATRIX
 MG.Disp.DispDur = M_roundSign(MG.Disp.DispDur,2);
 MG.Disp.DispStepsFull = floor(MG.Disp.DispDur*MG.DAQ.SR);
 MG.Data.Raw = zeros(MG.Disp.DispStepsFull,MG.DAQ.NChannelsTotal);
@@ -35,9 +37,13 @@ for i=MG.DAQ.BoardsNum
         MG.DAQ.NIDAQ.RingEngineLength*MG.DAQ.SR); % size of engine per channel
       if S NI_MSG(S); end
       % GET TASKS READY
-      S = DAQmxTaskControl(MG.AI(i),NI_decode('DAQmx_Val_Task_Reserve')); if S NI_MSG(S); end;
       S = DAQmxTaskControl(MG.AI(i),NI_decode('DAQmx_Val_Task_Verify')); if S NI_MSG(S); end
+      S = DAQmxTaskControl(MG.AI(i),NI_decode('DAQmx_Val_Task_Reserve')); if S NI_MSG(S); end;
       S = DAQmxTaskControl(MG.AI(i),NI_decode('DAQmx_Val_Task_Commit')); if S NI_MSG(S); end
+      S = DAQmxTaskControl(MG.DIO(i),NI_decode('DAQmx_Val_Task_Verify')); if S NI_MSG(S); end
+      S = DAQmxTaskControl(MG.DIO(i),NI_decode('DAQmx_Val_Task_Reserve')); if S NI_MSG(S); end;
+      S = DAQmxTaskControl(MG.DIO(i),NI_decode('DAQmx_Val_Task_Commit')); if S NI_MSG(S); end
+            
     case 'HSDIO'; % MOSTLY PERFORMED IN THE STREAMING PROGRAM      
       if exist(MG.DAQ.HSDIO.TempFile,'file') FID = fopen(MG.DAQ.HSDIO.TempFile,'w'); fclose(FID); end
       if exist(MG.DAQ.HSDIO.DebugFile,'file') FID = fopen(MG.DAQ.HSDIO.DebugFile,'w'); fclose(FID); end

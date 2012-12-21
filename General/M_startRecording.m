@@ -15,6 +15,6 @@ switch MG.DAQ.Engine
 end
 
 % PREPARE FILES FOR SAVING
-M_prepareRecording; if Verbose fprintf('\n => Files ready ... \n'); end
+M_prepareRecording; M_Logger('\n => Files ready ... \n');
 
 set(MG.GUI.Record,'Value',1,'BackGroundColor',MG.Colors.ButtonAct);

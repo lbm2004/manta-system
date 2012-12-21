@@ -8,7 +8,7 @@ switch Selection
     % ANALOG (NIDAQ) BOARDS
     MG.HW.NIDAQ.BoardIDs = {'D1'};
     MG.HW.NIDAQ.BoardsBool = logical([1]);
-    MG.HW.NIDAQ.SystemsByBoard = struct('Name',{'Plexon'});
+    MG.HW.NIDAQ.SystemsByBoard = struct('Name',{'tbsi'});
     MG.HW.NIDAQ.ArraysByBoard(1) = struct('Name','amazon_a12_left','Pins',[1:32]);
     MG.HW.NIDAQ.Triggers = struct('Remote','RTSI0','Local','PFI0');  % WHEN USED WITH CMB1
     

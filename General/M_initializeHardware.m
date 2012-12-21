@@ -99,7 +99,7 @@ try
         fprintf('Audio disabled : None of the audio devices support output (potential cause: unplugged speakers)\n');
         MG.Audio.Output = 0;
       else
-        if Verbose fprintf(['Using Audio Device : ',tmp.BoardNames{AudioBoardID},'\n']); end
+        M_Logger(['Using Audio Device : ',tmp.BoardNames{AudioBoardID},'\n']); 
         MG.Audio = transferFields(MG.Audio,tmp);
         Opt = {'I','O'};
         if ~isempty(tmp.BoardNames)
@@ -119,15 +119,13 @@ try
   else fprintf('Audio disabled : DAQ-toolbox not available\n');
   end
 catch
-  if Verbose disp('Audio disabled : Error configuring'); end
+  M_Logger('Audio disabled : Error configuring'); 
 end
 
 % OUTPUT SOME INFORMATION ON DAQ CARDS
-if Verbose
-  fprintf(['Adaptors found : ',n2s(MG.HW.NBoards),', ',...
-    n2s(MG.DAQ.NBoardsUsed),' selected (',n2s(find(MG.HW.BoardsBool)),')\n']);
-  for i=1:MG.DAQ.NBoardsUsed
-    fprintf([' - ID : ',MG.DAQ.BoardIDs{i},' (',MG.DAQ.BoardsNames{i},', '...
-      ,n2s(MG.DAQ.NChannelsPhys(i)),' AI)\n'])
-  end
+M_Logger(['Adaptors found : ',n2s(MG.HW.NBoards),', ',...
+  n2s(MG.DAQ.NBoardsUsed),' selected (',n2s(find(MG.HW.BoardsBool)),')\n']);
+for i=1:MG.DAQ.NBoardsUsed
+  M_Logger([' - ID : ',MG.DAQ.BoardIDs{i},' (',MG.DAQ.BoardsNames{i},', '...
+    ,n2s(MG.DAQ.NChannelsPhys(i)),' AI)\n']);
 end

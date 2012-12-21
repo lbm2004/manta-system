@@ -9,7 +9,7 @@ function M_updateChannelMaps
 % by the number of channels on the current board.
 %
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
-global MG Verbose
+global MG 
 
 MG.DAQ.BoardsNum = find(MG.DAQ.BoardsBool);
 MG.DAQ.ChannelsNum = cell(1,MG.DAQ.NBoardsUsed); 
@@ -48,7 +48,7 @@ for iB = 1:length(MG.DAQ.BoardsNum)
          iCTotal = MG.DAQ.ChSeqInds{cB}(iC);
          MG.DAQ.ElectrodesByChannel(iCTotal) = orderfields(cStruct);
          MG.DAQ.ChannelsByElectrode(iCTotal).Channel = iCTotal;
-         if Verbose fprintf(['Adding El.',n2s(cStruct.Electrode),' of Array ',cStruct.Array,' on Board ',n2s(cB),' (',MG.DAQ.BoardIDs{cB},') Pin ',n2s(cStruct.Pin),' AI.',n2s(cBoardChannel),' as Channel ',n2s(iCTotal),'\n']); end
+         M_Logger(['Adding El.',n2s(cStruct.Electrode),' of Array ',cStruct.Array,' on Board ',n2s(cB),' (',MG.DAQ.BoardIDs{cB},') Pin ',n2s(cStruct.Pin),' AI.',n2s(cBoardChannel),' as Channel ',n2s(iCTotal),'\n']);
        end
     otherwise % PROPER ARRAY SPECIFIED (TYPICAL CASE)
       cStruct.Array = MG.DAQ.ArraysByBoard(cB).Name;
@@ -78,14 +78,14 @@ for iB = 1:length(MG.DAQ.BoardsNum)
           if ~isempty(cStruct.Electrode)
             MG.DAQ.ElectrodesByChannel(iCTotal) = orderfields(cStruct); % COLLECT MAP FROM CHANNEL TO ELECTRODE
             MG.DAQ.ChannelsByElectrode(cStruct.Electrode).Channel = iCTotal;
-            if Verbose fprintf(['Adding El.',n2s(cStruct.Electrode),' of Array ',cStruct.Array,' on Board ',n2s(cB),' (',MG.DAQ.BoardIDs{cB},') Pin ',n2s(ArrayPin),' AI.',n2s(cBoardChannel),' as Channel ',n2s(iCTotal),'\n']); end
+            M_Logger(['Adding El.',n2s(cStruct.Electrode),' of Array ',cStruct.Array,' on Board ',n2s(cB),' (',MG.DAQ.BoardIDs{cB},') Pin ',n2s(ArrayPin),' AI.',n2s(cBoardChannel),' as Channel ',n2s(iCTotal),'\n']);
           end
         else
           if ~exist('WarningShown','var') fprintf(' > M_updateChannelMaps  : One or more electrodes could not be assigned.\n'); end
           WarningShown = 1;
         end
       end
-      if Verbose fprintf('\n'); end
+      M_Logger fprintf('\n'); 
   end
 end; clear iC iB
 

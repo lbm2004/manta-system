@@ -303,7 +303,7 @@ MaxY = MaxY/0.98;
 for i=1:NPlot DC{i} = DC{i}./[MaxX,MaxY,MaxX,MaxY]+[0.01,0.01,0,0]; end
 
 function ChannelXY = M_CBF_computeTiling
-global MG Verbose
+global MG 
 
 Tiling = MG.Disp.Tiling.Selection; LastVal =0;
 for i=MG.DAQ.BoardsNum
@@ -314,7 +314,7 @@ for i=MG.DAQ.BoardsNum
 end
 
 function M_prepare3DRotation
-global MG Verbose
+global MG
 set(MG.Disp.FIG,'ButtonDownFcn',{@M_rotateMatrix},...
   'WindowButtonUpFcn','global Rotating_ ; Rotating_ = 0;','Units','norm');
 FN = {'Data','Spike','Spectrum'};
@@ -343,7 +343,7 @@ end
 
 function M_CBF_axisZoom(obj,event,Index,String)
 % TRANSFER A RAW DATA FIGURE TO A SEPARATE WINDOW
-global MG Verbose
+global MG
 
 SelType = get(gcf, 'SelectionType');
 switch SelType 
@@ -376,7 +376,7 @@ switch SelType
 end
 
 function M_CBF_returnPlot(obj,event,Index,String)
-global MG Verbose;
+global MG
 try
   set(MG.Disp.AH.Data(Index),'Parent',MG.Disp.FIG);
   set(MG.Disp.AH.Spike(Index),'Parent',MG.Disp.FIG);
@@ -393,7 +393,7 @@ end
 function M_CBF_axisClick(obj,event,Index)
 % ZOOM IN AND OUT BASED ON CLICKING ON THE YAXIS
 % ALSO SELECT THRESHOLD FOR SPIKES
-global MG Verbose
+global MG
 
 D = get(obj,'CurrentPoint');
 SelType = get(gcf, 'SelectionType');
@@ -438,7 +438,7 @@ end
 function M_CBF_axisWheel(obj,event,Index)
 % ZOOM IN AND OUT BASED ON CLICKING ON THE YAXIS
 % ALSO SELECT THRESHOLD FOR SPIKES
-global MG Verbose
+global MG
 D = get(obj,'CurrentPoint');
 YLims = cell2mat(get([MG.Disp.AH.Data,MG.Disp.AH.Spike],'YLim'));
  YLims = YLims(:,2); 
@@ -455,7 +455,7 @@ MG.Disp.YLims = repmat([-NewYLim,NewYLim],size(MG.Disp.YLims,1),1);
 M_changeUnits(1:MG.DAQ.NChannelsTotal);
 
 function M_CBF_selectPlot(obj,event,Index)
-global MG Verbose
+global MG
 
 cSetIndex = MG.Disp.Referencing.CurrentSet;
 MG.Disp.Referencing.BoolBySet(cSetIndex,Index) = get(obj,'Value');
@@ -464,7 +464,7 @@ String = HF_list2colon(Electrodes);
 set(MG.GUI.Referencing.Edit(cSetIndex),'String',String);
 
 function M_CBF_closeDisplay(obj,event)
-global MG Verbose
+global MG
 try 
   set(MG.GUI.Display,'Value',0,'BackGroundColor',MG.Colors.Button); MG.Disp.Display = 0;
 end
@@ -472,6 +472,6 @@ MG.Disp.LastPos = get(obj,'Position');
 clear global MGold;
 
 function M_CBF_resizeDisplay(obj,event)
-global MG Verbose
+global MG
 
 MG.Disp.LastPos = get(obj,'Position');
