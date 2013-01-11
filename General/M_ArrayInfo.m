@@ -11,6 +11,7 @@ function R = M_ArrayInfo(ArrayName,NElectrodes,Plot)
 % An angle can be added to indicate absolute rotation (w.r.t. to the rostro-caudal axis)
 
 Comment = ''; Angle = NaN; Type = '2d_planar'; Floating = 0; % could also be linear
+Tip = {[]};
 
 switch lower(ArrayName)
   case 'generic'; % USED IN MANTA TO ALLOW USER DEFINED ARRAYS
@@ -397,7 +398,7 @@ if exist('Plot','var') LF_plotArray(ElecPos,ChannelXY,ArrayName,Reference,Ground
 % PREPARE OUTPUT
 R = struct('Name',ArrayName,'ElecPos',ElecPos,'ChannelXY',ChannelXY,...
   'PinsByElectrode',PinsByElectrode,'Drive',Drive,'Angle',Angle,'Type',Type,...
-  'Reference',Reference,'Ground',Ground,'Comment',Comment,...
+  'Reference',Reference,'Ground',Ground,'Comment',Comment,'Tip',Tip,...
   'Floating',Floating,'Dimensions',Dimensions,'Spacing',Spacing,'ProngsByElectrode',Prongs);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
