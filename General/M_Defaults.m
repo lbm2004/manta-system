@@ -78,6 +78,7 @@ MG.DAQ.HumFreq = 50; % Frequency of Line Noise;
 % OVERRIDE default settings with anything specified in the Hostname file.
 M_loadDefaultsByHostname(MG.HW.Hostname,'DAQ');
 MG.DAQ.BaseName = [tempdir,'testrec'];
+MG.DAQ.HSDIO.StatusFile = [MG.DAQ.HSDIO.TempFile 'Status']; % Intermediate storage of acquired data
 
 % PARAMETERS FOR READING LOOPING BUFFER FROM HSDIO (MAYBE NIDAQMX?)
 MG.DAQ.SamplesPerDaqLoop=900000;  % 30 seconds at 30K samples/sec

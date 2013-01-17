@@ -50,6 +50,7 @@ for i=MG.DAQ.BoardsNum
     case 'HSDIO'; % MOSTLY PERFORMED IN THE STREAMING PROGRAM      
       if exist(MG.DAQ.HSDIO.TempFile,'file') FID = fopen(MG.DAQ.HSDIO.TempFile,'w'); fclose(FID); end
       if exist(MG.DAQ.HSDIO.DebugFile,'file') FID = fopen(MG.DAQ.HSDIO.DebugFile,'w'); fclose(FID); end
+      if exist(MG.DAQ.HSDIO.StatusFile,'file') FID = fopen(MG.DAQ.HSDIO.StatusFile,'w'); fclose(FID); end
   end
 end
 % SET AUDIO TO THE SAME SAMPLE RATE AS DAQ
