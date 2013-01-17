@@ -176,7 +176,7 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   ViUInt32 ASamplesTotal;
   ViUInt32 DSamplesTotal;
   
-  // circular output buffer
+  // circular output buffer in memory
   ViUInt32 ASamplesLoopSize=50000;
   ViUInt32 ASamplesWrittenThisLoop=0, ALoopCount=0, ABytesWrittenThisLoop[2];
   
@@ -189,6 +189,9 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   ViUInt32 ABufferSamplesRead=0;
   ViUInt32 ASamplesBufferValid;
 
+  // circular output buffer on disk:
+  ViUnit32 ASamplesPerDaqLoop=900000;
+  
   clock_t time1, time2;
   float ExpectedTimeToPass;
   float TimePassed;
@@ -333,6 +336,10 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
       if (DEBUG) printf("ASamples this loop %d/%d (%d)\n", ASamplesRead, ABufferSamplesRead, ATotalSamplesRead);
       
       // WRITE ANALOG DATA TO DISK (FOR ONLINE READING)
+      // TO DO: modify to loop to begining for file if 
+      // ATotalSamplesWrittenThisLoop goes over limit specified by 
+      // hard-coded ASamplesPerDaqLoop
+      
       Aoffset=(ABufferSamplesRead-ASamplesRead)*NumberOfChannels;
       ASamplesWritten = fwrite(&(AData[Aoffset]), sizeof(ViUInt16), (size_t) (ASamplesRead*NumberOfChannels), DataFile);
       if (ASamplesWritten != ASamplesRead*NumberOfChannels) { printf("Samples could not be written!\n"); return -1;}

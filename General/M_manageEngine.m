@@ -76,6 +76,11 @@ while MG.DAQ.Running
           fullremap=bankremap(remap);
           ChannelMap{i}=fullremap(find(MG.DAQ.ChannelsBool{i}));
         end
+        
+        % TODO: If running over the end of the circular buffer, ie, 
+        % MG.DAQ.SamplesAcquiredThisLoop, then loop around to the beginning
+        % of the file and read the remainder of samples from there.
+        
         Data = fread(MG.DAQ.HSDIO.TempFileID,NElements,MG.DAQ.Precision);
         Data = reshape(Data,MG.HW.Boards(i).NAI,SamplesAvailable)'/MG.DAQ.GainsByBoard(i);
         % offset of 19000 (rather than expected 32000) matched to
@@ -117,6 +122,7 @@ while MG.DAQ.Running
     end
   end      
   MG.DAQ.SamplesAcquired = MG.DAQ.SamplesAcquired + SamplesAvailable;
+  MG.DAQ.SamplesAcquiredThisLoop = MG.DAQ.SamplesAcquiredThisLoop + SamplesAvailable;
   MG.DAQ.TimeAcquired = MG.DAQ.SamplesAcquired/MG.DAQ.SR;
   MG.DAQ.SamplesTaken(Iteration) = SamplesAvailable;
   MG.DAQ.TimeTaken(Iteration) = SamplesAvailable/MG.DAQ.SR;
@@ -219,10 +225,23 @@ switch MG.DAQ.Engine
     % USEFUL TO KEEP ABSOLUTE TIMING : DAQmxGetReadTotalSampPerChanAcquired 
     SamplesAvailable = double(get(SamplesAvailablePtr,'Value'));
   case 'HSDIO';
-    TempFile = dir(MG.DAQ.HSDIO.TempFile);
-    if isempty(TempFile) SamplesAvailable=0; % FILE NOT YET CREATED
-    else SamplesAvailable = floor(TempFile.bytes/(MG.HW.Boards(1).NAI*MG.DAQ.BytesPerSample)); end
-    SamplesAvailable = SamplesAvailable - MG.DAQ.SamplesAcquired;
+     %OLD measure size of file
+     TempFile = dir(MG.DAQ.HSDIO.TempFile);
+     if isempty(TempFile) SamplesAvailable=0; % FILE NOT YET CREATED
+     else SamplesAvailable = floor(TempFile.bytes/(MG.HW.Boards(1).NAI*MG.DAQ.BytesPerSample)); end
+     SamplesAvailable = SamplesAvailable - MG.DAQ.SamplesAcquired;
+     % NEW: read last byte written from Status File
+%      StatusFileName=[MG.DAQ.HSDIO.TempFile, 'Status'];
+%      StatusFile=fopen(StatusFileName,'rb');
+%      if ~StatusFile,
+%         SamplesAvailable=0;
+%      else
+%         BytesAvailable=fread(StatusFile,'uint32');
+%         fclose(StatusFile);
+%         SamplesAvailable = floor(BytesAvailable/...
+%            (MG.HW.Boards(1).NAI*MG.DAQ.BytesPerSample));
+%         SamplesAvailable = SamplesAvailable - MG.DAQ.SamplesAcquiredThisLoop;
+%      end
   case 'SIM'
     if MG.DAQ.Iteration < 2  SamplesAvailable = 5000;
     else SamplesAvailable = round(MG.DAQ.SR*(MG.DAQ.DTs(MG.DAQ.Iteration-1)));

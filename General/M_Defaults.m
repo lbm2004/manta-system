@@ -76,6 +76,9 @@ MG.DAQ.HumFreq = 50; % Frequency of Line Noise;
 M_loadDefaultsByHostname(MG.HW.Hostname,'DAQ');
 MG.DAQ.BaseName = [tempdir,'testrec'];
 
+% PARAMETERS FOR READING LOOPING BUFFER FROM HSDIO (MAYBE NIDAQMX?)
+MG.DAQ.SamplesPerDaqLoop=900000;  % 30 seconds at 30K samples/sec
+
 % SETUP TRIGGERING
 MG.DAQ.TriggerCondition.HwDigital = 'PositiveEdge';
 MG.DAQ.TriggerCondition.Immediate = 'none';

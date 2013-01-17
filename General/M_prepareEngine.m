@@ -8,7 +8,9 @@ MG.DAQ.Trigger.Type = P.Trigger;
 
 % INITIALIZE STATE VARIABLES
 MG.DAQ.Iteration = 0; MG.DAQ.CurrentFileSize = 0; 
-MG.DAQ.SamplesAcquired = 0;
+MG.DAQ.SamplesAcquired = 0;  % total samples acquired this session.
+MG.DAQ.SamplesAcquiredThisLoop = 0;  % samples acquired in current HSDIO buffer loop
+MG.DAQ.SamplesLoopsAcquired = 0;  % how many times the HSDIO circular buffer has looped on disk
 MG.DAQ.SamplesRecovered = 0;
 MG.DAQ.AcquisitionDone = 1;
 
