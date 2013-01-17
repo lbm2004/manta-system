@@ -5,7 +5,7 @@ global MG Verbose
 
 try; 
   fclose(MG.Stim.TCPIP); 
-  if Verbose fprintf('Connection to stimulator terminated.\n'); end
+  M_Logger('Connection to stimulator terminated.\n');
 catch; 
 end
 

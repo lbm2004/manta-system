@@ -38,6 +38,12 @@ fcns.name{fcnNum}='DAQmxIsTaskDone'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{f
 fcns.name{fcnNum}='DAQmxTaskControl'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'int32'};fcnNum=fcnNum+1;
 % int32 _stdcall DAQmxGetTaskComplete ( TaskHandle taskHandle , bool32 * data ); 
 fcns.name{fcnNum}='DAQmxGetTaskComplete'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'uint32Ptr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetSampTimingEngine ( TaskHandle taskHandle , uInt32 * data ); 
+fcns.name{fcnNum}='DAQmxGetSampTimingEngine'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'uint32Ptr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxSetSampTimingEngine ( TaskHandle taskHandle , uInt32 data ); 
+fcns.name{fcnNum}='DAQmxSetSampTimingEngine'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'uint32'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxResetSampTimingEngine ( TaskHandle taskHandle ); 
+fcns.name{fcnNum}='DAQmxResetSampTimingEngine'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32'};fcnNum=fcnNum+1;
 
 %% TASK PROPERTIES
 % int32 _stdcall DAQmxGetSampClkRate ( TaskHandle taskHandle , float64 * data ); 

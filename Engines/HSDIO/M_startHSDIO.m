@@ -18,7 +18,7 @@ Cmd = [Cmd,sprintf('%d  ',MG.DAQ.Boards(1).Bits)]; % Bit Length of the current H
 MG.DAQ.Simulation = 0;
 Cmd = [Cmd,sprintf('%d  ',MG.DAQ.Simulation)]; % Simulation Mode
 Cmd = [Cmd,'  >  ',MG.DAQ.HSDIO.DebugFile]; % Debugging Output
-if Verbose fprintf(escapeMasker(['Executing : [  ',Cmd,'  ]\n'])); end
+M_Logger(escapeMasker(['Executing : [  ',Cmd,'  ]\n']));
 
 outpath=fileparts(MG.DAQ.HSDIO.TempFile);
 while ~exist(outpath,'dir'),
@@ -45,4 +45,4 @@ while ~exist(MG.DAQ.HSDIO.TempFile,'file') && TimeoutStop<1,
    drawnow;
 end
 if TimeoutStop>=1   error('HSDIO engine has not started'); end
-if Verbose disp('HSDIO engine has started successfully'); end
+M_Logger('HSDIO engine has started successfully'); 

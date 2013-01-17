@@ -4,7 +4,7 @@ function M_saveInformation
 global MG Verbose
 
 % REMOVE UNNECESSARY & LARGE FIELDS
-MGSave = rmfield(MG,{'Data','Colors','GUI','Audio','Disp'});
+MGSave = rmfield(MG,{'Data','Colors','GUI','Audio','Disp','Log'});
 if isfield(MG,'AI') MGSave = rmfield(MGSave,'AI'); end
 if isfield(MGSave,'DIO') MGSave = rmfield(MGSave,'DIO'); end
 try MGSave = rmfield(MGSave,{'AudioI','AudioO'}); end
@@ -16,4 +16,4 @@ end
 
 FileName = [MG.DAQ.BaseName,'.mat'];
 save(FileName,'MGSave');
-if Verbose fprintf(['Recording information saved to ',escapeMasker(FileName),'\n']); end
+M_Logger(['Recording information saved to ',escapeMasker(FileName),'\n']);

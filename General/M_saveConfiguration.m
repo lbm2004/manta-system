@@ -1,7 +1,7 @@
 function M_saveConfiguration
 % SAVES CONFIGURATION OF MANTA FOR LATER RETRIEVAL 
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
-global MG Verbose
+global MG
 
 % COLLECT ALL INFORMATION FOR THE PRESENT CONFIGURATION
 % Electrodes, Boards, Audio, SR, Times, Filtering, What to show
@@ -25,7 +25,7 @@ Sep = HF_getSep;
 ConfName = input('Enter name for configuration : ','s');
 if ~isempty(ConfName)
   FullName = [MG.HW.ConfigPath,'M_Config_',ConfName,'.mat'];
-  if Verbose fprintf(['Writing current configuration to ',escapeMasker(FullName),'\n']); end
+  M_Logger(['Writing current configuration to ',escapeMasker(FullName),'\n']); 
   save(FullName,'MGSave');
 
   % REFRESH DISPLAY

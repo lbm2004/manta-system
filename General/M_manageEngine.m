@@ -1,16 +1,14 @@
 function M_manageEngine(obj,event,BoardIndex)
 % MAIN CALLBACK FUNCTION FOR ENGINES
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
-global MG Verbose
+global MG 
 
 switch MG.DAQ.Engine; case 'NIDAQ'; SamplesPerChanReadPtr = libpointer('int32Ptr',0); end
 
 %% WAIT UNTIL TRIGGER RECEIVED (ESPECIALLY FOR REMOTE TRIGGERING)
-if Verbose fprintf('Waiting for trigger ...'); end
-pause(0.2); % TO WAIT UNTIL THE TAST STARTS OR THE TRIGGER OCCURS
-% HERE IT WOULD BE BEST TO INQUIRE WHETHER THE IT IS ALREADY SAMPLING
-% BUT WE HAVE NOT FOUND THIS OPTION YET IN THE DOCUMENTATION OF NIDAQmx
-while ~M_SamplesAvailable; pause(0.05); drawnow; end
+M_Logger('Waiting for trigger ...'); 
+pause(0.05); while ~M_SamplesAvailable; pause(0.05); drawnow; end
+
 MG.DAQ.Running = 1; MG.DAQ.DTs = [];
 
 %% MAIN ACQUISITION LOOP
@@ -41,7 +39,7 @@ while MG.DAQ.Running
           StopTimeout=toc-TimeoutInit;
         end
         if StopTimeout>1,
-          if Verbose fprintf('\n HSDIO timeout. Stopping Engine ...'); end
+          MLogger('\n HSDIO timeout. Stopping Engine ...');
           M_stopEngine;
           if str2double(datestr(now-MG.DAQ.TriggerTime,'SS'))+...
                  str2double(datestr(now-MG.DAQ.TriggerTime,'MM')).*60>30 &&...
@@ -118,7 +116,7 @@ while MG.DAQ.Running
               MG.Data.Raw(:,i) = tmp(MG.DAQ.SamplesAcquired+1:min(MG.DAQ.SamplesAcquired+SamplesAvailable,end));
             end
         end
-        if Verbose && Iteration == 1 fprintf('\n\n     [   Warning : Using simulated Data     ]    \n\n'); end
+        if Iteration == 1 M_Logger('\n\n     [   Warning : Using simulated Data     ]    \n\n'); end
     end
   end      
   MG.DAQ.SamplesAcquired = MG.DAQ.SamplesAcquired + SamplesAvailable;
@@ -127,7 +125,7 @@ while MG.DAQ.Running
   MG.DAQ.SamplesTaken(Iteration) = SamplesAvailable;
   MG.DAQ.TimeTaken(Iteration) = SamplesAvailable/MG.DAQ.SR;
   if ~MG.DAQ.Running MG.DAQ.AcquisitionDone = 1; end
-      
+   
   %% SAVE DATA
   if Recording
     if MG.DAQ.StartRecording % note the time when recording started
@@ -160,7 +158,7 @@ while MG.DAQ.Running
     end
     if NWrite < SamplesAvailable
       MG.DAQ.Recording = 0;
-      if Verbose fprintf('\n => Recording stopping...\n'); end
+      M_Logger('\n => Recording stopping...\n');
       M_closeFiles;
       if strcmp(MG.DAQ.Trigger.Type,'Remote')
         M_stopEngine;
@@ -205,23 +203,26 @@ while MG.DAQ.Running
   drawnow ; % other options (update,expose) don't work with interactivity
   
   % WAIT SOME TIME TO NOT EXCEED MAXIMUM FRAME RATE :)
-  DT = toc; pause(max(0,MG.DAQ.MinDur-DT)); DT = toc;
+ DT = toc; pause(max(0,MG.DAQ.MinDur-DT)); DT = toc;
   MG.DAQ.DTs(MG.DAQ.Iteration) = DT;
   
-  if Verbose
-    fprintf(['It.%i  \t(%f s, %2.1f Hz, %d from Engine,  %d in Audio, %d written)\n'],...
-      Iteration,DT,1/DT,SamplesAvailable,NAudio,NWrite);
-  end
+  M_Logger(['It.%i  \t(%f s, %2.1f Hz, %d from Engine,  %d in Audio, %d written)\n'],...
+    Iteration,DT,1/DT,SamplesAvailable,NAudio,NWrite);
+  
+   if MG.DAQ.Runtime < MG.DAQ.TimeAcquired M_stopEngine; end
 end
 
 %% CHECK WHETHER THE ACQUISITION HAS BEEN TRIGGERED
 function SamplesAvailable = M_SamplesAvailable
 
-global MG Verbose
+global MG
 switch MG.DAQ.Engine
   case 'NIDAQ';
-    SamplesAvailablePtr = libpointer('uint32Ptr',1);
+    S = DAQmxTaskControl(MG.AI(MG.DAQ.BoardsNum(1)),NI_decode('DAQmx_Val_Task_Start')); 
+    if ~S keyboard; end; 
+    SamplesAvailablePtr = libpointer('uint32Ptr',false);
     S = DAQmxGetReadAvailSampPerChan(MG.AI(MG.DAQ.BoardsNum(1)),SamplesAvailablePtr); if S NI_MSG(S); end
+    if S<0 keyboard; end
     % USEFUL TO KEEP ABSOLUTE TIMING : DAQmxGetReadTotalSampPerChanAcquired 
     SamplesAvailable = double(get(SamplesAvailablePtr,'Value'));
   case 'HSDIO';

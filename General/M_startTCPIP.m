@@ -2,14 +2,14 @@ function M_startTCPIP
 % Establish TCPIP connection with stimulator
 % Set Timeout?
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
-global MG Verbose
+global MG
 
 % OBTAIN CONNECTION OBJECT
 %if ~isempty(MG) & isfield(MG,'Stim') & isfield(MG.Stim,'TCPIP') 
- % if Verbose   fprintf('Trying to reuse previous connection with stimulator.\n');  end
+ % M_Logger('Trying to reuse previous connection with stimulator.\n');  
 %else
-  if Verbose fprintf(['Establishing connection with Host ',MG.Stim.Host,':',n2s(MG.Stim.Port),'...\n']); end
-  MG.Stim.TCPIP = tcpip(MG.Stim.Host,MG.Stim.Port,'TimeOut',.4,'OutputBufferSize',2^18);
+M_Logger(['Establishing connection with Host ',MG.Stim.Host,':',n2s(MG.Stim.Port),'...\n']);
+MG.Stim.TCPIP = tcpip(MG.Stim.Host,MG.Stim.Port,'TimeOut',.4,'OutputBufferSize',2^18);
 %end
 
 % SET PROPERTIES
@@ -23,10 +23,9 @@ if strcmp(MG.Stim.TCPIP.Status,'closed')
   try fopen(MG.Stim.TCPIP); end
   if strcmp(MG.Stim.TCPIP.Status,'open') % successfully opened
     flushinput(MG.Stim.TCPIP); flushoutput(MG.Stim.TCPIP);
-    if Verbose   fprintf('Connection to stimulator established.\n');  end
+    M_Logger('Connection to stimulator established.\n');  
   else % not opened
-    if Verbose   fprintf(['Connection to stimulator could not be established.\n']);
-    end
+    M_Logger(['Connection to stimulator could not be established.\n']);
   end
 end
 

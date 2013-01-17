@@ -9,7 +9,7 @@ function M_setRanges
 %
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
 
-global MG Verbose;
+global MG 
 
 % SET RANGES
 try MG.DAQ = rmfield(MG.DAQ,{'InputRangesByChannel','int16factorsByChannel'}); end

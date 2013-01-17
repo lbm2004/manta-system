@@ -1,6 +1,6 @@
 function M_setupChannels
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
-global MG Verbose;
+global MG
 
 M_stopEngine;
 
@@ -25,7 +25,7 @@ for i=MG.DAQ.BoardsNum
         S = DAQmxCreateAIVoltageChan(MG.AI(i),cChannel,cName,...
           NI_decode('DAQmx_Val_RSE'),-10,10,NI_decode('DAQmx_Val_Volts'),[]); if S NI_MSG(S); end
         S = DAQmxSetAITermCfg(MG.AI(i),cChannel,NI_decode('DAQmx_Val_RSE')); if S NI_MSG(S); end
-        if Verbose fprintf(['Adding ',cChannel,'\n']); end
+        M_Logger(['Adding ',cChannel,'\n']);
       end
       %NumChans = libpointer('uint32Ptr',1);
       %S = DAQmxGetTaskNumChans(NI.AI(i),NumChans); if S NI_MSG(S); end

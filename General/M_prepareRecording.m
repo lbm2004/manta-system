@@ -1,7 +1,7 @@
 function M_prepareRecording
 % SET UP FILES AND START ENGINE IF NECESSARY
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
-global MG Verbose
+global MG
 
 % ENSURE PATH EXISTS
 mkdirAll(MG.DAQ.BaseName);
@@ -34,16 +34,16 @@ end
 
 % SETUP THE DATA FILES
 function M_setupEVPfile(i,NTotal)
-global MG Verbose
+global MG
 
 % OPEN FILE & CHECK FOR ERROR
 [MG.DAQ.Files(i).fid,MG.DAQ.Files(i).Error] = fopen(MG.DAQ.Files(i).name,'w');
-if Verbose 
-  switch i
-    case 1; fprintf(['\n  Creating files ',escapeMasker(MG.DAQ.Files(i).name(1:end-4))]);
-    case NTotal; fprintf(['-',n2s(NTotal),'.evp']);
-  end
+
+switch i
+  case 1; M_Logger(['\n  Creating files ',escapeMasker(MG.DAQ.Files(i).name(1:end-4))]);
+  case NTotal; M_Logger(['-',n2s(NTotal),'.evp']);
 end
+
 if ~isempty(MG.DAQ.Files(i).Error) fprintf(MG.DAQ.Files(i).Error); end
 % SAVE HEADER
 HeaderLength = 100;

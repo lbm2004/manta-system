@@ -8,6 +8,9 @@ if isempty(Verbose) Verbose = 0; end
 
 if ~isfield(MG,'Config') MG.Config = 'Default'; end
 
+%% INITIALIZE LOG
+MG.Log = [];
+
 %% DETERMINE LOCATION 
 SavePath = which('MANTA');
 SavePath = SavePath(1:find(SavePath==Sep,1,'last'));

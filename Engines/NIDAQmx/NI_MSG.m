@@ -7,9 +7,10 @@ if isempty(MG) MG.DAQ.Engine = 'NIDAQ'; end
 
 switch upper(MG.DAQ.Engine)
   case 'NIDAQ';
+    if status<0 Type = 'ERROR '; elseif status>0 Type = 'WARNING '; end
     if isempty(p) p = loadnidaqmx; end
     cError = p.defines{find(p.values==status,1,'last')};
-    fprintf(['WARNING (from NIDAQmx) : ',cError,' (Code: ',n2s(status),')\n']);    
+    fprintf([Type,'(from NIDAQmx) : ',cError,' (Code: ',n2s(status),')\n']);    
   case 'HSDIO';
     %if isempty(p) p = loadhsdio; end
     %warning('hsdio: Error : %s\n',p.defines{find(p.values==status,1,'last')});

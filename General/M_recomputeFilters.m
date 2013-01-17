@@ -22,5 +22,4 @@ for i=1:length(Vars)
       'Stop Display, Change Coefficient and Restart Display\n']);
   end
 end
-[MG.Disp.Filter.Humbug.b,MG.Disp.Filter.Humbug.a] = ...
-  M_Humbug;
+M_Humbug;

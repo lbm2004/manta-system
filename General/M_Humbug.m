@@ -1,6 +1,6 @@
 function [b,a] = M_Humbug(Opt)
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
-global MG Verbose
+global MG
 
 % narrow O6
 % designed using fdatool from the filter design toolbox (butterworth digital, stopband, order 6)
@@ -48,6 +48,9 @@ switch MG.Disp.Filter.Humbug.Style
      
   otherwise error('Filter style for humbug not implemented!');  
 end
+
+MG.Disp.Filter.Humbug.b = b;
+MG.Disp.Filter.Humbug.a = a;
 
 % OLD FILTERS:
 %   case Styles{2}; % O2 instable

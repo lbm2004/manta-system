@@ -8,7 +8,7 @@ global MG Verbose
 if isfield(MG.Disp,'AllSpikes')
   cAllSpikes = MG.Disp.AllSpikes;
   
-  if Verbose fprintf('M_saveSpiketimes : writing all spiketimes up to current repetition.\n'); end
+  M_Logger('M_saveSpiketimes : writing all spiketimes up to current repetition.\n'); 
   
   if MG.Disp.SaveSpikes
     for i=1:MG.DAQ.NChannelsTotal

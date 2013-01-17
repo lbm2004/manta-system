@@ -1,12 +1,12 @@
 function M_CBF_TCPIP(obj,event)
 % Callback function of the TCPIP connection 
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
-global MG Verbose
+global MG
 Sep = filesep;
 
 % GET DATA FROM STIMULATOR
 if ~obj.BytesAvailable 
-  if Verbose fprintf('\n\tWARNING : No Bytes Available.\n'); end; 
+  M_Logger('\n\tWARNING : No Bytes Available.\n'); 
   return; 
 end
 ArrivalTime = now;
@@ -14,12 +14,10 @@ tmp = char(fread(obj,obj.BytesAvailable))'; flushinput(obj);
 Terms = find(tmp==MG.Stim.MSGterm); Terms = [0,Terms];
 for i=2:length(Terms) Messages{i-1} = tmp(Terms(i-1)+1:Terms(i)-1); end
 Pos = find(int8(Messages{end})==MG.Stim.COMterm);
+[TV,TS] = datenum2time(ArrivalTime);
 
-if Verbose 
-  [TV,TS] = datenum2time(ArrivalTime);
-  fprintf([' <---> TCPIP message received: ',...
-    escapeMasker(Messages{end}),' (',TS{1},')\n']); 
-end
+M_Logger([' <---> TCPIP message received: ',escapeMasker(Messages{end}),' (',TS{1},')\n']); 
+
 if isempty(Pos)
   COMMAND = 'START';
   DATA = Messages{end};
@@ -53,7 +51,7 @@ switch COMMAND
     M_startEngine('Trigger','Remote'); 
     
      % PREPARE FILES FOR SAVING
-    M_prepareRecording; if Verbose fprintf('\n => Files ready ... \n'); end
+    M_prepareRecording; M_Logger('\n => Files ready ... \n'); 
     drawnow;
     
     M_sendMessage([COMMAND,' OK']);
@@ -74,7 +72,7 @@ switch COMMAND
     eval(DATA); % NO RESPONSE MESSAGE SENT, SINCE SOME COMMANDS DON'T TERMINATE (here M_startEndine)
      
   case 'GETVAR';
-    String = HF_var2string(eval(DATA)),
+    String = HF_var2string(eval(DATA));
     M_sendMessage(String);
     
   case 'COMTEST';

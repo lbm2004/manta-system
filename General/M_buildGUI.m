@@ -1,7 +1,7 @@
 function M_buildGUI
 % BUILD UP THE MAIN GUI
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
-global MG Verbose PanNum; PanNum = 1;
+global MG PanNum; PanNum = 1;
 
 %% CREATE BASIS FIGURE
 FIG = MG.GUI.FIG; try set(FIG,'DeleteFcn',''); delete(FIG); catch end; 
@@ -263,7 +263,8 @@ for i=1:length(Vars)
   end
 end
 
-% Verbose
+% VERBOSE
+global Verbose
 Loc = ['Verbose'];
   MG.GUI.(Vars{i}).State = LF_addCheckbox(Panel,DC2{end,3},Verbose,...
     {@M_CBF_setValue,Loc});
@@ -310,7 +311,7 @@ function Cell = LF_cellify(M)
 for i=1:size(M,1) Cell{i} = M(i,:);  end
 
 function h = LF_addDropdown(Panel,Pos,Strings,Val,CBF,UD,Tooltip,Tag,Color,FontSize);
-global MG Verbose
+global MG
 if ~exist('Color','var') | isempty(Color) Color = [1,1,1]; end
 if ~exist('Tag','var') | isempty(Tag) Tag = ''; end
 if ~exist('CBF','var') | isempty(CBF) CBF=''; end
@@ -323,7 +324,7 @@ h=uicontrol('Parent',Panel,'Style','popupmenu',...
 set(h,'UserData',UD)
 
 function h = LF_addTogglebutton(Panel,Pos,String,Val,CBF,Tooltip,Tag,FGColor,BGColor);
-global MG Verbose
+global MG
 if ~exist('BGColor','var') | isempty(FGColor) FGColor = [0,0,0]; end
 if ~exist('BGColor','var') | isempty(BGColor) BGColor = [1,1,1]; end
 if ~exist('Tag','var') | isempty(Tag) Tag = ''; end
@@ -336,7 +337,7 @@ h=uicontrol('Parent',Panel,'Style','togglebutton',...
   'ToolTipString',Tooltip,'ForegroundColor',FGColor,'BackGroundColor',BGColor,'FontSize',MG.GUI.FontSize);
 
 function h = LF_addPushbutton(Panel,Pos,String,CBF,Tooltip,Tag,FGColor,BGColor);
-global MG Verbose
+global MG 
 if ~exist('BGColor','var') | isempty(BGColor) BGColor = [1,1,1]; end
 if ~exist('FGColor','var') | isempty(FGColor) FGColor = [0,0,0]; end
 if ~exist('Tag','var') | isempty(Tag) Tag = ''; end
@@ -348,7 +349,7 @@ h=uicontrol('Parent',Panel,'Style','pushbutton',...
   'ToolTipString',Tooltip,'ForegroundColor',FGColor,'BackGroundColor',BGColor,'FontSize',MG.GUI.FontSize);
 
 function h = LF_addCheckbox(Panel,Pos,Val,CBF,Tooltip,Tag,Color);
-global MG Verbose
+global MG 
 if ~exist('Color','var') | isempty(Color) Color = MG.Colors.Panel; end
 if ~exist('Tag','var') | isempty(Tag) Tag = ''; end
 if ~exist('CBF','var') | isempty(CBF) CBF=''; end
@@ -358,7 +359,7 @@ h=uicontrol('Parent',Panel,'Style','checkbox',...
   'Tag',Tag,'Position',Pos,'BackGroundColor',Color,'Tooltip',Tooltip);
 
  function h = LF_addEdit(Panel,Pos,String,CBF,Tooltip,Tag,Color);
-global MG Verbose
+global MG
 if ~exist('Color','var') | isempty(Color) Color = [1,1,1]; end
 if ~exist('Tag','var') | isempty(Tag) Tag = ''; end
 if ~exist('CBF','var') | isempty(CBF) CBF=''; end
@@ -370,7 +371,7 @@ h=uicontrol('Parent',Panel,'Style','edit',...
   'Tag',Tag,'Position',Pos,'BackGroundColor',Color,'ToolTipString',Tooltip,'FontSize',MG.GUI.FontSize);
 
 function h = LF_addText(Panel,Pos,String,Tooltip,Tag,FGColor,BGColor,varargin);
-global MG Verbose
+global MG
 if ~exist('BGColor','var') | isempty(BGColor) BGColor = MG.Colors.Panel; end
 if ~exist('FGColor','var') | isempty(FGColor) FGColor = [1,1,1]; end
 if ~exist('Tag','var') | isempty(Tag) Tag = ''; end
@@ -394,7 +395,7 @@ PanNum = PanNum + 1;
 
 function M_CBF_reinitHardware(obj,event,Loc)
 
-global MG Verbose
+global MG
   
 if exist('Loc','var') M_CBF_setValue(obj,event,Loc); end
 M_initializeHardware;
@@ -405,7 +406,7 @@ M_buildGUI;
 function M_CBF_loadConfiguration(obj,event)
 % RELOADS MANTA WITH THIS CONFIGURATION FILE
 % (this retains the possibility to work from the command line)
-global MG Verbose
+global MG
 
 Configs = get(MG.GUI.ChooseConfig,'String'); 
 MG.Config = Configs{get(MG.GUI.ChooseConfig,'Value')};
@@ -417,7 +418,7 @@ function M_CBF_saveConfiguration(obj,event)
 M_saveConfiguration;
 
 function M_CBF_startEngine(obj,event)
-global MG Verbose
+global MG
 
 % SVD, sorry, kludge to restart HSDIO engine after temp file runs out of
 % space. This can be fixed once we design a FIFO rolling buffer for the
@@ -427,7 +428,7 @@ MG.DAQ.RestartHSDIO=0;
 if get(obj,'Value')
     while Loopcount==0 || ...
             (isfield(MG.DAQ,'RestartHSDIO') && MG.DAQ.RestartHSDIO)
-        if Verbose, fprintf('Restarting HSDIO engine\n'); end
+        M_Logger('Restarting HSDIO engine\n'); 
         M_startEngine('Trigger','Local');
         Loopcount=Loopcount+1;
     end
@@ -437,7 +438,7 @@ end
 
 function M_CBF_startRecording(obj,event)
 % CALLBACK FOR SAVING
-global MG Verbose
+global MG
 if get(obj,'Value')
   MG.DAQ.TmpFileBase = MG.DAQ.BaseName;
   M_startRecording; 
@@ -447,12 +448,12 @@ end
 
 function M_CBF_startDisplay(obj,event)
 % CALLBACK FUNCTION FOR A BUTTON IN THE MAIN GUI
-global MG Verbose
+global MG
 
 if get(obj,'Value')  M_startDisplay; else M_stopDisplay; end
 
 function M_CBF_addBoard(obj,event,iBoard)
-global MG Verbose
+global MG
 MG.DAQ.BoardsBool(iBoard) = get(obj,'Value');
 MG.DAQ.BoardsBool = logical(MG.DAQ.BoardsBool);
 M_updateChannelMaps;
@@ -460,7 +461,7 @@ M_updateTiling;
 
 function M_CBF_setDispVar(obj,event,loc,Var,Plot)
 % UPDATE THE DISPLAYED WAVEFORMS (ALSO DURING DISPLAY)
-global MG Verbose
+global MG
 State = get(obj,'Value'); eval([loc,' = State;']);
 if State Setting = 'on'; else Setting = 'off'; end
 if sum(MG.Disp.FIG==get(0,'Children'))
@@ -477,7 +478,7 @@ end
 
 function M_CBF_setAutoThresh(obj,event,loc)
 % SELECT WHETHER THRESHOLDS ARE AUTOMATICALLY SET OR NOT
-global MG Verbose
+global MG
 State = get(obj,'Value'); eval([loc,' = State;']);
 Selection = get(gcf,'SelectionType');
 if State % TURN ON
@@ -517,7 +518,7 @@ end
 
 function M_CBF_setValueSR(obj,event)
 % Set the analog and digital sampling rate
-global MG Verbose
+global MG
 
 Value = get(obj,'Value'); Entries = get(obj,'UserData'); SR = Entries{Value};
 MG.DAQ.SR = SR;
@@ -525,7 +526,7 @@ switch MG.DAQ.Engine; case 'HSDIO'; MG.DAQ.HSDIO.SRDigital = M_convSRAnalog2Digi
 
 function M_CBF_setValueDepth(obj,event)
 % Activate or Inactive Depth probe display
-global MG Verbose
+global MG
 
 Value = get(obj,'Value'); Entries = get(obj,'UserData');
 Entry = Entries{Value};
@@ -534,7 +535,7 @@ eval([location,' = Entry;']);
 M_showDepth(MG.Disp.Depth);
 
 function M_CBF_setValueAudio(obj,event)
-global MG Verbose
+global MG
 
 tmp = eval(['[',get(obj,'String'),']']);
 MG.Audio.ElectrodesBool(:)=0; 
@@ -543,7 +544,7 @@ MG.Audio.ElectrodesBool = MG.Audio.ElectrodesBool(1:MG.DAQ.NChannelsTotal);
 set(obj,'String',HF_list2colon(find(MG.Audio.ElectrodesBool)));
 
 function M_changeNumberOfElectrodesAudio
-global MG Verbose
+global MG
 
 tmp = logical(zeros(1,MG.DAQ.NChannelsTotal));
 maxInd = min(length(MG.Audio.ElectrodesBool),length(tmp));
@@ -553,7 +554,7 @@ set(MG.GUI.Audio.Electrodes,'String',HF_list2colon(find(tmp)));
 
 function M_CBF_setFilter(obj,event,location)
 % SET FILTER PROPERTIES (EVEN WHILE DISPLAYING)
-global MG Verbose
+global MG
 
 Entry = get(obj,'String'); Num = str2num(Entry);
 if ~isempty(Num) Entry = str2num(Entry); end;
@@ -562,21 +563,21 @@ M_recomputeFilters;
 
 function M_CBF_setHumbug(obj,event,location)
 % SET HUMBUG PROPERTIES
-global MG Verbose
+global MG
 
 Styles = get(obj,'String'); Value = get(obj,'Value'); 
 MG.Disp.Filter.Humbug.Style = Styles{Value};
-[MG.Disp.Filter.Humbug.b,MG.Disp.Filter.Humbug.a] = M_Humbug;
+M_Humbug;
 M_prepareFilters('Humbug');
 
 function M_CBF_SR(SR)
 % SET SAMPLING RATE (PROVIDED IN HZ)
-global MG Verbose
+global MG
 SR = str2num(MG.HW.AvailSRs(get(obj,'Value')));
 M_setSR(SR);
 
 function M_CBF_globalYLim(obj,event)
-global MG Verbose
+global MG
 
 V = abs(str2num(get(obj,'String')));
 MG.Disp.YLim = V;
@@ -587,7 +588,7 @@ end
 % BUILD REFERENCING GUI (BASED ON ELECTRODES!!!)
 function M_CBF_selectReferencing(obj,event)
 
-global MG Verbose
+global MG 
 
 % ADAPT POSITION AND LOCATION TO BUTTON
 PH = get(obj,'Parent'); FH = get(PH,'Parent');  FigPos = get(FH,'Position');
@@ -626,7 +627,7 @@ for i=1:NY
 end
 
 function M_CBF_ReferencingShow(obj,event,SetIndex)
-global MG Verbose
+global MG
 
 set([MG.GUI.Referencing.Show,MG.GUI.Referencing.Edit],'ForeGroundColor',[0,0,0]);
 set([MG.GUI.Referencing.Show(SetIndex),MG.GUI.Referencing.Edit(SetIndex)],'ForeGroundColor',[1,0,0]);
@@ -662,13 +663,13 @@ end
 set(MG.Disp.CBH,'Visible','On')    
 
 function M_CBF_ReferencingClose(obj,event)
-global MG Verbose
+global MG
 
 if isfield(MG.Disp,'CBH') && ishandle(MG.Disp.CBH(1)) set(MG.Disp.CBH,'Visible','Off'); end
 
 function M_CBF_Reference(obj,event)
 % SET REFERENCING INDICES
-global MG Verbose
+global MG
 String = get(obj,'String');
 MG.Disp.RefInd = String;
 try 
@@ -700,7 +701,7 @@ end
 % - Pins run local to the board
 % - ArrayPins run continuous on the array
 
-global MG Verbose
+global MG
 MPos = get(MG.GUI.FIG,'Position');
 cFIG = MG.GUI.FIG+100+BoardIndex; figure(cFIG); clf;
 MG.GUI.FIGs(end+1) = cFIG;
@@ -767,7 +768,7 @@ end
 M_CBF_setRecSys(obj,event,BoardIndex,'BuildGUI');
 
 function M_CBF_setRecSys(obj,event,BoardIndex,Mode)
-global MG Verbose
+global MG
 
 % GET NEW SYSTEM AND SET VALUES
 BoardPhysNum = MG.HW.BoardsNum(BoardIndex);
@@ -801,7 +802,7 @@ M_CBF_setArray(obj,event,BoardIndex,'BuildGUI');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function M_CBF_setArray(obj,event,BoardIndex,Mode)
-global MG Verbose
+global MG
 BoardPhysNum = MG.HW.BoardsNum(BoardIndex);
 Opts = get(MG.GUI.ArraySelector(BoardIndex),'UserData');
 Value = get(MG.GUI.ArraySelector(BoardIndex),'Value');
@@ -824,7 +825,7 @@ M_CBF_setPins(obj,event,BoardIndex,Mode);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function M_CBF_setPins(obj,event,BoardIndex,Mode)
-global MG Verbose
+global MG
 BoardPhysNum = MG.HW.BoardsNum(BoardIndex);
 
 switch Mode
@@ -865,7 +866,7 @@ M_CBF_addChannel(MG.GUI.ChannelSelByBoardCheck{BoardIndex},[],BoardIndex,[1:NCha
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function M_CBF_setSelected(obj,event,BoardIndex,Mode)
 % CALL BACK FOR THE CHANNEL SELECTION FIELD
-global MG Verbose
+global MG
 
 % GET THE SELECTED CHANNELS
 SelChannels = str2num(get(MG.GUI.ChannelSelector(BoardIndex),'String'));
@@ -882,7 +883,7 @@ M_CBF_addChannel(MG.GUI.ChannelSelByBoardCheck{BoardIndex},[],BoardIndex,[1:NCha
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function M_InitializeChannelsXY(BoardIndex)
-global MG Verbose
+global MG
 NChannel = MG.DAQ.NChannelsPhys(BoardIndex);
 if ~isfield(MG.Disp,'ChannelsXYByBoard') ...
     | length(MG.Disp.ChannelsXYByBoard)<BoardIndex ...
@@ -891,7 +892,7 @@ if ~isfield(MG.Disp,'ChannelsXYByBoard') ...
 end
 
 function M_CBF_addChannel(obj,event,BoardIndex,iCh)
-global MG Verbose
+global MG
 for i=1:length(iCh)
   cChannel = iCh(i); 
   MG.DAQ.ChannelsBool{BoardIndex}(cChannel) = get(obj(i),'Value');
@@ -903,7 +904,7 @@ set(MG.GUI.ChannelSelector(BoardIndex),'String',HF_list2colon(find(MG.DAQ.Channe
 M_updateTiling;
 
 function M_CBF_selectElectrodesAll(obj,event)
-global MG Verbose
+global MG
 MPos = get(MG.GUI.FIG,'Position');
 cFIG = MG.GUI.FIG+100; figure(cFIG); clf;
 MG.GUI.FIGs(end+1) = cFIG;
@@ -927,19 +928,19 @@ for iX = 1:Tiling(2)
 end
 
 function M_updateTiling
-global MG Verbose
+global MG 
 [Div,Strings,Tilings] = M_computeDivisors(MG.DAQ.NChannelsTotal);
 Value = ceil(length(Div)/2); MG.Disp.Tiling.Selection = Tilings{Value};
 set(MG.GUI.Tiling.Selections,'UserData',Tilings,'String',Strings,'Value',Value);
 
 function M_CBF_addElectrodeAudio(obj,event,iCh)
-global MG Verbose
+global MG
 MG.Audio.ElectrodesBool(iCh) = logical(get(obj,'Value'));
 tmp =  HF_list2colon(find(MG.Audio.ElectrodesBool));
 set(MG.GUI.Audio.Electrodes,'String',tmp);
 
 function M_CBF_closeMANTA(obj,event)
-global MG Verbose
+global MG 
 fclose all;
 try, M_stopEngine; M_clearTasks; end
 try for i=1:length(MG.GUI.FIGs) try close(MG.GUI.FIGs(i)); end; end; end
