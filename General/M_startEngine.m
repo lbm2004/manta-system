@@ -50,11 +50,8 @@ M_prepareFilters;
 % START AI ENGINES
 for i=MG.DAQ.BoardsNum
   switch MG.DAQ.Engine
-    case 'NIDAQ';
-      S = DAQmxStartTask(MG.AI(i)); if S NI_MSG(S); end;
-      
-    case 'HSDIO';
-      M_startHSDIO;
+    case 'NIDAQ';  S = DAQmxStartTask(MG.AI(i)); if S NI_MSG(S); end;
+    case 'HSDIO';  M_startHSDIO;
     case 'SIM';
   end
 end
@@ -78,6 +75,8 @@ if strcmp(MG.DAQ.Trigger.Type,'Local')
           if get(SamplesWritten,'Value') ~=1 keyboard; end
         end
       end
+    case 'HSDIO';
+      
   end
 end
 

@@ -90,7 +90,8 @@ int createData(char* FileName,int NumberOfChannels,int DSamplingRate, int MaxIte
   if (DataFile == NULL) { printf("Targetfile for Data could not be opened!\n"); return -1;}
 
   strcat(FileNameStop, "Stop");
-  
+  if (DEBUG) printf("Checking File : %s\n", FileNameStop);
+
 // SETUP DATA MATRIX
   ASamplesTotal = (int) (ASamplesPerIteration*NumberOfChannels);
   if (DEBUG) printf("Analog Samples per Iteration : %d\n", ASamplesTotal);
@@ -120,10 +121,10 @@ int createData(char* FileName,int NumberOfChannels,int DSamplingRate, int MaxIte
       cStep = iTotal + i;
       for (j=0;j<NumberOfChannels;j++) {
         // Simulate Continuous 60Hz Noise
-        //AnalogData[i*NumberOfChannels+j] = (short) (10000*sin(2*3.14159*5.123*(i+iTotal+100*j)/ASamplingRate));
+        AnalogData[i*NumberOfChannels+j] = (short) (10000*sin(2*3.14159*5.123*(i+iTotal+100*j)/ASamplingRate));
         // Simulate temporally stable grid   
-        AnalogData[i*NumberOfChannels+j] = 0;
-        if (cStep % 1000 == 0) {AnalogData[i*NumberOfChannels+j] = 10000;}
+        //AnalogData[i*NumberOfChannels+j] = 0;
+        //if (cStep % 1000 == 0) {AnalogData[i*NumberOfChannels+j] = 10000;}
       }
     }
     iTotal = iTotal + ASamplesPerIteration;
@@ -135,12 +136,14 @@ int createData(char* FileName,int NumberOfChannels,int DSamplingRate, int MaxIte
    
     // CHECK WHETHER TO STOP RECORDING
     StopFile = fopen(FileNameStop,"r");
-    fread(StopBit,sizeof(int),1,StopFile);
+    if (StopFile != NULL) {
+      fread(StopBit,sizeof(int),1,StopFile);
     // If the file contains one, break out of recording loop and close files
-    //printf("%s\n",FileNameStop);
-    //printf("StopBit : %d \n",*StopBit);
+    if (DEBUG) printf("%s\n",FileNameStop);
+    if (DEBUG) printf("StopBit : %d \n",*StopBit);
     if ((*StopBit)==1) {printf("STOP Signal received"); break;}
-    fclose(StopFile);
+    fclose(StopFile); 
+    }
   }
   fclose(DataFile);
   return 1;
@@ -175,6 +178,10 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   ViUInt32 ASamplesPerChannel;
   ViUInt32 ASamplesTotal;
   ViUInt32 DSamplesTotal;
+  
+  // circular output buffer
+  ViUInt32 ASamplesLoopSize=50000;
+  ViUInt32 ASamplesWrittenThisLoop=0, ALoopCount=0, ABytesWrittenThisLoop[2];
   
   // circular buffer variables
   ViUInt32 ASamplesPerChannelBuffer;
@@ -257,7 +264,7 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   strcat(FileNameStop,"Stop");
   printf("Stop Bit File: %s\n",FileNameStop);
   strcpy(FileNameStatus,FileName);
-  strcat(FileNameStatus,"Stop");
+  strcat(FileNameStatus,"Status");
   printf("Status File Name: %s\n",FileNameStatus);
   
   // GENERATION CODE
@@ -318,7 +325,6 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
       DTotalSamplesWritten = DTotalSamplesWritten + DSamplesWritten;
     }
     
-   
     /* Check Remaining Samples */
     checkErr(niHSDIO_GetAttributeViInt32 (vi, "",NIHSDIO_ATTR_FETCH_BACKLOG, &BackLogSamples));
     //printf("\tSamples left in buffer %d\n",BackLogSamples);
@@ -337,6 +343,14 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
       ATotalSamplesWritten = ATotalSamplesWritten + ASamplesWritten;
       fclose(DataFile);
       DataFile=fopen(FileName,"ab");
+      
+      StatusFile = fopen(FileNameStatus, "wb");
+      ASamplesWrittenThisLoop=ATotalSamplesWritten;
+      ABytesWrittenThisLoop[0]=ASamplesWrittenThisLoop*2;
+      ABytesWrittenThisLoop[1]=ALoopCount;
+      if (DEBUG) printf("Bytes this loop : %d\n",ABytesWrittenThisLoop[0]);
+      fwrite(ABytesWrittenThisLoop, sizeof(ViUInt32),  (size_t)1, StatusFile);
+      fclose(StatusFile);
     }
     
     time2=clock();
@@ -536,7 +550,6 @@ void decodeData(ViUInt8 *DData,
   
   ASamplesRead[0]=PacketsThisIteration;
   ATotalSamplesRead[0] = ATotalSamplesRead[0] + ASamplesRead[0];
-  
 }
 
 

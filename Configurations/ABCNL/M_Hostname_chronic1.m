@@ -29,11 +29,12 @@ switch Selection
     MG.HW.SIM.Triggers = struct('Remote','PFI1','Local','None');
     
   case 'DAQ';
-    MG.DAQ.DataPath = 'C:\Data\';
-    MG.DAQ.HSDIO.TempFile = 'C:\Data\HSDIO.bin'; % Intermediate storage of acquired data
-    MG.DAQ.HSDIO.DebugFile = 'C:\Data\HSDIO.out'; % Debugging information for digital acquisition
-    MG.DAQ.HSDIO.EngineCommand = 'C:\Code\manta-system\Engines\HSDIO\hsdio_stream_dual';
-
+    MG.DAQ.DataPath = 'D:\Data\';
+    MG.DAQ.HSDIO.TempFile = 'D:\Data\HSDIO.bin'; % Intermediate storage of acquired data
+    MG.DAQ.HSDIO.DebugFile = 'D:\Data\HSDIO.out'; % Debugging information for digital acquisition
+    MG.DAQ.HSDIO.EngineCommand = 'C:\Code\manta-system\Engines\HSDIO\64-bit\hsdio_stream_dual';
+    MG.DAQ.HSDIO.Simulation = 1;
+    
   case 'Stim';
       MG.Stim.Host = 'localhost';
       

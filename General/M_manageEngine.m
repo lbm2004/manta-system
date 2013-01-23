@@ -44,9 +44,8 @@ while MG.DAQ.Running
           if str2double(datestr(now-MG.DAQ.TriggerTime,'SS'))+...
                  str2double(datestr(now-MG.DAQ.TriggerTime,'MM')).*60>30 &&...
                  ~MG.DAQ.Recording,
-             disp('HSDIO buffer exhasusted.  Trying auto-restart.');
+             disp('HSDIO buffer exhausted.  Trying auto-restart.');
              MG.DAQ.RestartHSDIO=1;
-             %keyboard
           end
           break;
         end

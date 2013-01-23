@@ -20,14 +20,13 @@ switch Selection
     MG.HW.SIM.ArraysByBoard(3) = struct('Name','lma3d_1_96','Pins',[65:96]);
     MG.HW.SIM.Triggers = struct('Remote','PFI1','Local','None');
     
-    
   case 'DAQ';
     MG.DAQ.Engine = 'SIM';
     MG.DAQ.DataPath = '~/tmp/';
     MG.DAQ.HSDIO.TempFile = '~/tmp/HSDIO.bin'; % Intermediate storage of acquired data
     MG.DAQ.HSDIO.DebugFile = '~/tmp/HSDIO.out'; % Debugging information for digital acquisition
     MG.DAQ.HSDIO.EngineCommand = which('hsdio_stream_dual.exe');
-    MG.DAQ.Simulation = 1;
+    MG.DAQ.HSDIO.Simulation = 1;
     MG.DAQ.HumFreq = 50; 
     
   case 'Stim';
