@@ -19,6 +19,15 @@ Cmd = [Cmd,sprintf('%d  ',MG.DAQ.HSDIO.Simulation)]; % Simulation Mode
 Cmd = [Cmd,'  >  ',MG.DAQ.HSDIO.DebugFile]; % Debugging Output
 M_Logger(['\n\nExecuting : [  ',escapeMasker(Cmd),'  ]\n']);
 
+outpath=fileparts(MG.DAQ.HSDIO.TempFile);
+while ~exist(outpath,'dir'),
+   yn=questdlg(['Temp folder ' outpath ' not found. Retry?'],...
+      'Missing path','Yes','Cancel','Yes');
+   if strcmpi(yn,'Cancel'),
+      error(['HSDIO temp path ',outpath,' not found']);
+   end
+end
+
 % SET STOPFILE TO 0
 FID = fopen(MG.DAQ.HSDIO.StopFile,'w');
 fwrite(FID,0,'uint32'); fclose(FID);

@@ -8,7 +8,9 @@ MG.DAQ.Trigger.Type = P.Trigger;
 
 % INITIALIZE STATE VARIABLES
 MG.DAQ.Iteration = 0; MG.DAQ.CurrentFileSize = 0; 
-MG.DAQ.SamplesAcquired = 0;
+MG.DAQ.SamplesAcquired = 0;  % total samples acquired this session.
+MG.DAQ.SamplesAcquiredThisLoop = 0;  % samples acquired in current HSDIO buffer loop
+MG.DAQ.SamplesLoopsAcquired = 0;  % how many times the HSDIO circular buffer has looped on disk
 MG.DAQ.SamplesRecovered = 0;
 MG.DAQ.AcquisitionDone = 1;
 
@@ -19,8 +21,7 @@ M_setRanges;
 M_Humbug;
 
 % INITIALIZE DATA MATRIX
-MG.Disp.DispDur = M_roundSign(MG.Disp.DispDur,2);
-MG.Disp.DispStepsFull = floor(MG.Disp.DispDur*MG.DAQ.SR);
+M_refreshTimeSteps;
 MG.Data.Raw = zeros(MG.Disp.DispStepsFull,MG.DAQ.NChannelsTotal);
 if isfield(MG.Data,'Offset') MG.Data = rmfield(MG.Data,'Offset'); end
 
@@ -49,6 +50,7 @@ for i=MG.DAQ.BoardsNum
     case 'HSDIO'; % MOSTLY PERFORMED IN THE STREAMING PROGRAM      
       if exist(MG.DAQ.HSDIO.TempFile,'file') FID = fopen(MG.DAQ.HSDIO.TempFile,'w'); fclose(FID); end
       if exist(MG.DAQ.HSDIO.DebugFile,'file') FID = fopen(MG.DAQ.HSDIO.DebugFile,'w'); fclose(FID); end
+      if exist(MG.DAQ.HSDIO.StatusFile,'file') FID = fopen(MG.DAQ.HSDIO.StatusFile,'w'); fclose(FID); end
   end
 end
 % SET AUDIO TO THE SAME SAMPLE RATE AS DAQ

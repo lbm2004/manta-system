@@ -14,6 +14,7 @@
 
 /* Defines */
 #define DEBUG 1
+#define ANALOGSAMPLESPERLOOP 19200000
 
 // TAKEN OUT UNTIL ACQUISITION IS 
 /* DECLARE INITIALLIZATION FUNCTIONS */
@@ -90,8 +91,7 @@ int createData(char* FileName,int NumberOfChannels,int DSamplingRate, int MaxIte
   if (DataFile == NULL) { printf("Targetfile for Data could not be opened!\n"); return -1;}
 
   strcat(FileNameStop, "Stop");
-  if (DEBUG) printf("Checking File : %s\n", FileNameStop);
-
+  
 // SETUP DATA MATRIX
   ASamplesTotal = (int) (ASamplesPerIteration*NumberOfChannels);
   if (DEBUG) printf("Analog Samples per Iteration : %d\n", ASamplesTotal);
@@ -121,10 +121,10 @@ int createData(char* FileName,int NumberOfChannels,int DSamplingRate, int MaxIte
       cStep = iTotal + i;
       for (j=0;j<NumberOfChannels;j++) {
         // Simulate Continuous 60Hz Noise
-        AnalogData[i*NumberOfChannels+j] = (short) (10000*sin(2*3.14159*5.123*(i+iTotal+100*j)/ASamplingRate));
+        //AnalogData[i*NumberOfChannels+j] = (short) (10000*sin(2*3.14159*5.123*(i+iTotal+100*j)/ASamplingRate));
         // Simulate temporally stable grid   
-        //AnalogData[i*NumberOfChannels+j] = 0;
-        //if (cStep % 1000 == 0) {AnalogData[i*NumberOfChannels+j] = 10000;}
+        AnalogData[i*NumberOfChannels+j] = 0;
+        if (cStep % 1000 == 0) {AnalogData[i*NumberOfChannels+j] = 10000;}
       }
     }
     iTotal = iTotal + ASamplesPerIteration;
@@ -136,14 +136,12 @@ int createData(char* FileName,int NumberOfChannels,int DSamplingRate, int MaxIte
    
     // CHECK WHETHER TO STOP RECORDING
     StopFile = fopen(FileNameStop,"r");
-    if (StopFile != NULL) {
-      fread(StopBit,sizeof(int),1,StopFile);
+    fread(StopBit,sizeof(int),1,StopFile);
     // If the file contains one, break out of recording loop and close files
-    if (DEBUG) printf("%s\n",FileNameStop);
-    if (DEBUG) printf("StopBit : %d \n",*StopBit);
+    //printf("%s\n",FileNameStop);
+    //printf("StopBit : %d \n",*StopBit);
     if ((*StopBit)==1) {printf("STOP Signal received"); break;}
-    fclose(StopFile); 
-    }
+    fclose(StopFile);
   }
   fclose(DataFile);
   return 1;
@@ -179,9 +177,11 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   ViUInt32 ASamplesTotal;
   ViUInt32 DSamplesTotal;
   
-  // circular output buffer
+  // circular output buffer in memory
   ViUInt32 ASamplesLoopSize=50000;
   ViUInt32 ASamplesWrittenThisLoop=0, ALoopCount=0, ABytesWrittenThisLoop[2];
+  ViUInt32 ATailSamples=0, ATailWritten=0;
+  ViUInt32 AHeadSamples=0, AHeadWritten=0;
   
   // circular buffer variables
   ViUInt32 ASamplesPerChannelBuffer;
@@ -191,7 +191,8 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   ViUInt32 DBufferSamplesRead=0;
   ViUInt32 ABufferSamplesRead=0;
   ViUInt32 ASamplesBufferValid;
-
+  long CurrentPosition=0;
+  
   clock_t time1, time2;
   float ExpectedTimeToPass;
   float TimePassed;
@@ -300,7 +301,7 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
 
   // do this last to insure proper handshaking with MANTA
   if (WriteAnalog) {
-    DataFile = fopen(FileName, "wb");
+    DataFile = fopen(FileName, "wb+");
     if (DataFile == NULL) { printf("Targetfile for analog data could not be opened!\n"); return -1; }
   }
   
@@ -333,30 +334,61 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
       // DECODE CHANNELS
       decodeData(DData, AData, DBufferSamplesRead, DSamplesRead, &ABufferSamplesRead, &ASamplesRead, BitLength, PacketLength, i);
       ATotalSamplesRead=ATotalSamplesRead+ASamplesRead;
-      if (DEBUG) printf("ASamples this loop %d/%d (%d)\n", ASamplesRead, ABufferSamplesRead, ATotalSamplesRead);
+      if (DEBUG) printf("\tASamples this loop %d/%d (%d)\n", ASamplesRead, ABufferSamplesRead, ATotalSamplesRead);
       
       // WRITE ANALOG DATA TO DISK (FOR ONLINE READING)
+      // TO DO: modify to loop to begining for file if 
+      // ATotalSamplesWrittenThisLoop goes over limit specified by 
+      // hard-coded ANALOGSAMPLESPERLOOP
+      
+      if (ASamplesWrittenThisLoop+ASamplesRead*NumberOfChannels > ANALOGSAMPLESPERLOOP) {
+         ATailSamples=(ANALOGSAMPLESPERLOOP-ASamplesWrittenThisLoop)/NumberOfChannels;
+         AHeadSamples=ASamplesRead-ATailSamples;
+      } else {
+         ATailSamples=ASamplesRead;
+         AHeadSamples=0;
+      }
+      
       Aoffset=(ABufferSamplesRead-ASamplesRead)*NumberOfChannels;
-      ASamplesWritten = fwrite(&(AData[Aoffset]), sizeof(ViUInt16), (size_t) (ASamplesRead*NumberOfChannels), DataFile);
-      if (ASamplesWritten != ASamplesRead*NumberOfChannels) { printf("Samples could not be written!\n"); return -1;}
-      if (DEBUG) printf("\t Analog Samples written : %d from offset %d\n",ASamplesWritten,Aoffset);
+      ATailWritten = fwrite(&(AData[Aoffset]), sizeof(ViUInt16), (size_t) (ATailSamples*NumberOfChannels), DataFile);
+      if (ATailWritten != ATailSamples*NumberOfChannels) { printf("Tail samples could not be written!\n"); return -1;}
+      
+      if (AHeadSamples>0) {
+         Aoffset=(ABufferSamplesRead-AHeadSamples)*NumberOfChannels;
+         fseek (DataFile  , 0 , SEEK_SET );
+         AHeadWritten = fwrite(&(AData[Aoffset]), sizeof(ViUInt16), (size_t) (AHeadSamples*NumberOfChannels), DataFile);
+         if (AHeadWritten != AHeadSamples*NumberOfChannels) { printf("Head samples could not be written!\n"); return -1;}
+         ALoopCount++;
+         if (DEBUG) printf("\tStarting output loop %d\n", ALoopCount);
+         ASamplesWrittenThisLoop=AHeadWritten;
+      } else {
+         AHeadWritten=0;
+         ASamplesWrittenThisLoop+=ATailWritten;
+      }
+      
+      ASamplesWritten = ATailWritten + AHeadWritten;
       ATotalSamplesWritten = ATotalSamplesWritten + ASamplesWritten;
-      fclose(DataFile);
-      DataFile=fopen(FileName,"ab");
+      fflush(DataFile);
+      CurrentPosition=ftell(DataFile);
+      //fclose(DataFile);
+      //DataFile=fopen(FileName,"ab");
+      if (DEBUG) printf("\tT+H=ASamples acqu'd:  %d + %d = %d\n", ATailSamples, AHeadSamples, ASamplesRead);
+      if (DEBUG) printf("\tT+H=ASamples written: %d + %d = %d\n", ATailWritten, AHeadWritten, ASamplesWritten);
+      if (DEBUG) printf("\tT+H=Total:            %d (loop) %d (all)\n", ASamplesWrittenThisLoop, ATotalSamplesWritten);
+      if (DEBUG) printf("\tFile pos :            %d\n", CurrentPosition);
       
       StatusFile = fopen(FileNameStatus, "wb");
-      ASamplesWrittenThisLoop=ATotalSamplesWritten;
       ABytesWrittenThisLoop[0]=ASamplesWrittenThisLoop*2;
       ABytesWrittenThisLoop[1]=ALoopCount;
-      if (DEBUG) printf("Bytes this loop : %d\n",ABytesWrittenThisLoop[0]);
-      fwrite(ABytesWrittenThisLoop, sizeof(ViUInt32),  (size_t)1, StatusFile);
+      //if (DEBUG) printf("\tBytes this loop : %d\n",ABytesWrittenThisLoop[0]);
+      fwrite(ABytesWrittenThisLoop, sizeof(ViUInt32),  (size_t)2, StatusFile);
       fclose(StatusFile);
     }
     
     time2=clock();
     TimePassed=difftime(time2,time1)/CLOCKS_PER_SEC;
     if (TimePassed > ExpectedTimeToPass+1) {
-      if (DEBUG) {printf("Overtime. Quitting?\n"); }
+      if (DEBUG) {printf("Timeout on HSDIO read. Quitting.\n"); }
       i=MaxIterations;
     }
     
@@ -379,19 +411,18 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
         //printf("j goes: %d to %d\n",0,(ABufferSamplesRead*NumberOfChannels) % (ASamplesBufferValid-ASamplesPerIteration*NumberOfChannels));
         //printf("offset: %d to %d\n",0+ASamplesBufferValid-ASamplesPerIteration*NumberOfChannels,(ABufferSamplesRead*NumberOfChannels) % (ASamplesBufferValid-ASamplesPerIteration*NumberOfChannels)+ASamplesBufferValid-ASamplesPerIteration*NumberOfChannels);
         for (j=0;j<(ABufferSamplesRead*NumberOfChannels) % (ASamplesBufferValid-ASamplesPerIteration*NumberOfChannels);j++){
-        AData[j]=AData[j+ASamplesBufferValid-ASamplesPerIteration*NumberOfChannels];
+           AData[j]=AData[j+ASamplesBufferValid-ASamplesPerIteration*NumberOfChannels];
         }
         ABufferSamplesRead=ABufferSamplesRead % (ASamplesBufferValid/NumberOfChannels-ASamplesPerIteration);
         if (DEBUG)printf("ABufferSamplesRead: %d  Valid: %d\n", ABufferSamplesRead*NumberOfChannels, ASamplesBufferValid);
-      }      
+      }
     }
     
     // CHECK WHETHER TO STOP RECORDING
     if (StopFile = fopen(FileNameStop,"r")) {
       fread(StopBit,sizeof(int),1,StopFile);
       // If the file contains one, break out of recording loop and close files
-      printf("%s\n",FileNameStop);
-      printf("StopBit : %d \n",*StopBit);
+      //printf("\t StopFile: %s StopBit : %d \n",FileNameStop,*StopBit);
       if ((*StopBit)==1) {printf("STOP Signal received"); break;}
       fclose(StopFile);
     } else {
@@ -481,7 +512,7 @@ void decodeData(ViUInt8 *DData,
   // END OF HEADER DETECTION
   
   // DECODE PACKAGES
-  if (DEBUG) printf("Decoding Packet\n");
+  //if (DEBUG) printf("\t Decoding Packet\n");
   PacketStart = IterationStart + Offset; 
   for (i1 = 0; i1<PacketsThisIteration; i1++) { // Loop over the number of expected analog packets (samples in time)
     // CHECK WHETHER PACKET STARTS AT EXPECTED LOCATION
@@ -550,6 +581,7 @@ void decodeData(ViUInt8 *DData,
   
   ASamplesRead[0]=PacketsThisIteration;
   ATotalSamplesRead[0] = ATotalSamplesRead[0] + ASamplesRead[0];
+  
 }
 
 
