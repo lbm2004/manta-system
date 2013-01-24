@@ -6,7 +6,7 @@ global MG Verbose
 Cmd = [MG.DAQ.HSDIO.EngineCommand,' '];
 % ADD PARAMETERS TO COMMAND
 %Example : D:\HSDIO.bin 5000000 20000 10 D1 0 PFI0 96 16 1
-Cmd = [Cmd,MG.DAQ.HSDIO.TempFile,' '];  % TempFile Location
+Cmd = [Cmd,MG.DAQ.HSDIO.BaseName,' '];  % TempFile Location
 Cmd = [Cmd,sprintf('%10.3f  ',MG.DAQ.HSDIO.SRDigital)]; % Digital Sampling Rate
 Cmd = [Cmd,sprintf('%d  ',MG.DAQ.HSDIO.SamplesPerIteration)]; % Samples Per Iteration
 Cmd = [Cmd,sprintf('%d  ',MG.DAQ.HSDIO.MaxIterations)]; % Maximal Number of Iterations
@@ -19,7 +19,7 @@ Cmd = [Cmd,sprintf('%d  ',MG.DAQ.HSDIO.Simulation)]; % Simulation Mode
 Cmd = [Cmd,'  >  ',MG.DAQ.HSDIO.DebugFile]; % Debugging Output
 M_Logger(['\n\nExecuting : [  ',escapeMasker(Cmd),'  ]\n']);
 
-outpath=fileparts(MG.DAQ.HSDIO.TempFile);
+outpath=fileparts(MG.DAQ.HSDIO.BaseName);
 while ~exist(outpath,'dir'),
    yn=questdlg(['Temp folder ' outpath ' not found. Retry?'],...
       'Missing path','Yes','Cancel','Yes');
@@ -31,7 +31,6 @@ end
 % SET STOPFILE TO 0
 FID = fopen(MG.DAQ.HSDIO.StopFile,'w');
 fwrite(FID,0,'uint32'); fclose(FID);
-
 delete(MG.DAQ.HSDIO.TempFile);
 
 % EXECUTE BINARY

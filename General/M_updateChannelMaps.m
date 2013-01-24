@@ -124,3 +124,7 @@ if MG.DAQ.NChannelsTotal  == 1; M_setState('Reference',0); end
 
 % CHECK FOR PRONGS ALIGNED WITH COLUMNS AND SET CSD AVAILALITY
 M_findProngs;
+
+% INITIALIZE HSDIO 
+MG.DAQ.HSDIO.ChannelMap{1}=MG.DAQ.HSDIO.FullRemap(find(MG.DAQ.ChannelsBool{1}));
+

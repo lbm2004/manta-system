@@ -76,7 +76,7 @@ if strcmp(MG.DAQ.Trigger.Type,'Local')
         end
       end
     case 'HSDIO';
-      
+      MG.DAQ.FirstPosBytes = 0;
   end
 end
 

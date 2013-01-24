@@ -22,5 +22,5 @@ set LIB=%VCDIR%\LIB\amd64;%LINKERDIR%\lib\x64;%VCDIR%\LIB;%NIDIR%\Lib_x64\msc;%L
 set MW_TARGET_ARCH=win64
 
 :: EXECUTE COMPILATION
-cl /Fohsdio_stream_dual.obj  /O2 /Oy- /DNDEBUG niHSDIO.lib  libcmt.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ^
-..\hsdio_stream_dual.c
+cl /Fohsdio_stream_cont.obj  /O2 /Oy- /DNDEBUG niHSDIO.lib  libcmt.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ^
+..\hsdio_stream_cont.c

@@ -134,6 +134,15 @@ int createData(char* FileName,int NumberOfChannels,int DSamplingRate, int MaxIte
     if (DEBUG) printf("Available : %d || Written : %d\n",ASamplesTotal,ASamplesWritten);
     if (ASamplesWritten != ASamplesTotal) { printf("Samples could not be written!\n"); return -1;}
    
+    
+    // WRITE STATUS TO FILE
+    StatusFile = fopen(FileNameStatus, "wb");
+    ABytesWrittenThisLoop[0]=ASamplesWrittenThisLoop*2;
+    ABytesWrittenThisLoop[1]=ALoopCount;
+    //if (DEBUG) printf("\tBytes this loop : %d\n",ABytesWrittenThisLoop[0]);
+    fwrite(ABytesWrittenThisLoop, sizeof(ViUInt32),  (size_t)2, StatusFile);
+    fclose(StatusFile);
+    
     // CHECK WHETHER TO STOP RECORDING
     StopFile = fopen(FileNameStop,"r");
     fread(StopBit,sizeof(int),1,StopFile);
