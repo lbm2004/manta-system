@@ -244,34 +244,43 @@ switch MG.DAQ.Engine
     SamplesAvailable = double(get(SamplesAvailablePtr,'Value'));
 
   case 'HSDIO'; % READ POSITION IN LOOP AND LOOPCOUNT FROM STATUS FILE
-    SamplesAvailable = 0;
+    SamplesAvailable = 0; Triggered = 0;
     switch MG.DAQ.Trigger.Type
       case 'Local'; 
-        TriggerState = 1;
+        if MG.DAQ.Iteration==1 Triggered = 1; end; TriggerState = 1; TriggerSample = 0;
       case 'Remote';
         Triggers = M_getHSDIOTriggers;
+        TriggerState = Triggers(end,2);
         if size(Triggers,1) > size(MG.DAQ.PreTriggers,1)
+          Triggered = 1;
           LastPos = size(MG.DAQ.PreTriggers,1);
           TriggerSample = Triggers(end,1);
-          TriggerState = Triggers(end,2);
-          M_Logger('Trigger received : Samples %d , Direction %d\n',TriggerSample,TriggerState);
+          if TriggerState
+            MG.DAQ.FirstPosBytes = TriggerSample*MG.DAQ.HSDIO.NAI*MG.DAQ.HSDIO.BytesPerSample;
+          else
+            MG.DAQ.LastPosBytes = TriggerSample*MG.DAQ.HSDIO.NAI*MG.DAQ.HSDIO.BytesPerSample;
+          end
         end
     end
     
+    if Triggered M_Logger('Trigger received : Samples %d , Direction %d\n',TriggerSample,TriggerState); end
+    
     if TriggerState
       StatusFile=fopen(MG.DAQ.HSDIO.StatusFile,'r');
-      if StatusFile,
+      if StatusFile
         tmp = fread(StatusFile,'char');
         StatusData = str2num(char(tmp)');
         fclose(StatusFile);
-        if length(StatusData)==2,
+        if length(StatusData)==2
           BytesThisLoop=StatusData(1);
           AllChanSamplesThisLoop = BytesThisLoop/MG.DAQ.HSDIO.BytesPerSample;
           SamplesThisLoop = AllChanSamplesThisLoop/MG.DAQ.HSDIO.NAI;
           MG.DAQ.CurrentBufferLoop=StatusData(2);
           TotalSamplesAcquired = MG.DAQ.HSDIO.SamplesPerLoop*MG.DAQ.CurrentBufferLoop + SamplesThisLoop;
           FirstSample = MG.DAQ.FirstPosBytes/MG.DAQ.HSDIO.NAI/MG.DAQ.HSDIO.BytesPerSample;
-          SamplesAvailable = TotalSamplesAcquired - FirstSample - MG.DAQ.SamplesTakenTotal;
+          LastSample = MG.DAQ.LastPosByte/MG.DAQ.HSDIO.NAI/MG.DAQ.HSDIO.BytesPerSample;
+          SamplesAvailable = min(LastSample,TotalSamplesAcquired) - FirstSample - MG.DAQ.SamplesTakenTotal;
+          
           M_Logger('\tIt: %d  :  Samples: Total: %d, ThisLoop: %d, New: %d (Loop %d) Taken: %d\n',...
             MG.DAQ.Iteration,TotalSamplesAcquired,SamplesThisLoop,SamplesAvailable,MG.DAQ.CurrentBufferLoop,MG.DAQ.SamplesTakenTotal);
         end

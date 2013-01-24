@@ -11,7 +11,9 @@ MG.DAQ.Iteration = 0; MG.DAQ.CurrentFileSize = 0;
 MG.DAQ.SamplesAcquired = 0;  % total samples acquired this session.
 MG.DAQ.SamplesTakenTotal = 0; 
 switch MG.DAQ.Engine
-  case 'HSDIO'; MG.DAQ.CurrentBufferLoop = 0;  % how many times the HSDIO circular buffer has looped on disk
+  case 'HSDIO'; 
+    MG.DAQ.CurrentBufferLoop = 0;  % how many times the HSDIO circular buffer has looped on disk
+    MG.DAQ.LastPosByte = inf; % start out with a potentially infinite trial, until stop trigger is received
 end
 MG.DAQ.SamplesRecovered = 0;
 MG.DAQ.AcquisitionDone = 1;
