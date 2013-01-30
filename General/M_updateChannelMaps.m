@@ -85,7 +85,7 @@ for iB = 1:length(MG.DAQ.BoardsNum)
           WarningShown = 1;
         end
       end
-      M_Logger fprintf('\n'); 
+      M_Logger('\n'); 
   end
 end; clear iC iB
 

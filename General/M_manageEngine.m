@@ -250,11 +250,11 @@ switch MG.DAQ.Engine
         if MG.DAQ.Iteration==1 Triggered = 1; end; TriggerState = 1; TriggerSample = 0;
       case 'Remote';
         Triggers = M_getHSDIOTriggers;
-        TriggerState = Triggers(end,2);
+        TriggerState = Triggers(end,3);
         if size(Triggers,1) > size(MG.DAQ.PreTriggers,1)
           Triggered = 1;
           LastPos = size(MG.DAQ.PreTriggers,1);
-          TriggerSample = Triggers(end,1);
+          TriggerSample = Triggers(end,2);
           if TriggerState
             MG.DAQ.FirstPosBytes = TriggerSample*MG.DAQ.HSDIO.NAI*MG.DAQ.HSDIO.BytesPerSample;
           else

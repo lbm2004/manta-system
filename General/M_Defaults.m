@@ -31,7 +31,7 @@ else
   MG.HW.Lab = Location(Pos(end-1)+1:Pos(end)-1);
   MG.HW.ConfigPath = [SavePath,'Configurations',Sep,MG.HW.Lab,Sep];
 end
-
+ 
 %% DEFINES HW-DEFAULTS
 MG.HW.Architecture = architecture;
 if ~isempty(strfind(computer,'64'))
@@ -49,6 +49,20 @@ MG.Stim.COMterm = 124; % '|'
 MG.Stim.MSGterm = 10; % '}' 
 MG.Stim.Port = 33330; % Port to connect to
 MG.Stim.Host = 'localhost';
+I = ver('instrument');
+if ~isempty(I)
+  MG.Stim.Package = 'ICT'; % Instrument Control Toolbox
+else 
+  error(['Instrument Control Toolbox needs to be installed, since there is no free package that supports Callback functions at this point.']);
+  MG.Stim.Package = 'jTCP'; % Java TCP by Kevin Bartlett (http://www.mathworks.com/matlabcentral/fileexchange/24524-tcpip-communications-in-matlab)
+  I = which('jtcp');
+  if isempty(I) 
+    MG.Stim.Pacakge = 'None';
+    fprintf(['WARNING : NO TCPIP SUITE FOUND!\n'...
+      '\tNeither the instrument control toolbox, nor the open source tcpip suite jTCP have been detected.\n '...
+      '\tPlease install either of those two, in order to connect to a controller/stimulator\n']); 
+  end
+end
 M_loadDefaultsByHostname(MG.HW.Hostname,'Stim');
 
 %% DAQ DEFAULTS
