@@ -14,6 +14,7 @@
 
 /* Defines */
 #define DEBUG 1
+#define DEBUG2 0
 #define ANALOGSAMPLESPERLOOP 19200000
 //#define ANALOGSAMPLESPERLOOP 30000000
 
@@ -43,7 +44,7 @@ ViStatus setupAcquisitionDevice(ViRsrc acqDeviceID,
 void decodeData(
         ViUInt8 *DData,
         ViUInt16 *AData,
-        ViUInt32 DTotalSamplesRead, 
+        ViUInt64 DTotalSamplesRead, 
         ViUInt32 DSamplesRead, 
         ViUInt32 *ATotalSamplesRead, 
         ViUInt32 *ASamplesRead, 
@@ -240,9 +241,10 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   ViConstString acqChannelList = "0,2"; // Acquisition and Trigger Channel
   ViSession vi = VI_NULL;
   ViUInt32 readTimeout, dataWidth = 1, i, j,Aoffset, Doffset, BufferIterations = 10;
-  ViUInt32 BackLogSamples, DSamplesRead = 0, ASamplesRead = 0, DTotalSamplesRead = 0, ATotalSamplesRead = 0;
+  ViUInt32 BackLogSamples =0, DSamplesRead = 0, ASamplesRead = 0;
+  ViUInt64 DTotalSamplesRead = 0, ATotalSamplesRead = 0;
   ViUInt32 ASamplesWritten = 0, DSamplesWritten = 0, ATotalSamplesWritten = 0, DTotalSamplesWritten = 0;
-  ViUInt32 PacketLength, DSamplesPerIteration, ASamplesPerChannel, ASamplesTotal, DSamplesTotal;
+  ViUInt32 PacketLength, DSamplesPerIteration, ASamplesPerChannel, ASamplesTotal, DSamplesTotal, DSamplesToRead;
   ViUInt16 ConstLevel = 2;
   
   // GENERATION PARAMETERS
@@ -267,7 +269,7 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   
   clock_t time1, time2;
   float ExpectedTimeToPass, TimePassed;
-  int WriteDigital=1, WriteAnalog=1, MaxTriggers = 1000000;
+  int WriteDigital=0, WriteAnalog=1, MaxTriggers = 1000000;
   char FileNameBuffer[255], FileNameD[255], FileNameStop[255], FileNameStatus[255], FileNameTriggers[255], TriggersStatus[255];
   int *StopBit;
   
@@ -293,8 +295,8 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   ASamplesPerChannel = MaxIterations*ASamplesPerIteration;
   ASamplesTotal = (ViUInt32) (ASamplesPerChannel*NumberOfChannels);
   DSamplesTotal = (ViUInt32) (ASamplesPerChannel*PacketLength);
-  readTimeout = (ViInt32) (DSamplesTotal/SampleClockRate*1000+1000); /* milliseconds */
-  msTimeout = (ViInt32) (DSamplesPerIteration/SampleClockRate*1000+10000);
+  readTimeout = (ViInt32) 1000; //(DSamplesTotal/SampleClockRate*1000+10000); /* milliseconds */
+  msTimeout = (ViInt32) 1000; // (DSamplesPerIteration/SampleClockRate*1000+10000);
   
   // GET DATA MATRIX
   // Note: it would be much better to have a circular engine, since
@@ -376,16 +378,28 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
     printf(">> Starting loop %d / %d\n",i+1,MaxIterations);
     /* Configure Fetch */
     checkErr(niHSDIO_SetAttributeViInt32 (vi, "",NIHSDIO_ATTR_FETCH_OFFSET, 0));
+
+    /* Check Remaining Samples */
+    BackLogSamples = 0;
+    while (BackLogSamples<DSamplesPerIteration) {
+      checkErr(niHSDIO_GetAttributeViInt32 (vi, "",NIHSDIO_ATTR_FETCH_BACKLOG, &BackLogSamples));
+    }
+    if (DEBUG) printf("\tSamples left in buffer \t\t%d\n",BackLogSamples);
+    
+    DSamplesToRead = DSamplesPerIteration;
+    if (BackLogSamples>DSamplesPerIteration) DSamplesToRead = BackLogSamples;
+    if (DEBUG) printf("\tNumber of Samples to read \t%d\n",DSamplesToRead);
+    DSamplesToRead = DSamplesToRead - 100000;
+      
     
     // ACQUIRE DATA FROM DEVICE
-    checkErr(niHSDIO_FetchWaveformU8(vi, DSamplesPerIteration, readTimeout,&DSamplesRead, &(DData[DBufferSamplesRead])));
+    checkErr(niHSDIO_FetchWaveformU8(vi, DSamplesToRead, readTimeout,&DSamplesRead, &(DData[DBufferSamplesRead])));
+    if (DEBUG) printf("\tNumber of Samples read : \t%d\n",DSamplesRead);
+    
     DBufferSamplesRead = DBufferSamplesRead + DSamplesRead;
-    DTotalSamplesRead = DTotalSamplesRead + DSamplesRead;
-    if (DEBUG) printf("\tNumber of Samples read : %d\n",DTotalSamplesRead);
+    DTotalSamplesRead = DTotalSamplesRead + (ViUInt64) DSamplesRead;
+    if (DEBUG) printf("\tTotal Number of Samples read : \t%llu\n",DTotalSamplesRead);
      
-    /* Check Remaining Samples */
-    checkErr(niHSDIO_GetAttributeViInt32 (vi, "",NIHSDIO_ATTR_FETCH_BACKLOG, &BackLogSamples));
-    if (DEBUG) printf("\tSamples left in buffer %d\n",BackLogSamples);
     
     // WRITE DIGITAL DATA
     if (WriteDigital) {
@@ -453,12 +467,12 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
       writeStatusFile(FileNameStatus, APosThisLoop,ALoopCount);    
     }
 
-    time2=clock();
-    TimePassed=difftime(time2,time1)/CLOCKS_PER_SEC;
-    if (TimePassed > ExpectedTimeToPass+1) {
-      if (DEBUG) {printf("Timeout on HSDIO read. Quitting.\n"); }
-      i=MaxIterations;
-    }
+    //time2=clock();
+    //TimePassed=difftime(time2,time1)/CLOCKS_PER_SEC;
+    //if (TimePassed > ExpectedTimeToPass+1) {
+    //  if (DEBUG) {printf("Timeout on HSDIO read. Quitting.\n"); }
+     // i=MaxIterations;
+    //}
     
     // bookkeeping : move any extra data from the end of the circular buffers to the beginning and take modulo of counters
     
@@ -482,7 +496,7 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
            AData[j]=AData[j+ASamplesBufferValid-ASamplesPerIteration*NumberOfChannels];
         }
         ABufferSamplesRead=ABufferSamplesRead % (ASamplesBufferValid/NumberOfChannels-ASamplesPerIteration);
-        if (DEBUG)printf("ABufferSamplesRead: %d  Valid: %d\n", ABufferSamplesRead*NumberOfChannels, ASamplesBufferValid);
+        if (DEBUG) printf("ABufferSamplesRead: %d  Valid: %d\n", ABufferSamplesRead*NumberOfChannels, ASamplesBufferValid);
       }
     }
     
@@ -498,7 +512,7 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
   Error:
     if (error == VI_SUCCESS) { /* print result */
       printf("Done without error.\n");
-      printf("Number of digital samples read = %d.\n", DTotalSamplesRead);
+      printf("Number of digital samples read = %llu.\n", DTotalSamplesRead);
       printf("Number of analog samples written = %d.\n", ATotalSamplesWritten);
     } else { /* Get error description and print */
       niHSDIO_GetError(vi, &error, sizeof(errDesc)/sizeof(ViChar), errDesc);
@@ -512,7 +526,7 @@ int acquireData(char* FileName, ViUInt32 NumberOfChannels, int DSamplingRate, Vi
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void decodeData(ViUInt8 *DData,
         ViUInt16 *AData,
-        ViUInt32 DTotalSamplesRead,
+        ViUInt64 DTotalSamplesRead,
         ViUInt32 DSamplesRead, 
         ViUInt32 *ATotalSamplesRead, 
         ViUInt32 *ASamplesRead, 
@@ -532,49 +546,44 @@ void decodeData(ViUInt8 *DData,
   ViInt32 HeaderLength = sizeof(Header)/sizeof(ViUInt8);
   ViInt32 FlagLength = 8;
   ViInt32 DataOffset = 0;
-  ViInt32 cStart, DataStart, PacketStart, IterationStart = DTotalSamplesRead - DSamplesRead; // Jumps back to the first entry in the current Iteration
-  ViInt32 i1, i2, i3, EqCount, AOffset, Offset;
+  ViInt32 cStart, DataStart, PacketStart, IterationStart = (ViUInt32) (DTotalSamplesRead - (ViUInt64) DSamplesRead); // Jumps back to the first entry in the current Iteration
+  ViInt32 i1, i2, i3, EqCount, AOffset, Offset = 0;
   ViInt32 PacketsThisIteration = (ViInt32) (floor(DSamplesRead/PacketLength));
   ViInt32 HeaderFound = 0;
   ViInt32 HeaderStart = 0;
   ViUInt32 cATotalSamplesRead;
   ViUInt32 TBDLength = 0;
-  long DeadEnd = 0, NDeadD = 100;
   int ProcessData = 0;
   
   // ADDITIONAL HEADER FOR THE 
   if (BitLength==16) TBDLength = 16;
-  
+ 
+  if (ProcessData) {
   // SCAN FOR TRIGGER (NOTE DOWN TRIGGERS AND REDUCE REPRESENTATION TO HEADSSTAGE CODE)
-  if (DEBUG) printf("\tChecking for Triggers\n");
-  for (i1=IterationStart; i1<(DSamplesRead+IterationStart-1); i1++) {
-    if (i1>DeadEnd) { // CHECK IF WITHIN DEADTIME AFTER LAST TRIGGER
-      if (DData[i1]>1 & DData[i1+1]<=1) { // FIND DOWN TRIGGER
-        TriggerCount[0]++;
-        TriggerSamples[TriggerCount[0]] = floor((i1 + IterationStart)/PacketLength);
-        TriggerValues[TriggerCount[0]] = 0;
-        DeadEnd = i1+NDeadD;
-        if (DEBUG) printf("\t\t T%d : DOWN Trigger (Sample: %d)\n",TriggerCount[0],TriggerSamples[TriggerCount[0]]);
-      }
-      if (DData[i1]<=1 & DData[i1+1]>1) { // FIND UP TRIGGER
+  if (DEBUG) printf("\tChecking for Triggers : %d\n",DSamplesRead+IterationStart);
+  for (i1=IterationStart; i1<(DSamplesRead+IterationStart-1); i1+=PacketLength) {
+    if (TriggerValues[TriggerCount[0]]==0 && DData[i1]>1) {
         TriggerCount[0]++;
         TriggerSamples[TriggerCount[0]] = floor((i1 + IterationStart)/PacketLength);
         TriggerValues[TriggerCount[0]] = 1;
-        DeadEnd = i1+NDeadD;
         if (DEBUG) printf("\t\t T%d : UP Trigger (Sample: %d)\n",TriggerCount[0],TriggerSamples[TriggerCount[0]]);
       }
-    }
-    if (DData[i1]>1) DData[i1] = DData[i1]-4; // SUBTRACT TRIGGER DIFFERENCE
+    if (TriggerValues[TriggerCount[0]]==1 && DData[i1]<2) {
+        TriggerCount[0]++;
+        TriggerSamples[TriggerCount[0]] = floor((i1 + IterationStart)/PacketLength);
+        TriggerValues[TriggerCount[0]] = 0;
+        if (DEBUG) printf("\t\t T%d : DOWN Trigger (Sample: %d)\n",TriggerCount[0],TriggerSamples[TriggerCount[0]]);
+      }
+  }  
   }
-  
-  
-  if (ProcessData) {
-    // DISTANCE FROM THE PACKETSTART TO THE DATA START
+  // MOVE THE DATA BACK TO BINARY
+  for (i1=IterationStart;  i1<(DSamplesRead+IterationStart-1); i1++) DData[i1] = DData[i1] -4;
+
+// DISTANCE FROM THE PACKETSTART TO THE DATA START
     DataOffset = HeaderLength + FlagLength + TBDLength;
     
     if (DEBUG) printf("\tEntering decoder (DSample : %d, ASample : %d)...\n",IterationStart,ATotalSamplesRead[0]);
     // FIND NEXT/LAST HEADER
-    Offset=0;
     if (LoopIteration != 0) { // SEARCH BACKWARD
       for (i1=0; i1<PacketLength; i1++) {
         EqCount = 0;
@@ -583,10 +592,8 @@ void decodeData(ViUInt8 *DData,
           if (DData[IterationStart-PacketLength+1+i1+i2] == Header[i2] & DData[IterationStart+1+i1+i2] == Header[i2])
             EqCount++;
         }
-        // found a match
-        if (EqCount == HeaderLength) {
-          Offset = -PacketLength+1+i1; HeaderFound = 1;break;
-        }
+        // MATCH FOUND
+        if (EqCount == HeaderLength) {Offset = -PacketLength+1+i1; HeaderFound = 1;break;}
       }
     } else { // SEARCH FORWARD
       for (i1=0; i1<PacketLength; i1++) {
@@ -596,73 +603,70 @@ void decodeData(ViUInt8 *DData,
           if (DData[IterationStart+i1+i2] == Header[i2] & DData[IterationStart+PacketLength+i1+i2] == Header[i2])
             EqCount++;
         }
+        // MATCH FOUND
         if (EqCount == HeaderLength) {Offset = i1; HeaderFound = 1; PacketsThisIteration--; break;}
       }
     }
     // END OF HEADER DETECTION
+  
+  // DECODE PACKAGES
+  //if (DEBUG) printf("\t Decoding Packet\n");
+  PacketStart = IterationStart + Offset;
+  for (i1 = 0; i1<PacketsThisIteration; i1++) { // Loop over the number of expected analog packets (samples in time)
+
+    // CHECK WHETHER PACKET STARTS AT EXPECTED LOCATION
+    HeaderStart=PacketStart;
+    EqCount = 0;
+    for (i2=0; i2<HeaderLength; i2++)   EqCount += DData[HeaderStart+i2] == Header[i2];
+    EqCount = HeaderLength;
     
-    // DECODE PACKAGES
-    //if (DEBUG) printf("\t Decoding Packet\n");
-    PacketStart = IterationStart + Offset;
-    for (i1 = 0; i1<PacketsThisIteration; i1++) { // Loop over the number of expected analog packets (samples in time)
-      // CHECK WHETHER PACKET STARTS AT EXPECTED LOCATION
-      HeaderStart=PacketStart;
-      EqCount = 0;
-      for (i2=0; i2<HeaderLength; i2++) {
-        if (DData[HeaderStart+i2] == Header[i2]) EqCount++;
-      }
-      // IF HEADER NOT FOUND, LOOK FOR HEADER (should happen only rarely)
-      if (EqCount < HeaderLength) {
-        if (DEBUG) {
-          printf("ASamp: %d DSamp: %d Iteration: %d:  Header not found at offset : %d\n Searching for header ...\n",i1+ATotalSamplesRead[0],HeaderStart,i1,Offset);
+    // IF HEADER NOT FOUND, LOOK FOR HEADER (should happen only rarely)
+    if (EqCount != HeaderLength && LoopIteration != 0) {
+      if (DEBUG2) printf("ASamp: %d DSamp: %d Iteration: %d:  Header not found at offset : %d\n Searching for header ...\n",i1+ATotalSamplesRead[0],HeaderStart,i1,Offset);
+      for (i3=0; i3<PacketLength; i3++) { // SEARCH FOR HEADER WITHIN ONE PACKETLENGTH
+        EqCount = 0;
+        for (i2=0; i2<HeaderLength; i2++) {
+          EqCount += DData[HeaderStart-(PacketLength/2)+i3+i2] == Header[i2];
         }
-        for (i3=0; i3<PacketLength; i3++) { // SEARCH FOR HEADER WITHIN ONE PACKETLENGTH
-          EqCount = 0;
-          for (i2=0; i2<HeaderLength; i2++) {
-            if (DData[HeaderStart-(PacketLength/2)+i3+i2] == Header[i2]) EqCount++;
-          }
-          // found a match
-          if (EqCount == HeaderLength) {
-            if (DEBUG) {
-              printf("Found a new match, adjusting offset from %d to %d\n",Offset,Offset-(PacketLength/2)+i3);
-            }
-            Offset = Offset-(PacketLength/2)+i3;
-            PacketStart=PacketStart-(PacketLength/2)+i3;
-            HeaderFound = 2;
-            break;
-          }
+        // found a match
+        if (EqCount == HeaderLength) {
+          if (DEBUG2) printf("Found a new match, adjusting offset from %d to %d\n",Offset,Offset-(PacketLength/2)+i3);
+          Offset = Offset-(PacketLength/2)+i3;
+          PacketStart=PacketStart-(PacketLength/2)+i3;
+          HeaderFound = 2;
+          break;
         }
-        if (~HeaderFound) {printf("No Header Found within one packetlength");}
       }
-      
-      DataStart = PacketStart + DataOffset;
-      switch (BitLength) {
-        case 12:
-          for (i2 = 0; i2<Bundles ; i2++ ) { // Loop over the Bundles in the data section in a packet
-            cStart = DataStart + i2*BitsPerBundle;
-            cATotalSamplesRead = i1+ATotalSamplesRead[0];
-            AOffset = cATotalSamplesRead*NumberOfChannels + i2*3;
-            AData[AOffset]     = -2048*DData[cStart]     + 1024*DData[cStart+3] + 512*DData[cStart+6] + 256*DData[cStart+9]   + 128*DData[cStart+12] + 64*DData[cStart+15] + 32*DData[cStart+18] + 16*DData[cStart+21] + 8*DData[cStart+24] + 4*DData[cStart+27] + 2*DData[cStart+30] + 1*DData[cStart+33];
-            AData[AOffset+1] = -2048*DData[cStart+1] + 1024*DData[cStart+4] + 512*DData[cStart+7] + 256*DData[cStart+10] + 128*DData[cStart+13] + 64*DData[cStart+16] + 32*DData[cStart+19] + 16*DData[cStart+22] + 8*DData[cStart+25] + 4*DData[cStart+28] + 2*DData[cStart+31] + 1*DData[cStart+34];
-            AData[AOffset+2] = -2048*DData[cStart+2] + 1024*DData[cStart+5] + 512*DData[cStart+8] + 256*DData[cStart+11] + 128*DData[cStart+14] + 64*DData[cStart+17] + 32*DData[cStart+20] + 16*DData[cStart+23] + 8*DData[cStart+26] + 4*DData[cStart+29] + 2*DData[cStart+32] + 1*DData[cStart+35];
-          };
-          break;
-        case 16:
-          for (i2 = 0; i2<Bundles ; i2++ ) { // Loop over the Bundles in the data section in a packet
-            cStart = DataStart + i2*BitsPerBundle;
-            cATotalSamplesRead = i1+ATotalSamplesRead[0];
-            AOffset = cATotalSamplesRead*NumberOfChannels + i2*3;
-            AData[AOffset]      = 32768*DData[cStart]     + 16384*DData[cStart+3] + 8192*DData[cStart+6] + 4096*DData[cStart+9]   + 2048*DData[cStart+12] + 1024*DData[cStart+15] + 512*DData[cStart+18] + 256*DData[cStart+21] + 128*DData[cStart+24] + 64*DData[cStart+27] + 32*DData[cStart+30] + 16*DData[cStart+33] + 8*DData[cStart+36] + 4*DData[cStart+39] + 2*DData[cStart+42] + 1*DData[cStart+45];
-            AData[AOffset+1] = 32768*DData[cStart+1] + 16384*DData[cStart+4] + 8192*DData[cStart+7] + 4096*DData[cStart+10] + 2048*DData[cStart+13] + 1024*DData[cStart+16] + 512*DData[cStart+19] + 256*DData[cStart+22] + 128*DData[cStart+25] + 64*DData[cStart+28] + 32*DData[cStart+31] + 16*DData[cStart+34] + 8*DData[cStart+37] + 4*DData[cStart+40] + 2*DData[cStart+43] + 1*DData[cStart+46];
-            AData[AOffset+2] = 32768*DData[cStart+2] + 16384*DData[cStart+5] + 8192*DData[cStart+8] + 4096*DData[cStart+11] + 2048*DData[cStart+14] + 1024*DData[cStart+17] + 512*DData[cStart+20] + 256*DData[cStart+23] + 128*DData[cStart+26] + 64*DData[cStart+29] + 32*DData[cStart+32] + 16*DData[cStart+35] + 8*DData[cStart+38] + 4*DData[cStart+41] + 2*DData[cStart+44] + 1*DData[cStart+47];
-          };
-          break;
-        default:
-          printf("Unknown Bitlength specified!"); return;
-      }
-      PacketStart = PacketStart + PacketLength;
-    } // END OF DECODING LOOP
-  } // END PROCESS IF
+      if (~HeaderFound && DEBUG2) printf("No Header Found within one packetlength\n");
+    }
+    
+    DataStart = PacketStart + DataOffset;
+    switch (BitLength) {
+      case 12:
+        for (i2 = 0; i2<Bundles ; i2++ ) { // Loop over the Bundles in the data section in a packet
+          cStart = DataStart + i2*BitsPerBundle;
+          cATotalSamplesRead = i1+ATotalSamplesRead[0];
+          AOffset = cATotalSamplesRead*NumberOfChannels + i2*3;
+          AData[AOffset]     = -2048*DData[cStart]     + 1024*DData[cStart+3] + 512*DData[cStart+6] + 256*DData[cStart+9]   + 128*DData[cStart+12] + 64*DData[cStart+15] + 32*DData[cStart+18] + 16*DData[cStart+21] + 8*DData[cStart+24] + 4*DData[cStart+27] + 2*DData[cStart+30] + 1*DData[cStart+33];
+          AData[AOffset+1] = -2048*DData[cStart+1] + 1024*DData[cStart+4] + 512*DData[cStart+7] + 256*DData[cStart+10] + 128*DData[cStart+13] + 64*DData[cStart+16] + 32*DData[cStart+19] + 16*DData[cStart+22] + 8*DData[cStart+25] + 4*DData[cStart+28] + 2*DData[cStart+31] + 1*DData[cStart+34];
+          AData[AOffset+2] = -2048*DData[cStart+2] + 1024*DData[cStart+5] + 512*DData[cStart+8] + 256*DData[cStart+11] + 128*DData[cStart+14] + 64*DData[cStart+17] + 32*DData[cStart+20] + 16*DData[cStart+23] + 8*DData[cStart+26] + 4*DData[cStart+29] + 2*DData[cStart+32] + 1*DData[cStart+35];
+        };
+        break;
+      case 16:
+        for (i2 = 0; i2<Bundles ; i2++ ) { // Loop over the Bundles in the data section in a packet
+          cStart = DataStart + i2*BitsPerBundle;
+          cATotalSamplesRead = i1+ATotalSamplesRead[0];
+          AOffset = cATotalSamplesRead*NumberOfChannels + i2*3;
+          AData[AOffset]      = 32768*DData[cStart]     + 16384*DData[cStart+3] + 8192*DData[cStart+6] + 4096*DData[cStart+9]   + 2048*DData[cStart+12] + 1024*DData[cStart+15] + 512*DData[cStart+18] + 256*DData[cStart+21] + 128*DData[cStart+24] + 64*DData[cStart+27] + 32*DData[cStart+30] + 16*DData[cStart+33] + 8*DData[cStart+36] + 4*DData[cStart+39] + 2*DData[cStart+42] + 1*DData[cStart+45];
+          AData[AOffset+1] = 32768*DData[cStart+1] + 16384*DData[cStart+4] + 8192*DData[cStart+7] + 4096*DData[cStart+10] + 2048*DData[cStart+13] + 1024*DData[cStart+16] + 512*DData[cStart+19] + 256*DData[cStart+22] + 128*DData[cStart+25] + 64*DData[cStart+28] + 32*DData[cStart+31] + 16*DData[cStart+34] + 8*DData[cStart+37] + 4*DData[cStart+40] + 2*DData[cStart+43] + 1*DData[cStart+46];
+          AData[AOffset+2] = 32768*DData[cStart+2] + 16384*DData[cStart+5] + 8192*DData[cStart+8] + 4096*DData[cStart+11] + 2048*DData[cStart+14] + 1024*DData[cStart+17] + 512*DData[cStart+20] + 256*DData[cStart+23] + 128*DData[cStart+26] + 64*DData[cStart+29] + 32*DData[cStart+32] + 16*DData[cStart+35] + 8*DData[cStart+38] + 4*DData[cStart+41] + 2*DData[cStart+44] + 1*DData[cStart+47];
+        };
+        break;
+      default:
+        printf("Unknown Bitlength specified!"); return;
+    }
+    PacketStart = PacketStart + PacketLength;
+  } // END OF DECODING LOOP
   
   ASamplesRead[0]=PacketsThisIteration;
   ATotalSamplesRead[0] = ATotalSamplesRead[0] + ASamplesRead[0];

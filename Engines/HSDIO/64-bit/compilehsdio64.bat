@@ -4,7 +4,8 @@ setlocal
 :: PREPARE GENERAL DIRECTORIES
 set VSDIR=C:\Program Files (x86)\Microsoft Visual Studio 10.0
 set VCDIR=%VSDIR%\VC
-set NIDIR=C:\Program Files (x86)\IVI Foundation\VISA\WinNT
+set NIDIR=C:\Program Files\IVI Foundation\VISA\Win64
+:: note: two files vpptype.h (from x86 location) & niHSDIOObsolete.h (from web) copied to the directory above
 
 :: LINKERDIR SPECIFIES THE CORRECT SDK (CHANGES BETWEEN 32 AND 64-bit WINDOWS)
 set LINKERDIR=C:\Program Files\Microsoft SDKs\Windows\v7.1
