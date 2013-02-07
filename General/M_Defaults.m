@@ -68,7 +68,7 @@ M_loadDefaultsByHostname(MG.HW.Hostname,'Stim');
 %% DAQ DEFAULTS
 MG.DAQ.Engine = 'NIDAQ';
 MG.DAQ.WithSpikes = 1;
-MG.DAQ.HSDIO.Path = 'D:\';
+MG.DAQ.HSDIO.Path = 'R:\';
 MG.DAQ.HSDIO.BaseName = [MG.DAQ.HSDIO.Path,'HSDIO']; % Intermediate storage of acquired data
 MG.DAQ.HSDIO.TempFile = [MG.DAQ.HSDIO.BaseName,'.bin']; % Intermediate storage of acquired data
 MG.DAQ.HSDIO.StatusFile = [MG.DAQ.HSDIO.BaseName,'.status']; % Intermediate storage of acquired data
@@ -77,8 +77,8 @@ MG.DAQ.HSDIO.StopFile = [MG.DAQ.HSDIO.BaseName,'.stop']; % Intermediate storage 
 MG.DAQ.HSDIO.DebugFile = [MG.DAQ.HSDIO.BaseName,'.out']; % Intermediate storage of acquired data
 MG.DAQ.HSDIO.EngineCommand = which('hsdio_stream_cont.exe');
 MG.DAQ.HSDIO.SRDigital = 50000000; % Digital sampling rate
-MG.DAQ.HSDIO.SamplesPerIteration = 500; % Analog Samples before checking again on the card
-MG.DAQ.HSDIO.MaxIterations = 10000; % Maximal Number of Iterations to run
+MG.DAQ.HSDIO.SamplesPerIteration = 1000; % Analog Samples before checking again on the card
+MG.DAQ.HSDIO.MaxIterations = 1e6; % Maximal Number of Iterations to run
 MG.DAQ.HSDIO.Simulation = 0; 
 MG.DAQ.HSDIO.NAI = 96;
 MG.DAQ.HSDIO.BytesPerLoop = 38400000; % Size of circular buffer on disk

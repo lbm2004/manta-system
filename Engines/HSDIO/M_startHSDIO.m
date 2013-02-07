@@ -28,10 +28,13 @@ while ~exist(outpath,'dir'),
    end
 end
 
+% REMOVE FILES FROM PREVIOUS RUNS
+Files = {MG.DAQ.HSDIO.TempFile,MG.DAQ.HSDIO.StatusFile,MG.DAQ.HSDIO.TriggersFile,...
+  MG.DAQ.HSDIO.StopFile,MG.DAQ.HSDIO.DebugFile};
+for i=1:length(Files) fprintf(['\nDeleting ',escapeMasker(Files{i})]); delete(Files{i});  end
+
 % SET STOPFILE TO 0
-FID = fopen(MG.DAQ.HSDIO.StopFile,'w');
-fwrite(FID,0,'uint32'); fclose(FID);
-delete(MG.DAQ.HSDIO.TempFile);
+FID = fopen(MG.DAQ.HSDIO.StopFile,'w'); fwrite(FID,0,'uint32'); fclose(FID);
 
 % EXECUTE BINARY
 system(['start /b ',Cmd]);

@@ -265,6 +265,7 @@ switch lower(ArrayName)
     WireDiameter =  repmat(25,size(PinsByElectrode));
     Reference = {{'Tip',[NaN,NaN,NaN]}};
     Ground = {{'Tip',[NaN,NaN,NaN]}};
+    Tip = {[0,0,ElecPos(end)+1.2]}; % Tip Position relative to other electrodes
     Comment = '';
     
   case 'lma3d_1_32';		

@@ -8,6 +8,4 @@ if FID>0
   tmp = fread(FID,'char');
   Triggers = str2num(char(tmp)');
 end
-
-
-
+fclose(FID);

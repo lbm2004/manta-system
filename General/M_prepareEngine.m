@@ -53,7 +53,7 @@ for i=MG.DAQ.BoardsNum
       
     case 'HSDIO'; % MOSTLY PERFORMED IN THE STREAMING PROGRAM
       if exist(MG.DAQ.HSDIO.StatusFile,'file') FID = fopen(MG.DAQ.HSDIO.StatusFile,'w'); fclose(FID); end
-      MG.DAQ.PreTriggers = M_getHSDIOTriggers;
+      MG.DAQ.PreTriggers = [];
   end
 end
 % SET AUDIO TO THE SAME SAMPLE RATE AS DAQ

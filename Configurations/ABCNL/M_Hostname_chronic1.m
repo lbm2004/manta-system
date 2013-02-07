@@ -30,7 +30,7 @@ switch Selection
     
   case 'DAQ';
     MG.DAQ.DataPath = 'D:\Data\';
-    MG.DAQ.HSDIO.Simulation = 1;
+    MG.DAQ.HSDIO.Simulation = 0;
     
   case 'Stim';
       MG.Stim.Host = 'localhost';
