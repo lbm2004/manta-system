@@ -57,7 +57,9 @@ switch COMMAND
     M_manageEngine;
     
   case 'STOP';
-    M_stopRecording;
+    if ~strcmp(MG.DAQ.Engine,'HSDIO') % HSDIO stops via the line trigger and call M_stopRecording there (M_xamplesAvailable)
+      M_stopRecording;
+    end
     % M_manageEngine sends the StopCommand once it is done.
 
   case 'SETVAR';
