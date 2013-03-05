@@ -5,7 +5,15 @@ global MG Verbose
 
 Cmd = [MG.DAQ.HSDIO.EngineCommand,' '];
 % ADD PARAMETERS TO COMMAND
-%Example : D:\HSDIO.bin 5000000 20000 10 D1 0 PFI0 96 16 1
+%Example : R:\HSDIO.bin 5000000 20000 10 D1 0 PFI0 96 16 1
+%
+% Command to setup RamDisk:
+% imdisk -a -m R: -t vm -s 500M -p "/fs:ntfs /q /y"
+% which need to be run in an elevated command prompt
+% alternatively one can use 
+% runas /noprofile /savecred /user:administrator  "command args"
+% which, however, so far does not work, since the format command of imdisk has ""
+
 Cmd = [Cmd,MG.DAQ.HSDIO.BaseName,' '];  % TempFile Location
 Cmd = [Cmd,sprintf('%10.3f  ',MG.DAQ.HSDIO.SRDigital)]; % Digital Sampling Rate
 Cmd = [Cmd,sprintf('%d  ',MG.DAQ.HSDIO.SamplesPerIteration)]; % Samples Per Iteration
@@ -42,8 +50,7 @@ system(['start /b ',Cmd]);
 % WAIT UNTIL ENGINE HAS FULLY STARTED AND IS READY TO TRIGGER
 tic; TimeoutStop=toc;
 while ~exist(MG.DAQ.HSDIO.TempFile,'file') && TimeoutStop<1,
-   TimeoutStop=toc;
-   drawnow;
+   TimeoutStop=toc; drawnow;
 end
 if TimeoutStop>=1   error('HSDIO engine has not started'); end
 M_Logger('HSDIO engine has started successfully'); 

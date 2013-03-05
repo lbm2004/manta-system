@@ -21,7 +21,7 @@ switch MG.DAQ.Engine
           S = DAQmxStopTask(MG.AI(i)); if S NI_MSG(S); end;
           S = DAQmxTaskControl(MG.AI(i),NI_decode('DAQmx_Val_Task_Unreserve')); if S NI_MSG(S); end;
         end; 
-      end
+      end;
     end
     if isfield(MG,'DIO')
       for i=1:length(MG.DIO) if MG.DIO(i) S = DAQmxStopTask(MG.DIO(i)); if S NI_MSG(S); end; end; end
@@ -29,16 +29,13 @@ switch MG.DAQ.Engine
     M_clearTasks;
     
   case 'HSDIO';
-    if isfield(MG,'AI') % KILL PROCESS
-      % HARD KILL
-      %[Path,Name] = fileparts(MG.DAQ.HSDIO.EngineCommand);
-      %[R,Output] = system(['Taskkill /F /IM ',Name,'.exe']);
-      %M_Logger(Output); 
-      % SOFT STOP
-      FID = fopen(MG.DAQ.HSDIO.StopFile,'w');
-      fwrite(FID,1,'uint32'); fclose(FID);
-    end
     try fclose(MG.DAQ.HSDIO.TempFileID); end
+    % SOFT STOP
+    FID = fopen(MG.DAQ.HSDIO.StopFile,'w');
+    fwrite(FID,1,'uint32'); fclose(FID);
+    % HARD KILL
+    %[Path,Name] = fileparts(MG.DAQ.HSDIO.EngineCommand);
+    %[R,Output] = system(['Taskkill /F /IM ',Name,'.exe']); M_Logger(Output);
   case 'SIM'; % NOTHING TO BE DONE
 end
 

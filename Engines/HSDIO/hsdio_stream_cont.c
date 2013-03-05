@@ -94,8 +94,8 @@ int createData(
   int *StopBit;
   long ABufferPosBytes[2];
   long ASamplesTotal = 0, ASamplesWritten= 0, ASamplesWrittenTotal =0 , AHeadSamples =0 , ASamplesRead = 0, ATailSamples = 0;
-  long ATailWritten = 0, AHeadWritten = 0, AOffset = 0,  ABufferPos = 0, CurrentPosition = 0,  Done = 0, kk, iTotal=0, i,j,k, ALoopCount =0;
-  long TrigCount = 0, TrigSpacing = 50000;
+  long ATailWritten = 0, AHeadWritten = 0, AOffset = 0,  ABufferPos = 0, CurrentPosition = 0,  Done = 0, kk, iTotal=0, i,j,LoopIteration, ALoopCount =0;
+  long TrigCount = 0, LowTrigCount = 1, HighTrigCount = 0, TrigSpacing = 50000;
   double TimePerIteration, Elapsed = 0, ASamplingRate;
   clock_t Clock1, Clock2;
   double Time1, Time2;
@@ -121,9 +121,6 @@ int createData(
   strcpy(FileNameTriggers,FileName);
   strcat(FileNameTriggers,".triggers");
   printf("Triggers File Name: %s\n",FileNameTriggers);
-  // OPEN TRIGGERS FILE
-  TriggersFile = fopen(FileNameTriggers, "w");
-  if (TriggersFile == NULL) { printf("TriggersFile could not be opened!\n"); return -1;}
   
   // PREPARE STOP FILE
   strcpy(FileNameStop,FileName);
@@ -138,9 +135,9 @@ int createData(
   for (i=0;i<ASamplesTotal;i++) AData[i] = 0; // Initialize to  0
   StopBit = (int*) malloc(sizeof(int));
 
-  for (k=0;k<MaxIterations;k++) {
+  for (LoopIteration=0;LoopIteration<MaxIterations;LoopIteration++) {
     // KILL SOME TIME IN ORDER TO PRODUCE DATA IN NEAR REALTIME
-    if (DEBUG) printf("%d %2.2f ",k,TimePerIteration);
+    if (DEBUG) printf("%d %2.2f ",LoopIteration,TimePerIteration);
     Elapsed = 0;
     Clock1 = clock();
     if (DEBUG) printf("Clock: %d ",Clock1);
@@ -183,6 +180,8 @@ int createData(
       ATailWritten = fwrite(AData, sizeof(short), (size_t) (ATailSamples*NumberOfChannels), DataFile);
       //if (DEBUG) printf("\tTailSamples  %d %d %d %d %d\n", ATailSamples,ATailWritten,NumberOfChannels,sizeof(short),sizeof(AData));
       if (ATailWritten != ATailSamples*NumberOfChannels) { printf("Tail samples could not be written!\n"); return -1;}
+    } else {
+      ATailWritten = 0;
     }
     
     // WRITE HEAD
@@ -207,14 +206,28 @@ int createData(
     
     if (DEBUG) printf("\tWritten:\t\t%d Tail+%d Head = %d Read\n", ATailWritten, AHeadWritten, ASamplesWritten);
     if (DEBUG) printf("\tWritten (Total):\t%d This Loop | %d All Loops \n", ABufferPos, ASamplesWrittenTotal);
-    if (DEBUG) printf("\tFile pos :\t\t%d\n", CurrentPosition);
+    if (DEBUG) printf("\tFile pos :\t\t%d LoopCount: %d\n", CurrentPosition,ALoopCount);
   
-      // WRITE TRIGGERS (SAMPLE,)
-    if (iTotal > TrigCount*TrigSpacing) {
-      if (TrigCount) fprintf(TriggersFile,"%i %i %i\n",2*TrigCount,TrigCount*TrigSpacing-2000,0);
-      fprintf(TriggersFile,"%i %i %i\n",2*TrigCount+1,TrigCount*TrigSpacing+1000,1);
+    // OPEN TRIGGERS FILE & WRITE TRIGGERS
+    if (LoopIteration==0) TriggersFile = fopen(FileNameTriggers, "w");
+    else  TriggersFile = fopen(FileNameTriggers, "a");
+    if (TriggersFile == NULL) { printf("TriggersFile could not be opened!\n"); return -1;}
+    
+    // WRITE DOWN TRIGGERS
+    if (iTotal >= LowTrigCount*TrigSpacing-2000) {
       TrigCount++;
+      fprintf(TriggersFile,"%d %d %d\n",TrigCount,(int) LowTrigCount*TrigSpacing-2000,0);
+      LowTrigCount ++; 
     }
+
+    // WRITE UP TRIGGERS
+    if (iTotal >= HighTrigCount*TrigSpacing+1000) {
+      TrigCount++;
+      fprintf(TriggersFile,"%d %d %d\n",TrigCount,(int) HighTrigCount*TrigSpacing+1000,1);
+      HighTrigCount ++;
+    }
+ 
+    fclose(TriggersFile);
 
     // WRITE STATUS FILE
     writeStatusFile(FileNameStatus, ABufferPos,ALoopCount,(ViUInt64) ASamplesWrittenTotal);
@@ -263,7 +276,7 @@ int acquireData(
   ViConstString waveformName = "ClockSignal";
 
   // DATA MANAGEMENT PARAMETERS (DIGITAL  & ANALOG)
-  ViUInt32 DataWidth = 1, i, AOffset, DOffset, PacketLength, DSamplesPerIteration, DSamplesPerChannelHW = 0, LoopIteration = 0; 
+  ViUInt32 DataWidth = 1, i,j, AOffset, DOffset, PacketLength, HeaderLength, DataStart, NPackets, OutputLength, DSamplesPerIteration, DSamplesPerChannelHW = 0, LoopIteration = 0; 
   ViUInt32 ASamplesRead = 0, ASamplesWritten = 0 , ABufferPos =0, ASamplesBuffer=0;
   ViUInt32 DSamplesRead = 0, DSamplesWritten = 0, BackLogSamples =0, DSamplesShift = 0, DBufferPos = 0, DBufferDecoded = 0, DSamplesBuffer=0;
   ViUInt64 DSamplesReadTotal = 0, DDecodedPosTotal = 0, DSamplesWrittenTotal = 0, ASamplesReadTotal = 0, ASamplesWrittenTotal = 0;
@@ -280,8 +293,9 @@ int acquireData(
   
   int WriteDigital=0, WriteAnalog=1;
   int *StopBit;
-  ViUInt8 Header[] = {0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1};
-
+  ViUInt16 Header[] = {0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1};
+  ViInt32 BitsPerBundle = 3*BitLength, FlagLength = 8, TBDLength = 0;
+  
   // FILENAMES
   char FileNameBuffer[1000], FileNameD[1000], FileNameStop[1000], FileNameStatus[1000], FileNameTriggers[1000], TriggersStatus[1000];
   FILE *DataFile, *DataFileD, *StopFile, *StatusFile, *TriggersFile;
@@ -300,17 +314,30 @@ int acquireData(
   DSamplesPerIteration = (ViUInt32) (ASamplesPerIteration*PacketLength);
   
   // GENERATION CODE
-  /* create data for output */
-  waveformData = (ViUInt16*) malloc(PacketLength*sizeof(ViUInt16));
-  
-  for (i = 0; i < PacketLength; i++)  waveformData[i] = ConstLevel*(i % 2);
-  for (i = 0; i < 16; i++) waveformData[i] = waveformData[i] + 8*Header[i];
+  // CREATES SOME (10 PACKETS) FOR TESTING ACQUISITION (LONGTERM TEST)
+  NPackets = 32;
+  OutputLength = NPackets*PacketLength;
+  waveformData = (ViUInt16*) malloc(OutputLength*sizeof(ViUInt16));
+  HeaderLength = 16;
+  for (i = 0; i < OutputLength; i++)  waveformData[i] = ConstLevel*(i % 2);
+  for (i=0;i<PacketLength;i++) printf("%d",waveformData[i]);
+  printf("\n");
+  for (j = 0; j < NPackets; j++) { // Loop over packets
+    for (i = 0; i < HeaderLength; i++) {
+      if (Header[i]==1) waveformData[i+j*PacketLength] = waveformData[i+j*PacketLength] + (ViUInt16) 8;
+    }
+    DataStart = j*PacketLength + HeaderLength + FlagLength + TBDLength;
+    for (i = 0; i < 3 ; i++) { // Change only 3 Channels
+      waveformData[DataStart + i + j*3] = waveformData[DataStart  + i + j*3] + 8;
+    }
+  }  
+  for (i=0;i<PacketLength;i++) printf("%d ",waveformData[i]);
   
   if (DEBUG) printf("Sizeof Waveform : %d\n",sizeof(waveformData));
   /* Initialize, configure, and write waveforms to generation device */
   checkErr(setupGenerationDevice (deviceID, genChannelList, sampleClockOutputTerminal,
           SampleClockRate, AcqTriggerTerminal, GenTriggerTerminal, StartTriggerEdge, 
-          waveformData, waveformName,PacketLength, &genVi));  
+          waveformData, waveformName,OutputLength, &genVi));  
   /* Commit settings to start sample clock, run before initiate the acquisition */
   checkErr(niHSDIO_CommitDynamic(genVi));
   
@@ -429,6 +456,8 @@ int acquireData(
         ATailWritten = fwrite(AData, sizeof(short), (size_t) (ATailSamples), DataFile);
         if (ATailWritten != ATailSamples) { printf("Tail samples could not be written!\n"); return -1;}
         //if (DEBUG) printf("\tTailSamples  %d %d %d %d %d\n", ATailSamples,ATailWritten,NumberOfChannels,sizeof(short),sizeof(AData));
+      } else {
+        ATailWritten = 0;
       }
       
       // WRITE HEAD
@@ -451,11 +480,12 @@ int acquireData(
       if (DEBUG) printf("\tASamples written : \t %d (now)  %llu (tot)  %d (tail)  %d (head)\n", 
               ASamplesWritten,ASamplesWrittenTotal,ATailWritten,AHeadWritten);
       
-       // OPEN TRIGGERS FILE & WRITE TRIGGERS
+       // OPEN TRIGGERS FILE
       if (LoopIteration==0) TriggersFile = fopen(FileNameTriggers, "w");
       else  TriggersFile = fopen(FileNameTriggers, "a");
-      
       if (TriggersFile == NULL) { printf("TriggersFile could not be opened!\n"); return -1;}
+      
+      // WRITE TRIGGERS
       while (TriggersWritten < TriggerCount) { TriggersWritten++;
         fprintf(TriggersFile,"%i %llu %llu\n",TriggersWritten,TriggerSamples[TriggersWritten],TriggerValues[TriggersWritten]);
       }

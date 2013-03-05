@@ -14,17 +14,13 @@ tmp = char(fread(obj,obj.BytesAvailable))'; flushinput(obj);
 Terms = find(tmp==MG.Stim.MSGterm); Terms = [0,Terms];
 for i=2:length(Terms) Messages{i-1} = tmp(Terms(i-1)+1:Terms(i)-1); end
 Pos = find(int8(Messages{end})==MG.Stim.COMterm);
+if isempty(Pos)  Pos = length(Messages{end})+1; end
 [TV,TS] = datenum2time(ArrivalTime);
 
 M_Logger([' <---> TCPIP message received: ',escapeMasker(Messages{end}),' (',TS{1},')\n']); 
 
-if isempty(Pos)
-  COMMAND = 'START';
-  DATA = Messages{end};
-else
-  COMMAND = Messages{end}(1:Pos-1);
-  DATA = Messages{end}(Pos+1:end);
-end
+COMMAND = Messages{end}(1:Pos-1);
+DATA = Messages{end}(Pos+1:end);
 switch COMMAND
   case 'INIT';    
     BaseName = DATA;
@@ -48,7 +44,7 @@ switch COMMAND
     set(MG.GUI.CurrentFileSize,'String','');
     
     % START ENGINE TO BE READY FOR RECORDING
-    M_startEngine('Trigger','Remote'); 
+    M_startEngine('Trigger','Remote');
     
      % PREPARE FILES FOR SAVING
     M_prepareRecording; M_Logger('\n => Files ready ... \n'); 

@@ -41,7 +41,7 @@ else
         end
       end
     catch; 
-      fprintf('WARNING : cannot clear plots\n')
+      fprintf('WARNING : cannot clear plots\n');
     end
   end
 end
@@ -51,7 +51,12 @@ M_prepareFilters;
 for i=MG.DAQ.BoardsNum
   switch MG.DAQ.Engine
     case 'NIDAQ';  S = DAQmxStartTask(MG.AI(i)); if S NI_MSG(S); end;
-    case 'HSDIO';  M_startHSDIO;
+    case 'HSDIO';  
+      if ~M_checkHSDIO || strcmp(MG.DAQ.Trigger,'Local') || MG.DAQ.FirstTrial 
+        M_startHSDIO;
+      end
+      % GET THE PREVIOUS TRIGGERS TO DISTINGUISH THEM FROM THE NEW TRIGGERS
+      MG.DAQ.PreTriggers = M_getHSDIOTriggers;
     case 'SIM';
   end
 end

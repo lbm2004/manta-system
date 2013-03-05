@@ -10,19 +10,17 @@ MG.DAQ.Trigger.Type = P.Trigger;
 MG.DAQ.Iteration = 0; MG.DAQ.CurrentFileSize = 0; 
 MG.DAQ.SamplesAcquired = 0;  % total samples acquired this session.
 MG.DAQ.SamplesTakenTotal = 0; 
-switch MG.DAQ.Engine
-  case 'HSDIO'; 
-    MG.DAQ.CurrentBufferLoop = 0;  % how many times the HSDIO circular buffer has looped on disk
-    MG.DAQ.LastPosByte = inf; % start out with a potentially infinite trial, until stop trigger is received
-end
 MG.DAQ.SamplesRecovered = 0;
 MG.DAQ.AcquisitionDone = 1;
+switch MG.DAQ.Engine case 'HSDIO'; MG.DAQ.Triggered = 0; MG.DAQ.LastPosBytes = inf; end
 
 % SETUP CHANNELS, RANGES AND FILTERS
-M_updateChannelMaps;
-M_setupChannels;
-M_setRanges;
-M_Humbug;
+if strcmp(P.Trigger,'Local') | MG.DAQ.FirstTrial
+  M_updateChannelMaps;
+  M_setupChannels;
+  M_setRanges;
+  M_Humbug;
+end
 
 % INITIALIZE DATA MATRIX
 M_refreshTimeSteps;
@@ -32,7 +30,7 @@ if isfield(MG.Data,'Offset') MG.Data = rmfield(MG.Data,'Offset'); end
 % SETUP ENGINES
 k=0;
 for i=MG.DAQ.BoardsNum
-  switch MG.DAQ.Engine
+  switch MG.DAQ.Engine 
     case 'NIDAQ';
       % SET SAMPLING RATE AND SAMPLING MODE
       S = DAQmxCfgSampClkTiming(MG.AI(i),NI_decode('OnboardClock'),...
@@ -53,7 +51,6 @@ for i=MG.DAQ.BoardsNum
       
     case 'HSDIO'; % MOSTLY PERFORMED IN THE STREAMING PROGRAM
       if exist(MG.DAQ.HSDIO.StatusFile,'file') FID = fopen(MG.DAQ.HSDIO.StatusFile,'w'); fclose(FID); end
-      MG.DAQ.PreTriggers = [];
   end
 end
 % SET AUDIO TO THE SAME SAMPLE RATE AS DAQ

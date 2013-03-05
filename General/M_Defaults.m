@@ -46,7 +46,7 @@ if isfield(MG.HW,'SIM') MG.HW.Engines{end+1} = 'SIM'; end;
 
 %% CONNECTION TO STIMULATION MACHINE DEFAULTS
 MG.Stim.COMterm = 124; % '|'
-MG.Stim.MSGterm = 10; % '}' 
+MG.Stim.MSGterm = 33; % '!' 
 MG.Stim.Port = 33330; % Port to connect to
 MG.Stim.Host = 'localhost';
 I = ver('instrument');
