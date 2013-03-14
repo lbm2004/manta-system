@@ -52,7 +52,7 @@ for i=1:length(BoardIDs)
         if any(strcmp(BoardProps{iB}{1},Boards(i).ProductNum))
           Boards(i).Number = BoardProps{iB}{2};
           Boards(i).NAI = BoardProps{iB}{3};
-          if length(BoardProps{i})>3 Boards(i).Bits = BoardProps{iB}{4}; end
+          if length(BoardProps{iB})>3 Boards(i).Bits = BoardProps{iB}{4}; end
           BoardFound = 1;
           break;
         end

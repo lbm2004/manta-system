@@ -15,7 +15,7 @@ MG.DAQ.AcquisitionDone = 1;
 switch MG.DAQ.Engine case 'HSDIO'; MG.DAQ.Triggered = 0; MG.DAQ.LastPosBytes = inf; end
 
 % SETUP CHANNELS, RANGES AND FILTERS
-if strcmp(P.Trigger,'Local') | MG.DAQ.FirstTrial
+if strcmp(P.Trigger,'Local') | MG.DAQ.FirstTrial | strcmp(MG.DAQ.Engine,'NIDAQ')
   M_updateChannelMaps;
   M_setupChannels;
   M_setRanges;
