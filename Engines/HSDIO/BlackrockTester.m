@@ -2,8 +2,8 @@ function R = BlackrockTester(varargin)
 
 P = parsePairs(varargin);
 checkField(P,'SavePath','D:\');
-checkField(P,'SaveFile','HSDIO.bin');
-checkField(P,'Command','hsdio_stream_dual.exe');
+checkField(P,'SaveFile','HSDIO');
+checkField(P,'Command','hsdio_stream_cont.exe');
 checkField(P,'SRDigital',1e6);
 checkField(P,'ASamplesPerIteration',1000);
 checkField(P,'Iterations',1);
@@ -48,9 +48,9 @@ fprintf(['Running at ',n2s(P.SRAnalog),' Hz for ',n2s(ExpectedDuration),' s\n'])
 [Status,Result] = system(StreamCmd); fprintf(escapeMasker(Result));
 
 % GET DIGITAL DATA
-FID = fopen([FullFileName,'D'],'r'); R.DData = fread(FID,inf,'char'); fclose(FID);
+FID = fopen([FullFileName,'.digital'],'r'); R.DData = fread(FID,inf,'char'); fclose(FID);
 % GET ANALOG DATA
-FID = fopen([FullFileName],'r'); R.AData = fread(FID,inf,'int16'); fclose(FID);
+FID = fopen([FullFileName,'.bin'],'r'); R.AData = fread(FID,inf,'int16'); fclose(FID);
 R.DataC = reshape(R.AData,96,length(R.AData)/96)';
 R.DataC= R.DataC(:,[1:3:size(R.DataC,2),2:3:size(R.DataC,2),3:3:size(R.DataC,2)])';
 % DECODE DATA

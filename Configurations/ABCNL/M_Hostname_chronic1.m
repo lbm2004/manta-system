@@ -8,8 +8,8 @@ switch Selection
     % ANALOG (NIDAQ) BOARDS
     MG.HW.NIDAQ.BoardIDs = {'D1'};
     MG.HW.NIDAQ.BoardsBool = logical([1]);
-    MG.HW.NIDAQ.SystemsByBoard = struct('Name',{'tbsi'});
-    MG.HW.NIDAQ.ArraysByBoard(1) = struct('Name','amazon_a12_left','Pins',[1:32]);
+    MG.HW.NIDAQ.SystemsByBoard = struct('Name',{'plexon'});
+    MG.HW.NIDAQ.ArraysByBoard(1) = struct('Name','plextrode_24_75','Pins',[1:24]);
     MG.HW.NIDAQ.Triggers = struct('Remote','RTSI0','Local','PFI0');  % WHEN USED WITH CMB1
     
     % DIGITAL (HSDIO) BOARDS
@@ -17,7 +17,7 @@ switch Selection
     MG.HW.HSDIO.BoardsBool = logical([1]);
     MG.HW.HSDIO.SystemsByBoard = struct('Name',{'Blackrock_96Ch_16bit'});
     MG.HW.HSDIO.ArraysByBoard(1) = struct('Name','lma3d_1_96','Pins',[1:96]);
-    MG.HW.HSDIO.Triggers = struct('Remote','PFI1','Local','None');
+    MG.HW.HSDIO.Triggers = struct('Remote','PFI1','Local','XX');
     
     % SIMULATION MODE
     MG.HW.SIM.BoardIDs = {'SIM'};
@@ -30,10 +30,7 @@ switch Selection
     
   case 'DAQ';
     MG.DAQ.DataPath = 'D:\Data\';
-    MG.DAQ.HSDIO.TempFile = 'D:\Data\HSDIO.bin'; % Intermediate storage of acquired data
-    MG.DAQ.HSDIO.DebugFile = 'D:\Data\HSDIO.out'; % Debugging information for digital acquisition
-    MG.DAQ.HSDIO.EngineCommand = 'C:\Code\manta-system\Engines\HSDIO\64-bit\hsdio_stream_dual';
-    MG.DAQ.HSDIO.Simulation = 1;
+    MG.DAQ.HSDIO.Simulation = 0;
     
   case 'Stim';
       MG.Stim.Host = 'localhost';

@@ -134,7 +134,6 @@ if ~isfield(MG.Disp,'HasSpikeBool') | NPlot~=length(MG.Disp.HasSpikeBool)
   MG.Disp.HasSpikeBool = logical(zeros(NPlot,1)); end
 % PREPARE FOR SPIKESORTING
 MG.Colors.SpikeColors = repmat(vertical(MG.Colors.Trace),[1,MG.Disp.NSpikes,NPlot]);
-MG.Disp.SorterFun(0);
 
 %% PREPARE PSTH DISPLAY
 MG.Disp.PPH = zeros(NPlot,1);
@@ -205,7 +204,7 @@ for i=NPlot:-1:1
 end
 
 set(MG.Disp.AH.Data,Opts{:},'XLim',[0,MG.Disp.DispDur],'Ylim',1.01*[-MG.Disp.YLim,MG.Disp.YLim],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);
-if MG.Disp.DepthAvailable 
+if MG.Disp.DepthAvailable
   set(MG.Disp.AH.Depth,Opts{:},'XLim',[0,MG.Disp.DispDur]); 
   set(get(MG.Disp.AH.Depth(1),'YLabel'),'String','Depth [mm]','FontSize',6); 
 end
@@ -370,7 +369,7 @@ switch SelType
     % INDICATE SPIKE
     MG.Disp.HasSpikeBool(Index) = ~MG.Disp.HasSpikeBool(Index);
     if MG.Disp.HasSpikeBool(Index)  Color = MG.Colors.SpikeBackground;
-    else Color = MG.Colors.AlterColors{MG.Disp.AxesAlterInd(Index)+1};
+    else Color = MG.Colors.Background;
     end
     set([MG.Disp.AH.Data(Index),MG.Disp.AH.Spike(Index)],'Color',Color)
     set(MG.Disp.FIG,'Name',[MG.Disp.FigureTitle,' (',n2s(sum(MG.Disp.HasSpikeBool)),' Spikes)']);

@@ -6,10 +6,10 @@ global MG Verbose
 switch MG.DAQ.Engine; case 'NIDAQ'; SamplesPerChanReadPtr = libpointer('int32Ptr',0); end
 
 %% WAIT UNTIL TRIGGER RECEIVED (ESPECIALLY FOR REMOTE TRIGGERING)
-M_Logger('Waiting for trigger ...'); 
+M_Logger('Waiting for trigger ...\n'); 
 pause(0.05); while ~M_SamplesAvailable; pause(0.05); drawnow; end
-%SaveData=0;
 MG.DAQ.Running = 1; MG.DAQ.DTs = [];
+MG.DAQ.SamplesRecorded = 0;
 
 %% MAIN ACQUISITION LOOP
 while MG.DAQ.Running
@@ -24,132 +24,104 @@ while MG.DAQ.Running
         
   Iteration = MG.DAQ.Iteration; % To avoid that it is changed during execution
   Recording = MG.DAQ.Recording;
-  if Recording StopRecording = MG.DAQ.StopRecording; end
   NAudio = 0; NWrite = 0;
   
   %% EXTRACT DATA FROM ENGINE
-  SamplesAvailable = M_SamplesAvailable;
-  if ~SamplesAvailable
-    switch MG.DAQ.Engine
-      case 'NIDAQ'; MG.DAQ.Running = 0; break;
-      case 'HSDIO'; 
-        TimeoutInit=toc; StopTimeout=toc-TimeoutInit;
-        while ~SamplesAvailable && StopTimeout<=1,
-          SamplesAvailable = M_SamplesAvailable;
-          StopTimeout=toc-TimeoutInit;
-        end
-        if StopTimeout>1,
-          fprintf('\n HSDIO timeout. Stopping Engine ...');
-          M_stopEngine;
-          if str2double(datestr(now-MG.DAQ.TriggerTime,'SS'))+...
-                 str2double(datestr(now-MG.DAQ.TriggerTime,'MM')).*60>30 &&...
-                 ~MG.DAQ.Recording,
-             disp('HSDIO buffer exhausted.  Trying auto-restart.');
-             MG.DAQ.RestartHSDIO=1;
-          end
-          break;
-        end
-    end
-  end
+  [SamplesAvailable,SamplesToTake] = M_SamplesAvailable;
   
-  MG.Data.Raw = zeros(SamplesAvailable,MG.DAQ.NChannelsTotal);
-  for i = MG.DAQ.BoardsNum
-    switch MG.DAQ.Engine
-      case 'NIDAQ'; % ANALOG ENGINE
-        NElements = MG.DAQ.NChannels(i)*SamplesAvailable;
-        Data = libpointer('doublePtr',zeros(NElements,1));
-        S = DAQmxReadAnalogF64(MG.AI(i),SamplesAvailable,1,...
-          NI_decode('DAQmx_Val_GroupByChannel'),...
-          Data, NElements, SamplesPerChanReadPtr,[]); if S NI_MSG(S); end
-        MG.Data.Raw(:,MG.DAQ.ChSeqInds{i}) = ...
-          reshape(get(Data,'Value'),SamplesAvailable,length(MG.DAQ.ChSeqInds{i}))/MG.DAQ.GainsByBoard(i);
-      case 'HSDIO'; % DIGITAL ENGINE FOR BLACKROCK
-        NElements = MG.HW.Boards(i).NAI*SamplesAvailable;
-        if Iteration==1
-          MG.DAQ.HSDIO.TempFileID = fopen([MG.DAQ.HSDIO.TempFile],'r');
-          remap=[8 16 7 15 6 14 5 13 4 12 3 11 2 10 1 9 [8 16 7 15 6 14 5 13 4 12 3 11 2 10 1 9]+16];
-          remap=[remap remap+32 remap+64];
-          bankremap=[1:3:94 2:3:95 3:3:96];
-          fullremap=bankremap(remap);
-          ChannelMap{i}=fullremap(find(MG.DAQ.ChannelsBool{i}));
-        end
-        
-        % TODO: If running over the end of the circular buffer, ie, 
-        % MG.DAQ.SamplesAcquiredThisLoop, then loop around to the beginning
-        % of the file and read the remainder of samples from there.
-        fseek(MG.DAQ.HSDIO.TempFileID,0,0);
-        Data = fread(MG.DAQ.HSDIO.TempFileID,NElements,MG.DAQ.Precision);
-        SamplesActuallyRead=length(Data)./MG.HW.Boards(i).NAI;
-        Data = reshape(Data,MG.HW.Boards(i).NAI,SamplesActuallyRead)'/MG.DAQ.GainsByBoard(i);
-        if SamplesActuallyRead<SamplesAvailable,
-           if Verbose
-              fprintf('Acquisition overshoot.  Expecting 2 elements in MG.DAQ.SamplesLoopsAcquired\n');
-           end
-           if length(MG.DAQ.SamplesLoopsAcquired)==2,
-              SamplesRemaining=SamplesAvailable-SamplesActuallyRead;
-              NElements = MG.HW.Boards(i).NAI*SamplesRemaining;
-              fseek(MG.DAQ.HSDIO.TempFileID,0,-1);
-              Data2 = fread(MG.DAQ.HSDIO.TempFileID,NElements,MG.DAQ.Precision);
-              Data2 = reshape(Data2,MG.HW.Boards(i).NAI,SamplesRemaining)'/MG.DAQ.GainsByBoard(i);
-              Data=cat(1,Data,Data2);
-              %size(Data)
-              MG.DAQ.SamplesLoopsAcquired=MG.DAQ.SamplesLoopsAcquired(end);
-              MG.DAQ.SamplesAcquiredThisLoop = SamplesRemaining;
-           else
-              warning('out of data but no reloop signal??');
-           end
-        else
-           MG.DAQ.SamplesAcquiredThisLoop = MG.DAQ.SamplesAcquiredThisLoop + SamplesActuallyRead;
-        end
-        if Verbose
-           fprintf('Curent TempFile position: %d\n',ftell(MG.DAQ.HSDIO.TempFileID));
-        end
-
-        % offset of 19000 (rather than expected 32000) matched to
-        % approximate "true" zero volts, reflecting how digitization
-        % actually happens in the Blackrock headstage according to Mike S.
-        MG.Data.Raw(:,MG.DAQ.ChSeqInds{i}) = Data(:,ChannelMap{i})-19000;
-        MG.Data.Raw = bsxfun(@rdivide,MG.Data.Raw,MG.DAQ.int16factors{i}');
-        
-        %sfigure(2);plot([SaveData(:,1);Data(:,1)]);drawnow;
-        %SaveData=Data;
-      case 'SIM'; % SIMULATION MODE FOR TESTING
-        if ~isfield(MG.DAQ,'SimulationSource') MG.DAQ.SimulationSource = 'Artificial'; end
-        switch MG.DAQ.SimulationSource
-          case 'Artificial'; % CREATE REALISTIC DATA USING SOME PRESETS
-            NoiseScale = 8;
-            MG.Data.Raw = randn(size(MG.Data.Raw));
-            if Iteration == 1 NoiseValues = 0.6*(rand(1,size(MG.Data.Raw,2))-0.5) + 1; end
-            if MG.DAQ.WithSpikes
-              Time = 2*pi*(MG.DAQ.SamplesAcquired+[0:SamplesAvailable-1]')/MG.DAQ.SR;
-              Noise = NoiseScale*(sin(MG.DAQ.HumFreq*Time) + sin(3.25*Time) + sin(0.231*Time));
-              MG.Data.Raw = MG.Data.Raw + repmat(Noise,1,size(MG.Data.Raw,2));
-              for iCh = 1:length(MG.Disp.Spikes.ChSels)
-                for iSpike = 1:MG.Disp.Spikes.NSpikes(iCh)
-                  SpikePos = double(rand(SamplesAvailable,1)<0.001);
-                  tmp = conv(SpikePos,MG.Disp.Spikes.SpikeWaves{iCh}(:,iSpike));
-                  MG.Data.Raw(:,MG.Disp.Spikes.ChSels(iCh)) = MG.Data.Raw(:,MG.Disp.Spikes.ChSels(iCh)) + tmp(1:SamplesAvailable);
+  if Recording StopRecording = MG.DAQ.StopRecording; end
+  if SamplesToTake > 0
+    MG.Data.Raw = zeros(SamplesToTake,MG.DAQ.NChannelsTotal);
+    for i = MG.DAQ.BoardsNum
+      switch MG.DAQ.Engine
+        case 'NIDAQ'; % ANALOG ENGINE
+          NElements = MG.DAQ.NChannels(i)*SamplesToTake;
+          Data = libpointer('doublePtr',zeros(NElements,1));
+          S = DAQmxReadAnalogF64(MG.AI(i),SamplesToTake,1,...
+            NI_decode('DAQmx_Val_GroupByChannel'),...
+            Data, NElements, SamplesPerChanReadPtr,[]); if S NI_MSG(S); end
+          MG.Data.Raw(:,MG.DAQ.ChSeqInds{i}) = ...
+            reshape(get(Data,'Value'),SamplesToTake,length(MG.DAQ.ChSeqInds{i}))/MG.DAQ.GainsByBoard(i);
+          
+        case 'HSDIO'; % DIGITAL ENGINE FOR BLACKROCK
+          if Iteration==1
+            MG.DAQ.HSDIO.TempFileID = fopen([MG.DAQ.HSDIO.TempFile],'r');
+          end
+          MG.DAQ.BytesTakenTotal = MG.DAQ.SamplesTakenTotal*MG.HW.Boards(i).NAI*MG.DAQ.HSDIO.BytesPerSample;
+          
+          StartPosBytes = mod(MG.DAQ.FirstPosBytes + MG.DAQ.BytesTakenTotal,MG.DAQ.HSDIO.BytesPerLoop);
+          SamplesToRead = MG.HW.Boards(i).NAI*SamplesToTake;
+          BytesToRead = SamplesToRead*MG.DAQ.HSDIO.BytesPerSample;
+          if StartPosBytes+BytesToRead - 1 < MG.DAQ.HSDIO.BytesPerLoop
+            TailSamples = SamplesToRead;
+            HeadSamples = 0;
+          else
+            TailSamples = (MG.DAQ.HSDIO.BytesPerLoop - StartPosBytes)/MG.DAQ.HSDIO.BytesPerSample;
+            HeadSamples = SamplesToRead - TailSamples;
+          end
+          TailData = []; HeadData = [];
+          if TailSamples
+            fseek(MG.DAQ.HSDIO.TempFileID,StartPosBytes,-1);
+            TailData = fread(MG.DAQ.HSDIO.TempFileID,TailSamples,MG.DAQ.HSDIO.Precision);
+          end
+          if HeadSamples
+            fseek(MG.DAQ.HSDIO.TempFileID,0,-1);
+            HeadData = fread(MG.DAQ.HSDIO.TempFileID,HeadSamples,MG.DAQ.HSDIO.Precision);
+          end
+          Data = [TailData;HeadData];
+          SamplesActuallyRead=round(length(Data)./MG.HW.Boards(i).NAI);
+          Data = reshape(Data,MG.HW.Boards(i).NAI,SamplesActuallyRead)'/MG.DAQ.GainsByBoard(i);
+          if SamplesActuallyRead<SamplesToTake   M_Logger('Not enough samples available!\n'); keyboard;  end
+          
+          % offset of 19000 (rather than expected 32000) matched to
+          % approximate "true" zero volts, reflecting how digitization
+          % actually happens in the Blackrock headstage according to Mike S.
+          if MG.DAQ.HSDIO.Simulation ValCorr = 0; else ValCorr = 19000; end
+          MG.Data.Raw(:,MG.DAQ.ChSeqInds{i}) = Data(:,MG.DAQ.HSDIO.ChannelMap{i})- ValCorr;
+          MG.Data.Raw = bsxfun(@rdivide,MG.Data.Raw,MG.DAQ.int16factors{i}');
+          
+        case 'SIM'; % SIMULATION MODE FOR TESTING
+          if ~isfield(MG.DAQ,'SimulationSource') MG.DAQ.SimulationSource = 'Artificial'; end
+          switch MG.DAQ.SimulationSource
+            case 'Artificial'; % CREATE REALISTIC DATA USING SOME PRESETS
+              NoiseScale = 8;
+              MG.Data.Raw = randn(size(MG.Data.Raw));
+              if Iteration == 1 NoiseValues = 0.6*(rand(1,size(MG.Data.Raw,2))-0.5) + 1; end
+              if MG.DAQ.WithSpikes
+                Time = 2*pi*(MG.DAQ.SamplesAcquired+[0:SamplesToTake-1]')/MG.DAQ.SR;
+                Noise = NoiseScale*(sin(MG.DAQ.HumFreq*Time) + sin(3.25*Time) + sin(0.231*Time));
+                MG.Data.Raw = MG.Data.Raw + repmat(Noise,1,size(MG.Data.Raw,2));
+                for iCh = 1:length(MG.Disp.Spikes.ChSels)
+                  for iSpike = 1:MG.Disp.Spikes.NSpikes(iCh)
+                    SpikePos = double(rand(SamplesToTake,1)<0.001);
+                    tmp = conv(SpikePos,MG.Disp.Spikes.SpikeWaves{iCh}(:,iSpike));
+                    MG.Data.Raw(:,MG.Disp.Spikes.ChSels(iCh)) = MG.Data.Raw(:,MG.Disp.Spikes.ChSels(iCh)) + tmp(1:SamplesToTake);
+                  end
                 end
               end
-            end
-            MG.Data.Raw = MG.Data.Raw/10;
-            MG.Data.Raw = bsxfun(@times,MG.Data.Raw,NoiseValues);
-            
-          case 'Real'; % LOAD DATA FROM A SAVED RECORDING (e.g. for publication pictures)
-            % NOT FINISHED YET
-            for i=1:length(MG.DAQ.Files)
-              FileName = MG.DAQ.Files{i};
-              tmp = evpread5(FileName);
-              MG.Data.Raw(:,i) = tmp(MG.DAQ.SamplesAcquired+1:min(MG.DAQ.SamplesAcquired+SamplesAvailable,end));
-            end
-        end
-        if Iteration == 1 M_Logger('\n\n     [   Warning : Using simulated Data     ]    \n\n'); end
+              MG.Data.Raw = MG.Data.Raw/10;
+              MG.Data.Raw = bsxfun(@times,MG.Data.Raw,NoiseValues);
+              
+            case 'Real'; % LOAD DATA FROM A SAVED RECORDING (e.g. for publication pictures)
+              % NOT FINISHED YET
+              for i=1:length(MG.DAQ.Files)
+                FileName = MG.DAQ.Files{i};
+                tmp = evpread5(FileName);
+                MG.Data.Raw(:,i) = tmp(MG.DAQ.SamplesAcquired+1:min(MG.DAQ.SamplesAcquired+SamplesToTake,end));
+              end
+          end
+          if Iteration == 1 M_Logger('\n\n     [   Warning : Using simulated Data     ]    \n\n'); end
+      end
     end
-  end      
-  MG.DAQ.SamplesAcquired = MG.DAQ.SamplesAcquired + SamplesAvailable;
-  MG.DAQ.TimeAcquired = MG.DAQ.SamplesAcquired/MG.DAQ.SR;
-  MG.DAQ.SamplesTaken(Iteration) = SamplesAvailable;
-  MG.DAQ.TimeTaken(Iteration) = SamplesAvailable/MG.DAQ.SR;
+    MG.DAQ.SamplesAcquired = MG.DAQ.SamplesAcquired + SamplesToTake;
+    MG.DAQ.TimeAcquired = MG.DAQ.SamplesAcquired/MG.DAQ.SR;
+    
+    MG.DAQ.SamplesTaken(Iteration) = SamplesToTake;
+    MG.DAQ.SamplesTakenTotal  = sum(MG.DAQ.SamplesTaken(1:Iteration));
+    MG.DAQ.TimeTaken(Iteration) = SamplesToTake/MG.DAQ.SR;
+    MG.DAQ.TimeTakenTotal  = sum(MG.DAQ.TimeTaken(1:Iteration));
+  end
+  
   if ~MG.DAQ.Running MG.DAQ.AcquisitionDone = 1; end
    
   %% SAVE DATA
@@ -166,13 +138,18 @@ while MG.DAQ.Running
     end
     MG.DAQ.IterationRec = MG.DAQ.IterationRec + 1;
     IterationRec = MG.DAQ.IterationRec;
-    NWrite =SamplesAvailable;
-    if StopRecording % compute samples to be written
+    
+    % DETERMINE NUMBER OF SAMPLES TO WRITE
+    NWrite =SamplesToTake;
+    % IF RECORDING IS STOPPED & NIDAQ IS USED, NUMBER OF SAMPLES HAS TO ESTIMATED 
+    % (DOWN TRIGGER NOT AVAILABLE)
+    if StopRecording && strcmp(MG.DAQ.Engine,'NIDAQ')
       MG.DAQ.TotalSamples = round(MG.DAQ.SR*MG.Disp.Day2Sec*...
         (MG.DAQ.StopRecTime - MG.DAQ.StartRecTime));
       RemSamples = MG.DAQ.TotalSamples - MG.DAQ.SamplesRecorded;
       NWrite = min([NWrite,RemSamples]); NWrite = max([0,NWrite]);
     end
+    % ACTUALLY WRITE SAMPLES
     if NWrite>0
       for i=1:length(MG.DAQ.Files)
         MG.DAQ.Files(i).WriteCount = MG.DAQ.Files(i).WriteCount + ...
@@ -182,18 +159,26 @@ while MG.DAQ.Running
       end
       MG.DAQ.SamplesRecorded = MG.DAQ.SamplesRecorded +NWrite;
     end
-    if NWrite < SamplesAvailable
+    % MANAGE STOPPING PROCESS
+    % FOR NIDAQ : WHEN THE NUMBER OF SAMPLES IS LESS THAN THE AVAILABLE ONES
+    % FOR HSDIO : IF THE STOPPING SIGNAL HAS BEEN GIVEN (SAMPLES ARE EXACT W.R.T. THE TRIGGER)    
+    if NWrite < SamplesToTake | (MG.DAQ.StopRecording & strcmp(MG.DAQ.Engine,'HSDIO'))
       MG.DAQ.Recording = 0;
       M_Logger('\n => Recording stopping...\n');
       M_closeFiles;
       if strcmp(MG.DAQ.Trigger.Type,'Remote')
-        M_stopEngine;
+        switch MG.DAQ.Engine
+          case 'NIDAQ'; M_stopEngine;
+          case 'HSDIO'; MG.DAQ.Running = 0; % ENGINE RUNS CONTINUOUSLY AND IS NOT STOPPED HERE
+        end
       end
       M_saveInformation;
       MG.DAQ.StopRecording = 0;
       if strcmp(MG.DAQ.Trigger.Type,'Remote') && ~MG.DAQ.StopMessageSent
-        M_sendMessage(['STOP OK']);
-        MG.DAQ.StopMessageSent = 1;
+        if ~strcmp(MG.DAQ.Engine,'HSDIO') 
+          M_sendMessage(['STOP OK']);
+          MG.DAQ.StopMessageSent = 1;
+        end
       end
     end
     MG.DAQ.CurrentFileSize = MG.DAQ.SamplesRecorded*MG.DAQ.NChannelsTotal*2/1024/1024;
@@ -232,72 +217,8 @@ while MG.DAQ.Running
  DT = toc; pause(max(0,MG.DAQ.MinDur-DT)); DT = toc;
   MG.DAQ.DTs(MG.DAQ.Iteration) = DT;
   
-  M_Logger(['It.%i  \t(%f s, %2.1f Hz, %d from Engine,  %d in Audio, %d written)\n'],...
-    Iteration,DT,1/DT,SamplesAvailable,NAudio,NWrite);
+  M_Logger(['It.%i  \t(%f s, %2.1f Hz, %d from Engine,  %d in Audio, %d written now, %d written total)\n'],...
+    Iteration,DT,1/DT,SamplesToTake,NAudio,NWrite,MG.DAQ.SamplesRecorded);
   
    if MG.DAQ.Runtime < MG.DAQ.TimeAcquired M_stopEngine; end
-end
-
-%% CHECK WHETHER THE ACQUISITION HAS BEEN TRIGGERED
-function SamplesAvailable = M_SamplesAvailable
-
-global MG Verbose
-switch MG.DAQ.Engine
-  case 'NIDAQ';
-    S = DAQmxTaskControl(MG.AI(MG.DAQ.BoardsNum(1)),NI_decode('DAQmx_Val_Task_Start')); 
-    if ~S keyboard; end; 
-    SamplesAvailablePtr = libpointer('uint32Ptr',false);
-    S = DAQmxGetReadAvailSampPerChan(MG.AI(MG.DAQ.BoardsNum(1)),SamplesAvailablePtr); if S NI_MSG(S); end
-    if S<0 keyboard; end
-    % USEFUL TO KEEP ABSOLUTE TIMING : DAQmxGetReadTotalSampPerChanAcquired 
-    SamplesAvailable = double(get(SamplesAvailablePtr,'Value'));
-  case 'HSDIO';
-     %OLD measure size of file
-%      TempFile = dir(MG.DAQ.HSDIO.TempFile);
-%      if isempty(TempFile) SamplesAvailable=0; % FILE NOT YET CREATED
-%      else SamplesAvailable = floor(TempFile.bytes/(MG.HW.Boards(1).NAI*MG.DAQ.BytesPerSample)); end
-%      SamplesAvailable = SamplesAvailable - MG.DAQ.SamplesAcquired;
-     % NEW: read last byte written from Status File
-     StatusFile=fopen(MG.DAQ.HSDIO.StatusFile,'rb');
-     if ~StatusFile,
-        SamplesAvailable=0;
-     else
-        StatusData=fread(StatusFile,'uint32');
-        fclose(StatusFile);
-        if length(StatusData)==2,
-           BytesAvailable=StatusData(1);
-           ALoopCount=StatusData(2);
-           SamplesAvailable = floor(BytesAvailable/(MG.HW.Boards(1).NAI*MG.DAQ.BytesPerSample));
-           %SamplesAvailable = SamplesAvailable - MG.DAQ.SamplesAcquiredThisLoop;
-           if ALoopCount>MG.DAQ.SamplesLoopsAcquired,
-              MG.DAQ.SamplesLoopsAcquired=[MG.DAQ.SamplesLoopsAcquired ALoopCount];
-              % CONSTANT LOOP SIZE BASED ON LINE FROM hsdio_stream_dual:
-              %  ANALOGSAMPLESPERLOOP 19200000 / 96 = 
-              SamplesAvailable = SamplesAvailable - MG.DAQ.SamplesAcquiredThisLoop + 200000;
-              if Verbose,
-                 fprintf('New Loop! Available: %d (Loop %d) Acquired: %d\n',...
-                    SamplesAvailable,ALoopCount,MG.DAQ.SamplesAcquired);
-              end
-           else
-              SamplesAvailable = SamplesAvailable - MG.DAQ.SamplesAcquiredThisLoop;
-              if Verbose,
-                 fprintf('Samples: Available: %d (Loop %d) Acquired: %d\n',...
-                    SamplesAvailable,ALoopCount,MG.DAQ.SamplesAcquired);
-              end
-           end
-           
-        else
-           SamplesAvailable=0;
-        end
-     end
-  case 'SIM'
-    if MG.DAQ.Iteration < 2  SamplesAvailable = 5000;
-    else SamplesAvailable = round(MG.DAQ.SR*(MG.DAQ.DTs(MG.DAQ.Iteration-1)));
-    end
-end
-
-function M_ErrorMessage(exception,Operation)
-try 
-  fprintf(['ERROR (while ',Operation,') : ',...
-    exception.stack(1).name,' ',n2s(exception.stack(1).line),': ',exception.message,'\n']);
 end
