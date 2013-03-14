@@ -15,10 +15,10 @@ switch MG.DAQ.Engine
     SamplesToTake = SamplesAvailable;
     
   case 'HSDIO'; % READ POSITION IN LOOP AND LOOPCOUNT FROM STATUS FILE
-    SamplesAvailable = 0;
+    SamplesAvailable = 0;  SamplesToTake = 0;
     switch MG.DAQ.Trigger.Type
       case 'Local';
-        TriggerState = 1; TriggerSample = 0;
+        TriggerState = 1; TriggerSample = 0; MG.DAQ.Triggered = 1;
       case 'Remote';
         Triggers = M_getHSDIOTriggers;
         LastPos = size(MG.DAQ.PreTriggers,1);

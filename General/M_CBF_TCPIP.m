@@ -45,7 +45,6 @@ switch COMMAND
     
     % START ENGINE TO BE READY FOR RECORDING
     M_startEngine('Trigger','Remote');
-    
      % PREPARE FILES FOR SAVING
     M_prepareRecording; M_Logger('\n => Files ready ... \n'); 
     drawnow;
@@ -59,6 +58,9 @@ switch COMMAND
   case 'STOP';
     if ~strcmp(MG.DAQ.Engine,'HSDIO') % HSDIO stops via the line trigger and call M_stopRecording there (M_xamplesAvailable)
       M_stopRecording;
+    else
+      M_sendMessage('STOP OK');
+      MG.DAQ.StopMessageSent = 1;
     end
     % M_manageEngine sends the StopCommand once it is done.
 

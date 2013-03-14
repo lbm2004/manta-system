@@ -10,6 +10,8 @@ switch lower(SystemName)
   % ANALOG SYSTEMS
   case 'tbsi';
     R = struct('Name',SystemName,'Gain',160,'InputRange',[-1,1],'ChannelMap',[1:32],'Engine','NIDAQ');
+  case 'generic16';
+    R = struct('Name',SystemName,'Gain',1000,'InputRange',[-5,5],'ChannelMap',[1:16],'Engine','NIDAQ');  
   case 'plexon';
     R = struct('Name',SystemName,'Gain',1000,'InputRange',[-5,5],'ChannelMap',[1:2:31,2:2:32],'Engine','NIDAQ');
   case 'plexon1';

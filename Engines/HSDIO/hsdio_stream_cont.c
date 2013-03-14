@@ -157,7 +157,7 @@ int createData(
       cStep = iTotal + i;
       for (j=0;j<NumberOfChannels;j++) {
         // Simulate Continuous 60Hz Noise
-        AData[i*NumberOfChannels+j] = (short) (10000*sin(2*3.14159*5.123*(i+iTotal+100*j)/ASamplingRate));
+        AData[i*NumberOfChannels+j] = (short) (10000*sin(2*3.14159*5.123*(i+iTotal)/ASamplingRate));
         // Simulate temporally stable grid 
         //AData[i*NumberOfChannels+j] = 0;
         //if (cStep % 1000 == 0) {AData[i*NumberOfChannels+j] = 10000;}

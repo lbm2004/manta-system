@@ -175,8 +175,10 @@ while MG.DAQ.Running
       M_saveInformation;
       MG.DAQ.StopRecording = 0;
       if strcmp(MG.DAQ.Trigger.Type,'Remote') && ~MG.DAQ.StopMessageSent
-        M_sendMessage(['STOP OK']);
-        MG.DAQ.StopMessageSent = 1;
+        if ~strcmp(MG.DAQ.Engine,'HSDIO') 
+          M_sendMessage(['STOP OK']);
+          MG.DAQ.StopMessageSent = 1;
+        end
       end
     end
     MG.DAQ.CurrentFileSize = MG.DAQ.SamplesRecorded*MG.DAQ.NChannelsTotal*2/1024/1024;

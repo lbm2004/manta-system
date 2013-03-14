@@ -125,6 +125,9 @@ if MG.DAQ.NChannelsTotal  == 1; M_setState('Reference',0); end
 % CHECK FOR PRONGS ALIGNED WITH COLUMNS AND SET CSD AVAILALITY
 M_findProngs;
 
+% REINIT SPIKE SORTER
+MG.Disp.SorterFun(0);
+
 % INITIALIZE HSDIO
 switch MG.DAQ.Engine
   case 'HSDIO';

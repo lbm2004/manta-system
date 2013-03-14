@@ -134,7 +134,6 @@ if ~isfield(MG.Disp,'HasSpikeBool') | NPlot~=length(MG.Disp.HasSpikeBool)
   MG.Disp.HasSpikeBool = logical(zeros(NPlot,1)); end
 % PREPARE FOR SPIKESORTING
 MG.Colors.SpikeColors = repmat(vertical(MG.Colors.Trace),[1,MG.Disp.NSpikes,NPlot]);
-MG.Disp.SorterFun(0);
 
 %% PREPARE PSTH DISPLAY
 MG.Disp.PPH = zeros(NPlot,1);
