@@ -46,26 +46,18 @@ for i=1:length(BoardIDs)
         otherwise error('Current BusID not implemented ',n2s(BusID),': Refer to NI Reference for DAQmxGetDevBusType to add this type.');
       end
       
-      Boards(i).Bits = 16;
-      switch Boards(i).ProductNum
-        % E-SERIES
-        case {'18B0','18C0'};            Boards(i).Number=6052; Boards(i).NAI=16;
-        case {'1350','15B0'};             Boards(i).Number=6071; Boards(i).NAI=16; Boards(i).Bits = 12;
-        % M-SERIES
-        case {'70B8','72A0','72E8'}; Boards(i).Number=6251; Boards(i).NAI = 16;
-        case {'70B7','70BA'};            Boards(i).Number=6254; Boards(i).NAI = 32;
-        case {'70AB','7253','717F'}; Boards(i).Number=6259; Boards(i).NAI = 32;
-        case {'71E0','71E1'};             Boards(i).Number=6255; Boards(i).NAI = 80;
-        % X-SERIES
-        case {'742A''742B','74F8'};  Boards(i).Number=6343; Boards(i).NAI = 16; 
-        case {'742F''74FA'};             Boards(i).Number=6351; Boards(i).NAI = 16; 
-        case {'7432''7433','74FD'};  Boards(i).Number=6361; Boards(i).NAI = 16;           
-        case {'7429'};                       Boards(i).Number=6323; Boards(i).NAI = 32;          
-        case {'742D''74F7'};             Boards(i).Number=6343; Boards(i).NAI = 32; 
-        case {'7431''74FB'};             Boards(i).Number=6353; Boards(i).NAI = 32; 
-        case {'7434''7435','74FE'};   Boards(i).Number=6363; Boards(i).NAI = 32; 
-        otherwise error('DAQ card not yet implemented : Please add in M_getBoardInfo to the list of cards (Boardnumber and # of AI)');
+      Boards(i).Bits = 16; BoardFound = 0;
+      BoardProps = M_supportedBoards;
+      for iB=1:length(BoardProps)
+        if any(strcmp(BoardProps{iB}{1},Boards(i).ProductNum))
+          Boards(i).Number = BoardProps{iB}{2};
+          Boards(i).NAI = BoardProps{iB}{3};
+          if length(BoardProps{i})>3 Boards(i).Bits = BoardProps{iB}{4}; end
+          BoardFound = 1;
+          break;
+        end
       end
+      if ~BoardFound  fprintf(['The current device ',BoardIDs{i},' was not found in the list of supported devices.\n']); M_supportedBoards('list'); error('.'); end
       Boards(i).MaxMultiChanRateEachChan = Boards(i).MaxMultiChanRate/Boards(i).NAI;
       AvailSRs = AvailSRs(AvailSRs<=Boards(i).MaxMultiChanRateEachChan);
       
