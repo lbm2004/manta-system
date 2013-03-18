@@ -32,6 +32,8 @@ end
 % If DivX or DivY is just one number, consider it the number of divisions
 if length(DivX)==1 & DivX>1 & round(DivX)==DivX  DivX = repmat(1,DivX,1); end
 if length(DivY)==1 & DivY>1 & round(DivY)==DivY  DivY = repmat(1,DivY,1); end
+if length(SepXs)==1 & length(SepXs) ~= (length(DivX)-1) SepXs = repmat(SepXs,length(DivX),1); end
+if length(SepYs)==1 & length(SepYs) ~= (length(DivY)-1) SepYs = repmat(SepYs,length(DivY),1); end
 
 % If SepXs or SepYs is just one number, use it for all separations 
 if length(SepXs)==1 & length(SepXs)~=(length(DivX)-1)
