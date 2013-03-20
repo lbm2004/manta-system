@@ -513,7 +513,8 @@ void decodeData(ViUInt8 *DData,
   
   // DECODE PACKAGES
   //if (DEBUG) printf("\t Decoding Packet\n");
-  PacketStart = IterationStart + Offset; 
+  PacketStart = IterationStart + Offset;
+  HeaderFound=1;
   for (i1 = 0; i1<PacketsThisIteration; i1++) { // Loop over the number of expected analog packets (samples in time)
     // CHECK WHETHER PACKET STARTS AT EXPECTED LOCATION
     HeaderStart=PacketStart;
@@ -523,6 +524,7 @@ void decodeData(ViUInt8 *DData,
     }
     // IF HEADER NOT FOUND, LOOK FOR HEADER (should happen only rarely)
     if (EqCount < HeaderLength) {
+       HeaderFound=0;
       if (DEBUG) {
         printf("ASamp: %d DSamp: %d Iteration: %d:  Header not found at offset : %d\n Searching for header ...\n",i1+ATotalSamplesRead[0],HeaderStart,i1,Offset);
       }
@@ -551,30 +553,44 @@ void decodeData(ViUInt8 *DData,
     }
     
     DataStart = PacketStart + DataOffset;
-    switch (BitLength) {
-      case 12:     
+    if (HeaderFound==0) {
+       // return zeros if header not matched
        for (i2 = 0; i2<Bundles ; i2++ ) { // Loop over the Bundles in the data section in a packet
-         cStart = DataStart + i2*BitsPerBundle;
-         cATotalSamplesRead = i1+ATotalSamplesRead[0];
-         AOffset = cATotalSamplesRead*NumberOfChannels + i2*3;
-         AData[AOffset]     = -2048*DData[cStart]     + 1024*DData[cStart+3] + 512*DData[cStart+6] + 256*DData[cStart+9]   + 128*DData[cStart+12] + 64*DData[cStart+15] + 32*DData[cStart+18] + 16*DData[cStart+21] + 8*DData[cStart+24] + 4*DData[cStart+27] + 2*DData[cStart+30] + 1*DData[cStart+33];
-         AData[AOffset+1] = -2048*DData[cStart+1] + 1024*DData[cStart+4] + 512*DData[cStart+7] + 256*DData[cStart+10] + 128*DData[cStart+13] + 64*DData[cStart+16] + 32*DData[cStart+19] + 16*DData[cStart+22] + 8*DData[cStart+25] + 4*DData[cStart+28] + 2*DData[cStart+31] + 1*DData[cStart+34];
-         AData[AOffset+2] = -2048*DData[cStart+2] + 1024*DData[cStart+5] + 512*DData[cStart+8] + 256*DData[cStart+11] + 128*DData[cStart+14] + 64*DData[cStart+17] + 32*DData[cStart+20] + 16*DData[cStart+23] + 8*DData[cStart+26] + 4*DData[cStart+29] + 2*DData[cStart+32] + 1*DData[cStart+35];
+          cStart = DataStart + i2*BitsPerBundle;
+          cATotalSamplesRead = i1+ATotalSamplesRead[0];
+          AOffset = cATotalSamplesRead*NumberOfChannels + i2*3;
+          AData[AOffset]     = 0;
+          AData[AOffset+1] = 0;
+          AData[AOffset+2] = 0;
        };
-       break;
-      case 16:
-        for (i2 = 0; i2<Bundles ; i2++ ) { // Loop over the Bundles in the data section in a packet
-         cStart = DataStart + i2*BitsPerBundle;
-         cATotalSamplesRead = i1+ATotalSamplesRead[0];
-         AOffset = cATotalSamplesRead*NumberOfChannels + i2*3;
-         AData[AOffset]     = 32768*DData[cStart]     + 16384*DData[cStart+3] + 8192*DData[cStart+6] + 4096*DData[cStart+9]   + 2048*DData[cStart+12] + 1024*DData[cStart+15] + 512*DData[cStart+18] + 256*DData[cStart+21] + 128*DData[cStart+24] + 64*DData[cStart+27] + 32*DData[cStart+30] + 16*DData[cStart+33] + 8*DData[cStart+36] + 4*DData[cStart+39] + 2*DData[cStart+42] + 1*DData[cStart+45];
-         AData[AOffset+1] = 32768*DData[cStart+1] + 16384*DData[cStart+4] + 8192*DData[cStart+7] + 4096*DData[cStart+10] + 2048*DData[cStart+13] + 1024*DData[cStart+16] + 512*DData[cStart+19] + 256*DData[cStart+22] + 128*DData[cStart+25] + 64*DData[cStart+28] + 32*DData[cStart+31] + 16*DData[cStart+34] + 8*DData[cStart+37] + 4*DData[cStart+40] + 2*DData[cStart+43] + 1*DData[cStart+46];
-         AData[AOffset+2] = 32768*DData[cStart+2] + 16384*DData[cStart+5] + 8192*DData[cStart+8] + 4096*DData[cStart+11] + 2048*DData[cStart+14] + 1024*DData[cStart+17] + 512*DData[cStart+20] + 256*DData[cStart+23] + 128*DData[cStart+26] + 64*DData[cStart+29] + 32*DData[cStart+32] + 16*DData[cStart+35] + 8*DData[cStart+38] + 4*DData[cStart+41] + 2*DData[cStart+44] + 1*DData[cStart+47];
-       };
-       break;
-      default:
-       printf("Unknown Bitlength specified!"); return;
+
+    } else {
+       switch (BitLength) {
+          case 12:
+             for (i2 = 0; i2<Bundles ; i2++ ) { // Loop over the Bundles in the data section in a packet
+                cStart = DataStart + i2*BitsPerBundle;
+                cATotalSamplesRead = i1+ATotalSamplesRead[0];
+                AOffset = cATotalSamplesRead*NumberOfChannels + i2*3;
+                AData[AOffset]     = -2048*DData[cStart]     + 1024*DData[cStart+3] + 512*DData[cStart+6] + 256*DData[cStart+9]   + 128*DData[cStart+12] + 64*DData[cStart+15] + 32*DData[cStart+18] + 16*DData[cStart+21] + 8*DData[cStart+24] + 4*DData[cStart+27] + 2*DData[cStart+30] + 1*DData[cStart+33];
+                AData[AOffset+1] = -2048*DData[cStart+1] + 1024*DData[cStart+4] + 512*DData[cStart+7] + 256*DData[cStart+10] + 128*DData[cStart+13] + 64*DData[cStart+16] + 32*DData[cStart+19] + 16*DData[cStart+22] + 8*DData[cStart+25] + 4*DData[cStart+28] + 2*DData[cStart+31] + 1*DData[cStart+34];
+                AData[AOffset+2] = -2048*DData[cStart+2] + 1024*DData[cStart+5] + 512*DData[cStart+8] + 256*DData[cStart+11] + 128*DData[cStart+14] + 64*DData[cStart+17] + 32*DData[cStart+20] + 16*DData[cStart+23] + 8*DData[cStart+26] + 4*DData[cStart+29] + 2*DData[cStart+32] + 1*DData[cStart+35];
+             };
+             break;
+          case 16:
+             for (i2 = 0; i2<Bundles ; i2++ ) { // Loop over the Bundles in the data section in a packet
+                cStart = DataStart + i2*BitsPerBundle;
+                cATotalSamplesRead = i1+ATotalSamplesRead[0];
+                AOffset = cATotalSamplesRead*NumberOfChannels + i2*3;
+                AData[AOffset]     = 32768*DData[cStart]     + 16384*DData[cStart+3] + 8192*DData[cStart+6] + 4096*DData[cStart+9]   + 2048*DData[cStart+12] + 1024*DData[cStart+15] + 512*DData[cStart+18] + 256*DData[cStart+21] + 128*DData[cStart+24] + 64*DData[cStart+27] + 32*DData[cStart+30] + 16*DData[cStart+33] + 8*DData[cStart+36] + 4*DData[cStart+39] + 2*DData[cStart+42] + 1*DData[cStart+45];
+                AData[AOffset+1] = 32768*DData[cStart+1] + 16384*DData[cStart+4] + 8192*DData[cStart+7] + 4096*DData[cStart+10] + 2048*DData[cStart+13] + 1024*DData[cStart+16] + 512*DData[cStart+19] + 256*DData[cStart+22] + 128*DData[cStart+25] + 64*DData[cStart+28] + 32*DData[cStart+31] + 16*DData[cStart+34] + 8*DData[cStart+37] + 4*DData[cStart+40] + 2*DData[cStart+43] + 1*DData[cStart+46];
+                AData[AOffset+2] = 32768*DData[cStart+2] + 16384*DData[cStart+5] + 8192*DData[cStart+8] + 4096*DData[cStart+11] + 2048*DData[cStart+14] + 1024*DData[cStart+17] + 512*DData[cStart+20] + 256*DData[cStart+23] + 128*DData[cStart+26] + 64*DData[cStart+29] + 32*DData[cStart+32] + 16*DData[cStart+35] + 8*DData[cStart+38] + 4*DData[cStart+41] + 2*DData[cStart+44] + 1*DData[cStart+47];
+             };
+             break;
+          default:
+             printf("Unknown Bitlength specified!"); return;
+       }
     }
+    
     PacketStart = PacketStart + PacketLength;
   } // END OF DECODING LOOP
   

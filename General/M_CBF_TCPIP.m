@@ -72,7 +72,24 @@ switch COMMAND
     eval(DATA); % NO RESPONSE MESSAGE SENT, SINCE SOME COMMANDS DON'T TERMINATE (here M_startEndine)
      
   case 'GETVAR';
-    String = HF_var2string(eval(DATA));
+     % SVD hack, don't repeat certain values over and over to save space in
+     % tranmitted string.
+     SendStruct=eval(DATA);
+     lastsysmatch=1;
+     lastarraymatch=1;
+     for ii=2:length(SendStruct),
+        if isfield(SendStruct,'Array') && strcmp(SendStruct(ii).Array,SendStruct(lastarraymatch).Array),
+           SendStruct(ii).Array='';
+        else
+           lastarraymatch=ii;
+        end
+        if isfield(SendStruct,'System') && strcmp(SendStruct(ii).System,SendStruct(lastsysmatch).System),
+           SendStruct(ii).System='';
+        else
+           lastsysmatch=ii;
+        end
+     end
+    String = HF_var2string(SendStruct)
     M_sendMessage(String);
     
   case 'COMTEST';
