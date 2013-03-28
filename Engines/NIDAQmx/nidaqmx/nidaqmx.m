@@ -18,6 +18,26 @@ fcns.name{fcnNum}='DAQmxGetDevProductType'; fcns.calltype{fcnNum}='stdcall'; fcn
 fcns.name{fcnNum}='DAQmxGetDevProductNum'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'cstring', 'uint32Ptr'};fcnNum=fcnNum+1;
 % int32 _stdcall DAQmxGetDevSerialNum ( const char device [], uInt32 * data ); 
 fcns.name{fcnNum}='DAQmxGetDevSerialNum'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'cstring', 'uint32Ptr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetDevProductCategory ( const char device [], int32 * data ); 
+fcns.name{fcnNum}='DAQmxGetDevProductCategory'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'cstring', 'int32Ptr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetDevAIPhysicalChans ( const char device [], char * data , uInt32 bufferSize ); 
+fcns.name{fcnNum}='DAQmxGetDevAIPhysicalChans'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'cstring', 'cstring', 'uint32'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetDevAIMaxSingleChanRate ( const char device [], float64 * data ); 
+fcns.name{fcnNum}='DAQmxGetDevAIMaxSingleChanRate'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'cstring', 'doublePtr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetDevAIMaxMultiChanRate ( const char device [], float64 * data ); 
+fcns.name{fcnNum}='DAQmxGetDevAIMaxMultiChanRate'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'cstring', 'doublePtr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetDevAIMinRate ( const char device [], float64 * data ); 
+fcns.name{fcnNum}='DAQmxGetDevAIMinRate'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'cstring', 'doublePtr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetDevBusType ( const char device [], int32 * data ); 
+fcns.name{fcnNum}='DAQmxGetDevBusType'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'cstring', 'int32Ptr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetDevPCIBusNum ( const char device [], uInt32 * data ); 
+fcns.name{fcnNum}='DAQmxGetDevPCIBusNum'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'cstring', 'uint32Ptr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetDevPCIDevNum ( const char device [], uInt32 * data ); 
+fcns.name{fcnNum}='DAQmxGetDevPCIDevNum'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'cstring', 'uint32Ptr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetDevPXIChassisNum ( const char device [], uInt32 * data ); 
+fcns.name{fcnNum}='DAQmxGetDevPXIChassisNum'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'cstring', 'uint32Ptr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetDevPXISlotNum ( const char device [], uInt32 * data ); 
+fcns.name{fcnNum}='DAQmxGetDevPXISlotNum'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'cstring', 'uint32Ptr'};fcnNum=fcnNum+1;
 
 %% TASK MANAGEMENT
 % int32 _stdcall DAQmxLoadTask ( const char taskName [], TaskHandle * taskHandle ); 

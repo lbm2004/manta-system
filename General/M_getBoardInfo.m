@@ -10,29 +10,56 @@ for i=1:length(BoardIDs)
 
   switch MG.DAQ.Engine
     case 'NIDAQ'; % ANALOG ENGINE
+      % GET CARD IDENTITIES
       Num = libpointer(MG.HW.TaskPointerType,false);
-      status = DAQmxGetDevSerialNum(BoardIDs{i},Num);
+      S = DAQmxGetDevSerialNum(BoardIDs{i},Num);  if S NI_MSG(S); end
       SN = get(Num,'Value');
-      status = DAQmxGetDevProductNum(BoardIDs{i},Num);
-      R = dec2hex(double(get(Num,'Value'))); R = R(1:4);
-      switch R
-        case '7431'; Boards(i).Interface='PCIe'; Boards(i).Number=6353; Boards(i).NAI = 32;
-        case '7429'; Boards(i).Interface='PCIe'; Boards(i).Number=6323; Boards(i).NAI = 32;
-        case '70AB'; Boards(i).Interface='PCI'; Boards(i).Number=6259; Boards(i).NAI = 32;
-        case '717F'; Boards(i).Interface='PCIe'; Boards(i).Number=6259; Boards(i).NAI = 32;
-        case '70B8'; Boards(i).Interface='PCI'; Boards(i).Number=6251; Boards(i).NAI = 16;
-        case '70B7'; Boards(i).Interface='PCI'; Boards(i).Number=6254; Boards(i).NAI = 32;
-        case '18B0'; Boards(i).Interface='PCI'; Boards(i).Number=6052; Boards(i).NAI=16;
-        otherwise error('DAQ card not implemented yet.');
-      end
+      S = DAQmxGetDevProductNum(BoardIDs{i},Num);  if S NI_MSG(S); end
+      Boards(i).ProductNum = dec2hex(double(get(Num,'Value'))); 
+      Boards(i).ProductNum = Boards(i).ProductNum(1:4);
+
+      % GET MAXIMAL SAMPLING RATES
+      Num = libpointer('doublePtr',0);
+      S = DAQmxGetDevAIMaxMultiChanRate(BoardIDs{i},Num); if S NI_MSG(S); end
+      Boards(i).MaxMultiChanRate = get(Num,'Value');
+      S = DAQmxGetDevAIMaxSingleChanRate(BoardIDs{i},Num); if S NI_MSG(S); end
+      Boards(i).MaxSingleChanRate = get(Num,'Value');
+      AvailSRs = [1000,5000,10000,12500,20000,20833,25000,31250]'; % RESTRICTED LIST FOR SIMPLICITY
+      
+      % GET VOLTAGE RANGES
       Num = libpointer('doublePtr',zeros(2,20));
-      % SVD.  changed for systems that don't use D1 naming scheme
-      %S = DAQmxGetDevAIVoltageRngs('D1',Num,numel(get(Num,'Value'))); if S NI_MSG(S); end
-      S = DAQmxGetDevAIVoltageRngs(BoardIDs{1},Num,numel(get(Num,'Value'))); if S NI_MSG(S); end
+      S = DAQmxGetDevAIVoltageRngs(BoardIDs{i},Num,numel(get(Num,'Value'))); if S NI_MSG(S); end
       InputRanges = get(Num,'Value');
       [i1,i2] = find(InputRanges==0,1,'first');
       InputRanges = InputRanges(:,1:i2-1)';
-      AvailSRs = [1000,5000,10000,12500,20000,25000,31250]'; % RESTRICTED LIST FOR SIMPLICITY
+      
+      % GET THE BUS 
+      Num = libpointer('int32Ptr',0);
+      S = DAQmxGetDevBusType('D1',Num); if S NI_MSG(S); end
+      BusID = get(Num,'Value');
+      switch BusID
+        case 12582; Boards(i).Interface='PCI';
+        case 13612; Boards(i).Interface='PCIe';
+        case 12583; Boards(i).Interface='PXI';
+        case 14706; Boards(i).Interface='PXIe';
+        case 12586; Boards(i).Interface='USB';
+        otherwise error('Current BusID not implemented ',n2s(BusID),': Refer to NI Reference for DAQmxGetDevBusType to add this type.');
+      end
+      
+      Boards(i).Bits = 16; BoardFound = 0;
+      BoardProps = M_supportedBoards;
+      for iB=1:length(BoardProps)
+        if any(strcmp(BoardProps{iB}{1},Boards(i).ProductNum))
+          Boards(i).Number = BoardProps{iB}{2};
+          Boards(i).NAI = BoardProps{iB}{3};
+          if length(BoardProps{iB})>3 Boards(i).Bits = BoardProps{iB}{4}; end
+          BoardFound = 1;
+          break;
+        end
+      end
+      if ~BoardFound  fprintf(['The current device ',BoardIDs{i},' was not found in the list of supported devices.\n']); M_supportedBoards('list'); error('.'); end
+      Boards(i).MaxMultiChanRateEachChan = Boards(i).MaxMultiChanRate/Boards(i).NAI;
+      AvailSRs = AvailSRs(AvailSRs<=Boards(i).MaxMultiChanRateEachChan);
       
     case 'HSDIO'; % DIGITAL BLACKROCK ENGINE
       SN = '00F05F85'; % niHSDIO_SetAttributeViReal64(NIHSDIO_ATTR_SERIAL_NUMBER)

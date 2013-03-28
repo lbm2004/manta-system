@@ -759,7 +759,7 @@ for i=1:NChannel
   DC2 = HF_axesDivide([2,0.3],1,DC{i},[0],[0.3]);
   if MG.DAQ.ElectrodesByBoardBool{BoardIndex}(i)
     cColor =[0,1,0]; else cColor = [1,0,0];  end
-  MG.GUI.ChannelSelByBoard{BoardIndex}(i) = LF_addText(cFIG,DC2{1},'','Pin (on Frontend) and AI (on DAQ card)',[],cColor,MG.Colors.GUIBackground,'FontSize',7);
+  MG.GUI.ChannelSelByBoard{BoardIndex}(i) = LF_addText(cFIG,DC2{1},'','AI (on DAQ card), Pin (on Frontend), ArrayPin (on Array) ',[],cColor,MG.Colors.GUIBackground,'FontSize',7);
   set(MG.GUI.ChannelSelByBoard{BoardIndex}(i),'Horiz','right');
   Loc = ['MG.DAQ.ChannelsBool{',n2s(BoardIndex),'}(',n2s(i),')'];
   MG.GUI.ChannelSelByBoardCheck{BoardIndex}(i) = LF_addCheckbox(cFIG,DC2{2},eval(Loc),...
@@ -846,20 +846,22 @@ cAIs = cRecSys.ChannelMap;
 % SET PIN COLORS BASED ON WHETHER THE PIN IS SELECTED (USUALLY VIA THE ARRAY)
 RelArrayPins = ArrayPins-ArrayPins(1)+1; 
 
-for i=1:length(cAIs)
+for cAI=1:length(cAIs)
+  % AI == i
+  FrontEndPin = find(cAIs==cAI);
+  Match = find(RelArrayPins==FrontEndPin);
   % CHANGE THE COLORS OF THE LABELS
-  Match = find(cAIs(i)==RelArrayPins);
   if ~isempty(Match)
     cPin = RelArrayPins(Match)+ArrayPins(1)-1;
     cAPin = ArrayPins(Match);
-    set(MG.GUI.ChannelSelByBoard{BoardIndex}(i),'ForeGroundColor',[0,1,0]);
+    set(MG.GUI.ChannelSelByBoard{BoardIndex}(cAI),'ForeGroundColor',[0,1,0]); 
   else
     cPin = NaN;
     cAPin = NaN;
-    set(MG.GUI.ChannelSelByBoard{BoardIndex}(i),'ForeGroundColor',[1,0,0]);
+    set(MG.GUI.ChannelSelByBoard{BoardIndex}(cAI),'ForeGroundColor',[1,0,0]);
   end
   % SET LABEL FOR EACH ANALOG IN CHANNEL WITH ARRAY
-  set(MG.GUI.ChannelSelByBoard{BoardIndex}(i),'String',['AI',n2s(i),' | P',n2s(cPin),' | AP',n2s(cAPin)],'Horiz','left');
+  set(MG.GUI.ChannelSelByBoard{BoardIndex}(cAI),'String',['AI',n2s(cAI),' | P',n2s(cPin),' | AP',n2s(cAPin)],'Horiz','left');
 end
 M_CBF_addChannel(MG.GUI.ChannelSelByBoardCheck{BoardIndex},[],BoardIndex,[1:NChannels]);
 

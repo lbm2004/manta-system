@@ -31,7 +31,7 @@ else
   MG.HW.Lab = Location(Pos(end-1)+1:Pos(end)-1);
   MG.HW.ConfigPath = [SavePath,'Configurations',Sep,MG.HW.Lab,Sep];
 end
-
+ 
 %% DEFINES HW-DEFAULTS
 MG.HW.Architecture = architecture;
 if ~isempty(strfind(computer,'64'))
@@ -46,25 +46,55 @@ if isfield(MG.HW,'SIM') MG.HW.Engines{end+1} = 'SIM'; end;
 
 %% CONNECTION TO STIMULATION MACHINE DEFAULTS
 MG.Stim.COMterm = 124; % '|'
-MG.Stim.MSGterm = 10; % '}' 
+MG.Stim.MSGterm = 33; % '!' 
 MG.Stim.Port = 33330; % Port to connect to
 MG.Stim.Host = 'localhost';
+I = ver('instrument');
+if ~isempty(I)
+  MG.Stim.Package = 'ICT'; % Instrument Control Toolbox
+else 
+  error(['Instrument Control Toolbox needs to be installed, since there is no free package that supports Callback functions at this point.']);
+  MG.Stim.Package = 'jTCP'; % Java TCP by Kevin Bartlett (http://www.mathworks.com/matlabcentral/fileexchange/24524-tcpip-communications-in-matlab)
+  I = which('jtcp');
+  if isempty(I) 
+    MG.Stim.Pacakge = 'None';
+    fprintf(['WARNING : NO TCPIP SUITE FOUND!\n'...
+      '\tNeither the instrument control toolbox, nor the open source tcpip suite jTCP have been detected.\n '...
+      '\tPlease install either of those two, in order to connect to a controller/stimulator\n']); 
+  end
+end
 M_loadDefaultsByHostname(MG.HW.Hostname,'Stim');
 
 %% DAQ DEFAULTS
 MG.DAQ.Engine = 'NIDAQ';
 MG.DAQ.WithSpikes = 1;
-MG.DAQ.HSDIO.TempFile = 'D:\HSDIO.bin'; % Intermediate storage of acquired data
-MG.DAQ.HSDIO.DebugFile = 'D:\HSDIO.out'; % Debugging information for digital acquisition
-MG.DAQ.HSDIO.EngineCommand = 'D:\Code\baphy\Hardware\hsdio\hsdio_stream_dual';
+MG.DAQ.HSDIO.Path = 'R:\';
+MG.DAQ.HSDIO.BaseName = [MG.DAQ.HSDIO.Path,'HSDIO']; % Intermediate storage of acquired data
+MG.DAQ.HSDIO.TempFile = [MG.DAQ.HSDIO.BaseName,'.bin']; % Intermediate storage of acquired data
+MG.DAQ.HSDIO.StatusFile = [MG.DAQ.HSDIO.BaseName,'.status']; % Intermediate storage of acquired data
+MG.DAQ.HSDIO.TriggersFile = [MG.DAQ.HSDIO.BaseName,'.triggers']; % Intermediate storage of acquired data
+MG.DAQ.HSDIO.StopFile = [MG.DAQ.HSDIO.BaseName,'.stop']; % Intermediate storage of acquired data
+MG.DAQ.HSDIO.DebugFile = [MG.DAQ.HSDIO.BaseName,'.out']; % Intermediate storage of acquired data
+MG.DAQ.HSDIO.EngineCommand = which('hsdio_stream_cont.exe');
 MG.DAQ.HSDIO.SRDigital = 50000000; % Digital sampling rate
-MG.DAQ.HSDIO.SamplesPerIteration = 500; % Analog Samples before checking again on the card
-MG.DAQ.HSDIO.MaxIterations = 10000; % Maximal Number of Iterations to run
+MG.DAQ.HSDIO.SamplesPerIteration = 1000; % Analog Samples before checking again on the card
+MG.DAQ.HSDIO.MaxIterations = 1e6; % Maximal Number of Iterations to run
 MG.DAQ.HSDIO.Simulation = 0; 
+MG.DAQ.HSDIO.NAI = 96;
+MG.DAQ.HSDIO.BytesPerLoop = 38400000; % Size of circular buffer on disk
+MG.DAQ.HSDIO.BytesPerSample = 2;
+MG.DAQ.HSDIO.SamplesPerLoop =  MG.DAQ.HSDIO.BytesPerLoop/MG.DAQ.HSDIO.BytesPerSample/MG.DAQ.HSDIO.NAI;
+MG.DAQ.HSDIO.Precision = 'int16';
+if mod(MG.DAQ.HSDIO.SamplesPerLoop,1) error('Set BytesPerLoop to a multiple of 192!'); end    
+% INITIALIZE HSDIO REMAPPING (Applied in M_updateChannelMap)
+LocalRemap=[8 16 7 15 6 14 5 13 4 12 3 11 2 10 1 9 [8 16 7 15 6 14 5 13 4 12 3 11 2 10 1 9]+16];
+LocalRemap=[LocalRemap LocalRemap+32 LocalRemap+64];
+BankRemap=[1:3:94 2:3:95 3:3:96];
+MG.DAQ.HSDIO.FullRemap=BankRemap(LocalRemap);
 
 MG.DAQ.NIDAQ.RingEngineLength = 5; % seconds. Defines Ring Buffer Length for Manual Trigger
 MG.DAQ.NIDAQ.BufferSize = 500; % samples. Packages of samples on the level of the DAQ device
-MG.DAQ.SR = 25000; % Analog sampling rate per channel
+MG.DAQ.SR = 31250; % Analog sampling rate per channel
 MG.DAQ.MinDur = 0.15; % seconds. Minimal Duration of the Loop = Video Rate
 MG.DAQ.TrialLength = 200; % second. Maximal Trial length
 MG.DAQ.Precision = 'int16'; % Precision for writing data to disk (if DAQ devices deliver lower precision, it needs to be converted to this value)
@@ -78,7 +108,6 @@ MG.DAQ.HumFreq = 50; % Frequency of Line Noise;
 % OVERRIDE default settings with anything specified in the Hostname file.
 M_loadDefaultsByHostname(MG.HW.Hostname,'DAQ');
 MG.DAQ.BaseName = [tempdir,'testrec'];
-MG.DAQ.HSDIO.StatusFile = [MG.DAQ.HSDIO.TempFile 'Status']; % Intermediate storage of acquired data
 
 % PARAMETERS FOR READING LOOPING BUFFER FROM HSDIO (MAYBE NIDAQMX?)
 MG.DAQ.SamplesPerDaqLoop=900000;  % 30 seconds at 30K samples/sec
@@ -209,6 +238,7 @@ switch lower(MG.GUI.Skin)
   
   case 'classic'
     MG.Colors.Background = [0,0,0];
+    MG.Colors.FigureBackground = [0,0,0];
     MG.Colors.LineColor = [1,1,1];
     MG.Colors.Raw = [0.5,0.5,0.5];
     MG.Colors.Trace = [1,1,1];

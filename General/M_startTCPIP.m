@@ -1,16 +1,11 @@
 function M_startTCPIP
 % Establish TCPIP connection with stimulator
-% Set Timeout?
 % This file is part of MANTA licensed under the GPL. See MANTA.m for details.
 global MG
 
 % OBTAIN CONNECTION OBJECT
-%if ~isempty(MG) & isfield(MG,'Stim') & isfield(MG.Stim,'TCPIP') 
- % M_Logger('Trying to reuse previous connection with stimulator.\n');  
-%else
 M_Logger(['Establishing connection with Host ',MG.Stim.Host,':',n2s(MG.Stim.Port),'...\n']);
 MG.Stim.TCPIP = tcpip(MG.Stim.Host,MG.Stim.Port,'TimeOut',.4,'OutputBufferSize',2^18);
-%end
 
 % SET PROPERTIES
 set(MG.Stim.TCPIP,'BytesAvailableFcn',{@M_CBF_TCPIP},...

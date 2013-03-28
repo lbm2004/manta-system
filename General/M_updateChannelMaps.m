@@ -85,7 +85,7 @@ for iB = 1:length(MG.DAQ.BoardsNum)
           WarningShown = 1;
         end
       end
-      M_Logger fprintf('\n'); 
+      M_Logger('\n'); 
   end
 end; clear iC iB
 
@@ -124,3 +124,14 @@ if MG.DAQ.NChannelsTotal  == 1; M_setState('Reference',0); end
 
 % CHECK FOR PRONGS ALIGNED WITH COLUMNS AND SET CSD AVAILALITY
 M_findProngs;
+
+% REINIT SPIKE SORTER
+MG.Disp.SorterFun(0);
+
+% INITIALIZE HSDIO
+switch MG.DAQ.Engine
+  case 'HSDIO';
+    MG.DAQ.HSDIO.ChannelMap{1}=MG.DAQ.HSDIO.FullRemap(find(MG.DAQ.ChannelsBool{1}));
+end
+
+

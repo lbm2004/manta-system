@@ -80,10 +80,7 @@ if isempty(find(MG.DAQ.SR==MG.DAQ.AvailSRs))
 end
 switch cEngine;
   case 'HSDIO'; 
-      % svd changed to 50Mb because some sort of conflict cropped up b/c
-      % digital sr was set to that value somewhere else.
-    MG.DAQ.HSDIO.SRDigital = 50000000;%M_convSRAnalog2Digital(MG.DAQ.SR); 
-    MG.DAQ.HSDIO.StopFile = [MG.DAQ.HSDIO.TempFile,'Stop'];
+    MG.DAQ.HSDIO.SRDigital = M_convSRAnalog2Digital(MG.DAQ.SR);  
 end
 
 % SOUND CARD FOR SPIKE OUTPUT
