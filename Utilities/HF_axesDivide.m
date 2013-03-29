@@ -1,4 +1,4 @@
-function DivC = HF_axesDivide(varargin) 
+function [DivC,AH] = HF_axesDivide(varargin) 
 % DivC = HF_axesDivide(DivX,DivY,X0,Y0,SepXs,SepYs)
 % DivC = HF_axesDivide(DivX,DivY,Pos0,SepXs,SepYs)
 %
@@ -22,8 +22,8 @@ switch length(varargin)
     SepXs = varargin{4};
     SepYs = varargin{5}; 
   case 2; % Mostly default arguments assumed
-    X0 = [0.1,0.85];
-    Y0 = [0.1,0.85];
+    X0 = [0.1,0.9];
+    Y0 = [0.1,0.9];
     SepXs = [0.4];
     SepYs = [0.5]; 
 end
@@ -53,3 +53,12 @@ for i=1:length(DivY)
    Y0(1)+sum(Y(1:i-1))+sum(SepYs(1:i-1)),X(j),Y(i)];
  end
 end; DivC = flipud(DivC);
+
+if nargout>1
+  for i=1:size(DivC,1)
+    for j=1:size(DivC,2)
+      AH(i,j) = axes('Pos',DivC{i,j});
+    end
+  end
+end
+  

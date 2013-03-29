@@ -187,6 +187,74 @@ fcns.name{fcnNum}='DAQmxCreateAIVoltageChan'; fcns.calltype{fcnNum}='stdcall'; f
 fcns.name{fcnNum}='DAQmxCfgDigEdgeStartTrig'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'int32'};fcnNum=fcnNum+1;
 % int32 _stdcall DAQmxCfgAnlgEdgeStartTrig ( TaskHandle taskHandle , const char triggerSource [], int32 triggerSlope , float64 triggerLevel ); 
 fcns.name{fcnNum}='DAQmxCfgAnlgEdgeStartTrig'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'int32', 'double'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetStartTrigType ( TaskHandle taskHandle , int32 * data ); 
+fcns.name{fcnNum}='DAQmxGetStartTrigType'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'int32Ptr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxSetStartTrigType ( TaskHandle taskHandle , int32 data ); 
+fcns.name{fcnNum}='DAQmxSetStartTrigType'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'int32'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxResetStartTrigType ( TaskHandle taskHandle ); 
+fcns.name{fcnNum}='DAQmxResetStartTrigType'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetAnlgEdgeStartTrigLvl ( TaskHandle taskHandle , float64 * data ); 
+fcns.name{fcnNum}='DAQmxGetAnlgEdgeStartTrigLvl'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'doublePtr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxSetAnlgEdgeStartTrigLvl ( TaskHandle taskHandle , float64 data ); 
+fcns.name{fcnNum}='DAQmxSetAnlgEdgeStartTrigLvl'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'double'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxResetAnlgEdgeStartTrigLvl ( TaskHandle taskHandle ); 
+fcns.name{fcnNum}='DAQmxResetAnlgEdgeStartTrigLvl'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetAnlgEdgeStartTrigSrc ( TaskHandle taskHandle , char * data , uInt32 bufferSize ); 
+fcns.name{fcnNum}='DAQmxGetAnlgEdgeStartTrigSrc'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'uint32'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxSetAnlgEdgeStartTrigSrc ( TaskHandle taskHandle , const char * data ); 
+fcns.name{fcnNum}='DAQmxSetAnlgEdgeStartTrigSrc'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxResetAnlgEdgeStartTrigSrc ( TaskHandle taskHandle ); 
+fcns.name{fcnNum}='DAQmxResetAnlgEdgeStartTrigSrc'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32'};fcnNum=fcnNum+1;
 
+
+%% EXCITATION CURRENT ON ANALOG INS
+% int32 _stdcall DAQmxGetAIExcitSrc ( TaskHandle taskHandle , const char channel [], int32 * data ); 
+fcns.name{fcnNum}='DAQmxGetAIExcitSrc'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'int32Ptr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxSetAIExcitSrc ( TaskHandle taskHandle , const char channel [], int32 data ); 
+fcns.name{fcnNum}='DAQmxSetAIExcitSrc'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'int32'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxResetAIExcitSrc ( TaskHandle taskHandle , const char channel []); 
+fcns.name{fcnNum}='DAQmxResetAIExcitSrc'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetAIExcitVal ( TaskHandle taskHandle , const char channel [], float64 * data ); 
+fcns.name{fcnNum}='DAQmxGetAIExcitVal'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'doublePtr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxSetAIExcitVal ( TaskHandle taskHandle , const char channel [], float64 data ); 
+fcns.name{fcnNum}='DAQmxSetAIExcitVal'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'double'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxResetAIExcitVal ( TaskHandle taskHandle , const char channel []); 
+fcns.name{fcnNum}='DAQmxResetAIExcitVal'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetAIExcitUseForScaling ( TaskHandle taskHandle , const char channel [], bool32 * data ); 
+fcns.name{fcnNum}='DAQmxGetAIExcitUseForScaling'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'uint32Ptr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxSetAIExcitUseForScaling ( TaskHandle taskHandle , const char channel [], bool32 data ); 
+fcns.name{fcnNum}='DAQmxSetAIExcitUseForScaling'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'uint32'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxResetAIExcitUseForScaling ( TaskHandle taskHandle , const char channel []); 
+fcns.name{fcnNum}='DAQmxResetAIExcitUseForScaling'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetAIExcitUseMultiplexed ( TaskHandle taskHandle , const char channel [], bool32 * data ); 
+fcns.name{fcnNum}='DAQmxGetAIExcitUseMultiplexed'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'uint32Ptr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxSetAIExcitUseMultiplexed ( TaskHandle taskHandle , const char channel [], bool32 data ); 
+fcns.name{fcnNum}='DAQmxSetAIExcitUseMultiplexed'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'uint32'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxResetAIExcitUseMultiplexed ( TaskHandle taskHandle , const char channel []); 
+fcns.name{fcnNum}='DAQmxResetAIExcitUseMultiplexed'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetAIExcitActualVal ( TaskHandle taskHandle , const char channel [], float64 * data ); 
+fcns.name{fcnNum}='DAQmxGetAIExcitActualVal'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'doublePtr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxSetAIExcitActualVal ( TaskHandle taskHandle , const char channel [], float64 data ); 
+fcns.name{fcnNum}='DAQmxSetAIExcitActualVal'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'double'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxResetAIExcitActualVal ( TaskHandle taskHandle , const char channel []); 
+fcns.name{fcnNum}='DAQmxResetAIExcitActualVal'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetAIExcitDCorAC ( TaskHandle taskHandle , const char channel [], int32 * data ); 
+fcns.name{fcnNum}='DAQmxGetAIExcitDCorAC'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'int32Ptr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxSetAIExcitDCorAC ( TaskHandle taskHandle , const char channel [], int32 data ); 
+fcns.name{fcnNum}='DAQmxSetAIExcitDCorAC'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'int32'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxResetAIExcitDCorAC ( TaskHandle taskHandle , const char channel []); 
+fcns.name{fcnNum}='DAQmxResetAIExcitDCorAC'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxGetAIExcitVoltageOrCurrent ( TaskHandle taskHandle , const char channel [], int32 * data ); 
+fcns.name{fcnNum}='DAQmxGetAIExcitVoltageOrCurrent'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'int32Ptr'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxSetAIExcitVoltageOrCurrent ( TaskHandle taskHandle , const char channel [], int32 data ); 
+fcns.name{fcnNum}='DAQmxSetAIExcitVoltageOrCurrent'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'int32'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxResetAIExcitVoltageOrCurrent ( TaskHandle taskHandle , const char channel []); 
+fcns.name{fcnNum}='DAQmxResetAIExcitVoltageOrCurrent'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring'};fcnNum=fcnNum+1;
+
+%% MICROPHONE CHANNEL
+% int32 _stdcall DAQmxCreateAIVoltageChanWithExcit ( TaskHandle taskHandle , const char physicalChannel [], const char nameToAssignToChannel [], int32 terminalConfig , float64 minVal , float64 maxVal , int32 units , int32 bridgeConfig , int32 voltageExcitSource , float64 voltageExcitVal , bool32 useExcitForScaling , const char customScaleName []); 
+fcns.name{fcnNum}='DAQmxCreateAIVoltageChanWithExcit'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'cstring', 'int32', 'double', 'double', 'int32', 'int32', 'int32', 'double', 'uint32', 'cstring'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxCreateAIMicrophoneChan ( TaskHandle taskHandle , const char physicalChannel [], const char nameToAssignToChannel [], int32 terminalConfig , int32 units , float64 micSensitivity , float64 maxSndPressLevel , int32 currentExcitSource , float64 currentExcitVal , const char customScaleName []); 
+fcns.name{fcnNum}='DAQmxCreateAIMicrophoneChan'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'cstring', 'int32', 'int32', 'double', 'double', 'int32', 'double', 'cstring'};fcnNum=fcnNum+1;
 
 methodinfo=fcns;
