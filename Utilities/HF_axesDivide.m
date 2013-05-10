@@ -22,8 +22,8 @@ switch length(varargin)
     SepXs = varargin{4};
     SepYs = varargin{5}; 
   case 2; % Mostly default arguments assumed
-    X0 = [0.1,0.9];
-    Y0 = [0.1,0.9];
+    X0 = [0.1,0.8];
+    Y0 = [0.1,0.8];
     SepXs = [0.4];
     SepYs = [0.5]; 
 end
