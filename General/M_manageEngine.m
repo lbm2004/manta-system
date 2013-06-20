@@ -15,22 +15,44 @@ MG.DAQ.SamplesRecorded = 0;
 while MG.DAQ.Running
   tic; cTime = now; % STARTING TIME OF ITERATION
 
-  %% PREPARE FOR PRESENT ITERATION
-  MG.DAQ.Iteration = MG.DAQ.Iteration + 1;
+% SVD moved down to prevent Iteration+1 except when new data are
+% available
+%
+%   %% PREPARE FOR PRESENT ITERATION
+%   MG.DAQ.Iteration = MG.DAQ.Iteration + 1;
+% 
+%   MG.DAQ.CallbackTimes(MG.DAQ.Iteration) = cTime;
+%   % REMEMBER INITIAL TRIGGERTIME
+%   if MG.DAQ.Iteration == 1 MG.DAQ.TriggerTime = cTime; end
+%   
+%   Iteration = MG.DAQ.Iteration; % To avoid that it is changed during execution
 
-  MG.DAQ.CallbackTimes(MG.DAQ.Iteration) = cTime;
-  % REMEMBER INITIAL TRIGGERTIME
-  if MG.DAQ.Iteration == 1 MG.DAQ.TriggerTime = cTime; end
-        
-  Iteration = MG.DAQ.Iteration; % To avoid that it is changed during execution
-  Recording = MG.DAQ.Recording;
-  NAudio = 0; NWrite = 0;
-  
-  %% EXTRACT DATA FROM ENGINE
-  [SamplesAvailable,SamplesToTake] = M_SamplesAvailable;
-  
-  if Recording StopRecording = MG.DAQ.StopRecording; end
-  if SamplesToTake > 0
+   Recording = MG.DAQ.Recording;
+   NAudio = 0; NWrite = 0;
+   
+   if Recording StopRecording = MG.DAQ.StopRecording; end
+   
+   %% EXTRACT DATA FROM ENGINE
+   [~,SamplesToTake] = M_SamplesAvailable;
+   
+   cc=0;
+   while SamplesToTake==0 && cc<10,
+      % loop for a while to see if it's just a hiccup by the streamer.
+      [~,SamplesToTake] = M_SamplesAvailable;
+      cc=cc+1;
+      fprintf('Iteration %d attempt %d: SamplesToTake=%d\n',...
+         MG.DAQ.Iteration,cc,SamplesToTake);
+   end
+   if SamplesToTake > 0
+     %% PREPARE FOR PRESENT ITERATION
+     MG.DAQ.Iteration = MG.DAQ.Iteration + 1;
+     
+     MG.DAQ.CallbackTimes(MG.DAQ.Iteration) = cTime;
+     % REMEMBER INITIAL TRIGGERTIME
+     if MG.DAQ.Iteration == 1 MG.DAQ.TriggerTime = cTime; end
+     
+     Iteration = MG.DAQ.Iteration; % To avoid that it is changed during execution
+
     MG.Data.Raw = zeros(SamplesToTake,MG.DAQ.NChannelsTotal);
     for i = MG.DAQ.BoardsNum
       switch MG.DAQ.Engine
@@ -120,7 +142,7 @@ while MG.DAQ.Running
     MG.DAQ.SamplesTakenTotal  = sum(MG.DAQ.SamplesTaken(1:Iteration));
     MG.DAQ.TimeTaken(Iteration) = SamplesToTake/MG.DAQ.SR;
     MG.DAQ.TimeTakenTotal  = sum(MG.DAQ.TimeTaken(1:Iteration));
-  end
+   end
   
   if ~MG.DAQ.Running MG.DAQ.AcquisitionDone = 1; end
    
@@ -189,36 +211,40 @@ while MG.DAQ.Running
   
   %% PLOT DATA
   if MG.Disp.Display
-    try,
-      M_contDisplay;
-    catch exception
-      M_ErrorMessage(exception,'PLOTTING');
-    end
+     try
+        M_contDisplay;
+     catch exception
+        M_ErrorMessage(exception,'PLOTTING');
+     end
   end
   
   %% AUDIO OUTPUT
   if MG.Audio.Output
-    try,
-      M_contAudio;
-    catch exception
-      M_ErrorMessage(exception,'AUDIO OUTPUT');
-    end
+     try
+        M_contAudio;
+     catch exception
+        M_ErrorMessage(exception,'AUDIO OUTPUT');
+     end
   end
   
+  drawnow ; % other options (update,expose) don't work with interactivity
+  
+  % WAIT SOME TIME TO NOT EXCEED MAXIMUM FRAME RATE :)
+  DT = toc; pause(max(0,MG.DAQ.MinDur-DT)); DT = toc;
+  
+  % Fixing bug triggered if no data collected on first iteration
+  if MG.DAQ.Iteration>0,
+     MG.DAQ.DTs(MG.DAQ.Iteration) = DT;
+  end
+  
+  M_Logger(['It.%i  \t(%f s, %2.1f Hz, %d from Engine,  %d in Audio, %d written now, %d written total)\n'],...
+    MG.DAQ.Iteration,DT,1/DT,SamplesToTake,NAudio,NWrite,MG.DAQ.SamplesRecorded);
+
   %% QUERY CONNECTION WITH STIMULATOR/CONTROLLER
   if isfield(MG.Stim,'TCPIP') & get(MG.Stim.TCPIP,'BytesAvailable') 
     M_CBF_TCPIP(MG.Stim.TCPIP,[]); 
   end
-  
-  %% OUTPUT SOME INFORMATION
-  drawnow ; % other options (update,expose) don't work with interactivity
-  
-  % WAIT SOME TIME TO NOT EXCEED MAXIMUM FRAME RATE :)
- DT = toc; pause(max(0,MG.DAQ.MinDur-DT)); DT = toc;
-  MG.DAQ.DTs(MG.DAQ.Iteration) = DT;
-  
-  M_Logger(['It.%i  \t(%f s, %2.1f Hz, %d from Engine,  %d in Audio, %d written now, %d written total)\n'],...
-    Iteration,DT,1/DT,SamplesToTake,NAudio,NWrite,MG.DAQ.SamplesRecorded);
-  
-   if MG.DAQ.Runtime < MG.DAQ.TimeAcquired M_stopEngine; end
+  if MG.DAQ.Runtime < MG.DAQ.TimeAcquired M_stopEngine; end
+   
+
 end

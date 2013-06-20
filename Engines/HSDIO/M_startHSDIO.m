@@ -36,12 +36,20 @@ while ~exist(outpath,'dir'),
    end
 end
 
+% SET STOPFILE TO 1 TO STOP ANY CURRENTLY RUNNING ENGINE
+FID = fopen(MG.DAQ.HSDIO.StopFile,'w'); fwrite(FID,1,'uint32'); fclose(FID);
+
 % REMOVE FILES FROM PREVIOUS RUNS
 Files = {MG.DAQ.HSDIO.TempFile,MG.DAQ.HSDIO.StatusFile,MG.DAQ.HSDIO.TriggersFile,...
   MG.DAQ.HSDIO.StopFile,MG.DAQ.HSDIO.DebugFile};
-for i=1:length(Files) fprintf(['\nDeleting ',escapeMasker(Files{i})]); delete(Files{i});  end
+for i=1:length(Files),
+   if exist(Files{i},'file'),
+      M_Logger(['\nDeleting ',escapeMasker(Files{i})]); 
+      delete(Files{i});
+   end
+end
 
-% SET STOPFILE TO 0
+% SET STOPFILE TO 0 SO THAT NEW ENGINE DOES NOT STOP
 FID = fopen(MG.DAQ.HSDIO.StopFile,'w'); fwrite(FID,0,'uint32'); fclose(FID);
 
 % EXECUTE BINARY
@@ -52,5 +60,7 @@ tic; TimeoutStop=toc;
 while ~exist(MG.DAQ.HSDIO.TempFile,'file') && TimeoutStop<1,
    TimeoutStop=toc; drawnow;
 end
-if TimeoutStop>=1   error('HSDIO engine has not started'); end
+if TimeoutStop>=1   
+    error('HSDIO engine has not started'); 
+end
 M_Logger('HSDIO engine has started successfully'); 
