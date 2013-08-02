@@ -20,7 +20,7 @@ switch Selection
   case 'Triggers';
     
   case 'Disp';
-    MG.Disp.SpikeSort = 0;
+    MG.Disp.Main.SpikeSort = 0;
     MG.Disp.Reference=0;
     
   otherwise error('Fieldname not known.');

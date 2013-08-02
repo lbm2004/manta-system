@@ -19,7 +19,6 @@ switch Selection
     MG.DAQ.DataPath = tempdir;
           
   case 'Disp';
-    MG.Disp.SpikeSort = 1;
     
   case 'Stim';
       MG.Stim.Host = 'localhost';

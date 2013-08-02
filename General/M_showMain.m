@@ -7,19 +7,19 @@ function M_showMain
 global MG Verbose 
 
 % COMPUTE INTENDED STATE
-MG.Disp.Main = (MG.Disp.LFP + MG.Disp.Raw + MG.Disp.Trace) > 0;
+MG.Disp.Main.Main = (MG.Disp.Main.LFP + MG.Disp.Main.Raw + MG.Disp.Main.Trace) > 0;
 
 % GET CURRENT STATE
-CurrentState = strcmp(get(MG.Disp.AH.Data(1),'Visible'),'on');
+CurrentState = strcmp(get(MG.Disp.Main.AH.Data(1),'Visible'),'on');
 
-if MG.Disp.Main~=CurrentState
+if MG.Disp.Main.Main~=CurrentState
 
-  if ~exist('Indices','var') Indices = 1:numel(MG.Disp.AH.Data); end
+  if ~exist('Indices','var') Indices = 1:numel(MG.Disp.Main.AH.Data); end
   M_rearrangePlots(Indices);
   
-  if MG.Disp.Main Setting = 'on'; else Setting = 'off'; end
-  if prod(double(isfield(MG.Disp,{'AH'})))
-    H = [MG.Disp.AH.Data;MG.Disp.TH(:);MG.Disp.ZPH(:);MG.Disp.UH(:);MG.Disp.PPH(:)];
+  if MG.Disp.Main.Main Setting = 'on'; else Setting = 'off'; end
+  if prod(double(isfield(MG.Disp.Main,{'AH'})))
+    H = [MG.Disp.Main.AH.Data;MG.Disp.Main.TH(:);MG.Disp.Main.ZPH(:);MG.Disp.Main.UH(:);MG.Disp.Main.PPH(:)];
     set(H,'Visible',Setting);
   end
   

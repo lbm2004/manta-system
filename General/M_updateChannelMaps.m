@@ -90,16 +90,12 @@ for iB = 1:length(MG.DAQ.BoardsNum)
 end; clear iC iB
 
 % INITIALIZE THE BOOLEAN INDICATORS FOR SPIKES, THRESHOLDING AND AUDIO
-if ~isfield(MG.Disp,'SpikesBool') | (length(MG.Disp.SpikesBool) ~= MG.DAQ.NChannelsTotal)
-  MG.Disp.SpikesBool = logical(ones(MG.DAQ.NChannelsTotal,1));
-  MG.Disp.SpikesBoolSave = MG.Disp.SpikesBool;
+if ~isfield(MG.Disp.Ana.Spikes,'AutoThreshBool') | (length(MG.Disp.Ana.Spikes.AutoThreshBool) ~= MG.DAQ.NChannelsTotal)
+  MG.Disp.Ana.Spikes.AutoThreshBool = logical(ones(MG.DAQ.NChannelsTotal,1));
+  MG.Disp.Ana.Spikes.AutoThreshBoolSave = MG.Disp.Ana.Spikes.AutoThreshBool;
 end
-if ~isfield(MG.Disp,'AutoThreshBool') | (length(MG.Disp.AutoThreshBool) ~= MG.DAQ.NChannelsTotal)
-  MG.Disp.AutoThreshBool = logical(ones(MG.DAQ.NChannelsTotal,1));
-  MG.Disp.AutoThreshBoolSave = MG.Disp.AutoThreshBool;
-end
-if ~isfield(MG.Disp,'PlotBool') | (length(MG.Disp.PlotBool) ~= MG.DAQ.NChannelsTotal)
-  MG.Disp.PlotBool = logical(ones(1,MG.DAQ.NChannelsTotal));
+if ~isfield(MG.Disp.Main,'PlotBool') | (length(MG.Disp.Main.PlotBool) ~= MG.DAQ.NChannelsTotal)
+  MG.Disp.Main.PlotBool = logical(ones(1,MG.DAQ.NChannelsTotal));
 end
 
 % INITIALIZE AUDIO CHANNELS
@@ -114,10 +110,10 @@ if length(MG.Audio.ElectrodesBool) ~= MG.DAQ.NChannelsTotal
 end
   
 % % INITIALIZE DIGITAL REFERENCING ACROSS CHANNELS
-if MG.DAQ.NChannelsTotal <= size(MG.Disp.Referencing.BoolBySet,2)
-  MG.Disp.Referencing.BoolBySet = MG.Disp.Referencing.BoolBySet(:,1:MG.DAQ.NChannelsTotal);
+if MG.DAQ.NChannelsTotal <= size(MG.Disp.Ana.Reference.BoolBySet,2)
+  MG.Disp.Ana.Reference.BoolBySet = MG.Disp.Ana.Reference.BoolBySet(:,1:MG.DAQ.NChannelsTotal);
 else
-  MG.Disp.Referencing.BoolBySet(end,MG.DAQ.NChannelsTotal) = 0;
+  MG.Disp.Ana.Reference.BoolBySet(end,MG.DAQ.NChannelsTotal) = 0;
  end
 % MAKE SURE A SINGLE CHANNEL IS NOT SUBTRACTED AWAY
 if MG.DAQ.NChannelsTotal  == 1; M_setState('Reference',0); end
@@ -126,7 +122,7 @@ if MG.DAQ.NChannelsTotal  == 1; M_setState('Reference',0); end
 M_findProngs;
 
 % REINIT SPIKE SORTER
-MG.Disp.SorterFun(0);
+MG.Disp.Ana.Spikes.SorterFun(0);
 
 % INITIALIZE HSDIO
 switch MG.DAQ.Engine

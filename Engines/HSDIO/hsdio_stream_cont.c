@@ -120,7 +120,7 @@ int createData(
   // PREPARE TRIGGER FILE
   strcpy(FileNameTriggers,FileName);
   strcat(FileNameTriggers,".triggers");
-  printf("Triggers File Name: %s\n",FileNameTriggers);
+  if (DEBUG) printf("Triggers File Name: %s\n",FileNameTriggers);
   
   // PREPARE STOP FILE
   strcpy(FileNameStop,FileName);

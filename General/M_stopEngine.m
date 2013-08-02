@@ -43,7 +43,7 @@ try set(MG.GUI.Engine,'Value',0,'BackGroundColor',MG.Colors.Button); catch; end
 M_Logger(['\n => Engines stopped ...\n']);
 
 % RUN SPIKESORTER FOR CURRENT TRIAL
-for i=1:MG.DAQ.NChannelsTotal MG.Disp.SorterFun(1,i); end
+for i=1:MG.DAQ.NChannelsTotal MG.Disp.Ana.Spikes.SorterFun(1,i); end
 
 % REENABLE BUTTONS FOR CHANNEL SELECTION
 if isfield(MG.GUI,'EngineHandles') set(MG.GUI.EngineHandles,'Enable','on'); end

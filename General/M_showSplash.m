@@ -6,8 +6,8 @@ Path = File(1:find(File==filesep,1,'last'));
 Images = dir([Path,'MANTA*']);
 cImage = Images(ceil(rand*length(Images))).name;
 I = imread([Path,cImage]);
-FigNum = 42*42*42;
-MG.Disp.SplashFig = FigNum;
+FigNum = 20001;
+MG.Disp.Splash.H = FigNum;
 SS = get(0,'ScreenSize');
 figure(FigNum); clf; 
 set(FigNum,'Toolbar','none','MenuBar','none',...

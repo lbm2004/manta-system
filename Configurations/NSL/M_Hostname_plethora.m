@@ -42,7 +42,7 @@ switch Selection
   case 'Triggers';
     
   case 'Disp';
-    MG.Disp.SpikeSort = 1;
+    MG.Disp.Main.SpikeSort = 1;
     
   otherwise error('Fieldname not known.');
 end

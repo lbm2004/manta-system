@@ -20,7 +20,8 @@ switch MG.DAQ.Engine
       case 'Local';
         TriggerState = 1; TriggerSample = 0; MG.DAQ.Triggered = 1;
       case 'Remote';
-        Triggers = M_getHSDIOTriggers;
+        Triggers = []; 
+        while isempty(Triggers) Triggers = M_getHSDIOTriggers; end
         LastPos = size(MG.DAQ.PreTriggers,1);
         if size(Triggers,1) > size(MG.DAQ.PreTriggers,1) % NEW TRIGGERS DETECTED
           NewTriggers = Triggers(LastPos+1:end,:);
@@ -88,6 +89,9 @@ switch MG.DAQ.Engine
           M_Logger('\tIt: %d  :  Samples: Total: %d (Written: %d), Taken: %d, ThisLoop: %d, New: %d, ToTake: %d, TriggerState : %d  Last Trig: %d, Loop: %d\n',...
             MG.DAQ.Iteration,TotalSamplesAcquired,TotalSamplesWritten,MG.DAQ.SamplesTakenTotal,SamplesThisLoop,SamplesAvailable,SamplesToTake,TriggerState,FirstSample,MG.DAQ.CurrentBufferLoop);
           if mod(TotalSamplesAcquired,1) keyboard; end
+          %if SamplesToTake < MG.DAQ.HSDIO.MinSamplesPerIteration 
+           % M_Logger(['NOTE : Only ',n2s(SamplesToTake),' Samples. Deferring Acquisition to next Iteration\n']); SamplesToTake = 0; SamplesAvailable =0;
+          %end
         end
       end
     end
@@ -96,6 +100,6 @@ switch MG.DAQ.Engine
     if MG.DAQ.Iteration < 2  SamplesAvailable = 5000;
     else SamplesAvailable = round(MG.DAQ.SR*(MG.DAQ.DTs(MG.DAQ.Iteration-1)));
     end
-    SamplesToTake = SamplesAvailable;
+    SamplesToTake = min([SamplesAvailable,10000]);
 end
 

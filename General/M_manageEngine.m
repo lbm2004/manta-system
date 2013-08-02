@@ -27,7 +27,10 @@ while MG.DAQ.Running
   NAudio = 0; NWrite = 0;
   
   %% EXTRACT DATA FROM ENGINE
-  [SamplesAvailable,SamplesToTake] = M_SamplesAvailable;
+  SamplesToTake = 0;
+  while (~SamplesToTake & ~MG.DAQ.StopRecording) % CONTINUE ONLY FOR NEW SAMPLES OR IF THE RECORDING IS DONE
+    [SamplesAvailable,SamplesToTake] = M_SamplesAvailable; 
+  end
   
   if Recording StopRecording = MG.DAQ.StopRecording; end
   if SamplesToTake > 0
@@ -91,17 +94,16 @@ while MG.DAQ.Running
                 Time = 2*pi*(MG.DAQ.SamplesAcquired+[0:SamplesToTake-1]')/MG.DAQ.SR;
                 Noise = NoiseScale*(sin(MG.DAQ.HumFreq*Time) + sin(3.25*Time) + sin(0.231*Time));
                 MG.Data.Raw = MG.Data.Raw + repmat(Noise,1,size(MG.Data.Raw,2));
-                for iCh = 1:length(MG.Disp.Spikes.ChSels)
-                  for iSpike = 1:MG.Disp.Spikes.NSpikes(iCh)
+                for iCh = 1:length(MG.Disp.Ana.Spikes.ChSels)
+                  for iSpike = 1:MG.Disp.Ana.Spikes.NCells(iCh)
                     SpikePos = double(rand(SamplesToTake,1)<0.001);
-                    tmp = conv(SpikePos,MG.Disp.Spikes.SpikeWaves{iCh}(:,iSpike));
-                    MG.Data.Raw(:,MG.Disp.Spikes.ChSels(iCh)) = MG.Data.Raw(:,MG.Disp.Spikes.ChSels(iCh)) + tmp(1:SamplesToTake);
+                    tmp = conv(SpikePos,MG.Disp.Ana.Spikes.SpikeWaves{iCh}(:,iSpike));
+                    MG.Data.Raw(:,MG.Disp.Ana.Spikes.ChSels(iCh)) = MG.Data.Raw(:,MG.Disp.Ana.Spikes.ChSels(iCh)) + tmp(1:SamplesToTake);
                   end
                 end
               end
               MG.Data.Raw = MG.Data.Raw/10;
               MG.Data.Raw = bsxfun(@times,MG.Data.Raw,NoiseValues);
-              
             case 'Real'; % LOAD DATA FROM A SAVED RECORDING (e.g. for publication pictures)
               % NOT FINISHED YET
               for i=1:length(MG.DAQ.Files)
@@ -141,7 +143,7 @@ while MG.DAQ.Running
     
     % DETERMINE NUMBER OF SAMPLES TO WRITE
     NWrite =SamplesToTake;
-    % IF RECORDING IS STOPPED & NIDAQ IS USED, NUMBER OF SAMPLES HAS TO ESTIMATED 
+    % IF RECORDING IS STOPPED & NIDAQ IS USED, NUMBER OF SAMPLES HAS TO BE ESTIMATED 
     % (DOWN TRIGGER NOT AVAILABLE)
     if StopRecording && strcmp(MG.DAQ.Engine,'NIDAQ')
       MG.DAQ.TotalSamples = round(MG.DAQ.SR*MG.Disp.Day2Sec*...
@@ -162,10 +164,11 @@ while MG.DAQ.Running
     % MANAGE STOPPING PROCESS
     % FOR NIDAQ : WHEN THE NUMBER OF SAMPLES IS LESS THAN THE AVAILABLE ONES
     % FOR HSDIO : IF THE STOPPING SIGNAL HAS BEEN GIVEN (SAMPLES ARE EXACT W.R.T. THE TRIGGER)    
-    if NWrite < SamplesToTake | (MG.DAQ.StopRecording & strcmp(MG.DAQ.Engine,'HSDIO'))
+    if NWrite < SamplesToTake | (StopRecording & strcmp(MG.DAQ.Engine,'HSDIO'))
       MG.DAQ.Recording = 0;
       M_Logger('\n => Recording stopping...\n');
       M_closeFiles;
+      fclose(MG.DAQ.HSDIO.TempFileID);
       if strcmp(MG.DAQ.Trigger.Type,'Remote')
         switch MG.DAQ.Engine
           case 'NIDAQ'; M_stopEngine;
@@ -175,10 +178,8 @@ while MG.DAQ.Running
       M_saveInformation;
       MG.DAQ.StopRecording = 0;
       if strcmp(MG.DAQ.Trigger.Type,'Remote') && ~MG.DAQ.StopMessageSent
-        if ~strcmp(MG.DAQ.Engine,'HSDIO') 
-          M_sendMessage(['STOP OK']);
-          MG.DAQ.StopMessageSent = 1;
-        end
+        M_sendMessage(['STOP OK']);
+        MG.DAQ.StopMessageSent = 1;
       end
     end
     MG.DAQ.CurrentFileSize = MG.DAQ.SamplesRecorded*MG.DAQ.NChannelsTotal*2/1024/1024;
@@ -189,8 +190,10 @@ while MG.DAQ.Running
   
   %% PLOT DATA
   if MG.Disp.Display
-    try,
-      M_contDisplay;
+    try
+      M_computeDisplay;
+      if MG.Disp.Main.Display  M_showDisplayMain; end
+      if MG.Disp.Rate.Display  M_showDisplayRate; end
     catch exception
       M_ErrorMessage(exception,'PLOTTING');
     end
@@ -198,7 +201,7 @@ while MG.DAQ.Running
   
   %% AUDIO OUTPUT
   if MG.Audio.Output
-    try,
+    try
       M_contAudio;
     catch exception
       M_ErrorMessage(exception,'AUDIO OUTPUT');

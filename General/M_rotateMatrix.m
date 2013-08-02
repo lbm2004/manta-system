@@ -16,14 +16,14 @@ switch SelType
     set(MG.GUI.Depth.State,'Enable','off');
     AllHandles = [];
     for iF=1:length(FN)
-      cName = FN{iF};  cHandles = MG.Disp.AH.(cName);
+      cName = FN{iF};  cHandles = MG.Disp.Main.AH.(cName);
       AxPos.(cName) = cell2mat(get(cHandles,'Position'));
       AllHandles = [AllHandles;cHandles];
     end
     Children = get(cFIG,'Children'); OtherChildren = setdiff(Children,AllHandles(:));
     
     set(AllHandles,'XTick',[],'XTickLabel',[],'YTick',[],'YTickLabel',[],'Box','On');
-    set(MG.Disp.UH,'Visible','off');
+    set(MG.Disp.Main.UH,'Visible','off');
     
     if ~isempty(AxDebug) figure(2); AxDebug = axes('Pos',[0.1,0.1,0.8,0.8]);  end
     while Rotating_
@@ -42,8 +42,8 @@ switch SelType
       SortIndAll = zeros(length(FN),length(AllHandles)/length(FN));
       for iF=1:length(FN)
         cName = FN{iF};
-        cHandles = MG.Disp.AH.(cName);
-        Pos3D = RotationMatrixAzimuth*MG.Disp.PlotPositions3D.(cName)';
+        cHandles = MG.Disp.Main.AH.(cName);
+        Pos3D = RotationMatrixAzimuth*MG.Disp.Main.PlotPositions3D.(cName)';
         Pos3D = RotationMatrixElevation*Pos3D;
         Pos2D = Pos3D([1,3],:);
         Depth  = Pos3D(2,:); [tmp,SortInd] = sort(Depth,'ascend');
@@ -70,7 +70,7 @@ switch SelType
         Pos2DAll.(cName) = Pos2D;
         
         % SET NEW SPATIAL POSITIONS
-        MG.Disp.PlotPositions3D.(cName) = Pos3D';
+        MG.Disp.Main.PlotPositions3D.(cName) = Pos3D';
         SortIndAll(iF,:) = SortInd+(iF-1)*length(cHandles);
       end
       set(cFIG,'Children',[AllHandles(SortIndAll(:)) ; OtherChildren]);
@@ -81,8 +81,8 @@ switch SelType
     % WRITE FINAL POSITIONS BACK INTO DCs
     for iF=1:length(FN)
       cName = FN{iF};
-      for i=1:length(MG.Disp.DC.(cName))
-        MG.Disp.DC.(cName){i}(1:2) = Pos2DAll.(cName)(:,i)';
+      for i=1:length(MG.Disp.Main.DC.(cName))
+        MG.Disp.Main.DC.(cName){i}(1:2) = Pos2DAll.(cName)(:,i)';
       end
     end
     
@@ -90,21 +90,21 @@ switch SelType
     
     % REGENERATE 2D POSITIONS
   case {'alt'}; button = 2; % right
-    MG.Disp.DC = MG.Disp.DCPlain;
+    MG.Disp.Main.DC = MG.Disp.Main.DCPlain;
     for iF=1:length(FN)
       cName = FN{iF};
-      cHandles = MG.Disp.AH.(cName);
+      cHandles = MG.Disp.Main.AH.(cName);
       for i=1:length(cHandles)
-        set(cHandles(i),'Position',MG.Disp.DC.(cName){i},'Color',MG.Colors.Background,'Box','Off');
+        set(cHandles(i),'Position',MG.Disp.Main.DC.(cName){i},'Color',MG.Colors.Background,'Box','Off');
       end
     end
-    set(MG.Disp.UH,'Visible','on');
+    set(MG.Disp.Main.UH,'Visible','on');
     M_changeUnits(1:length(cHandles));
-    M_showSpike(MG.Disp.Spike);
-    M_showSpectrum(MG.Disp.Spectrum);
-    M_showDepth(MG.Disp.Depth);
+    M_showSpike(MG.Disp.Main.Spike);
+    M_showSpectrum(MG.Disp.Main.Spectrum);
+    M_showDepth(MG.Disp.Main.Depth);
     M_showMain;
-    if MG.Disp.DepthAvailable set(MG.GUI.Depth.State,'Enable','on'); end
+    if MG.Disp.Ana.Depth.Available set(MG.GUI.Depth.State,'Enable','on'); end
   otherwise error('Invalid mouse selection.')
 end
 

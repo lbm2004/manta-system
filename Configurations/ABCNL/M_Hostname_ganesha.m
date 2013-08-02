@@ -12,12 +12,12 @@ switch Selection
     MG.HW.HSDIO.ArraysByBoard(1) = struct('Name','lma3d_1_96','Pins',[1:96]);
     MG.HW.HSDIO.Triggers = struct('Remote','PFI1','Local','None');
 
-    MG.HW.SIM.BoardIDs = {'S1','S2','S3'};
-    MG.HW.SIM.BoardsBool = logical([1,1,1]);
-    MG.HW.SIM.SystemsByBoard = struct('Name',{'generic_32Ch_16bit','generic_32Ch_16bit','generic_32Ch_16bit'});
-    MG.HW.SIM.ArraysByBoard(1) = struct('Name','lma3d_1_96','Pins',[1:32]);
-    MG.HW.SIM.ArraysByBoard(2) = struct('Name','lma3d_1_96','Pins',[33:64]);
-    MG.HW.SIM.ArraysByBoard(3) = struct('Name','lma3d_1_96','Pins',[65:96]);
+    % SIMULATION MODE
+      MG.HW.SIM.BoardIDs = {'S1','S2'};
+    MG.HW.SIM.BoardsBool = logical([1,1]);
+    MG.HW.SIM.SystemsByBoard = struct('Name',{'generic_96Ch_16bit','generic_96Ch_16bit'});
+    MG.HW.SIM.ArraysByBoard(1) = struct('Name','nn3d_1_192','Pins',[1:96]);
+    MG.HW.SIM.ArraysByBoard(2) = struct('Name','nn3d_1_192','Pins',[97:192]);
     MG.HW.SIM.Triggers = struct('Remote','PFI1','Local','None');
     
   case 'DAQ';
@@ -34,7 +34,6 @@ switch Selection
   case 'Triggers';
     
   case 'Disp';
-    MG.Disp.SpikeSort = 1;
     
   otherwise error('Fieldname not known.');
 end

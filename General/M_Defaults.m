@@ -47,7 +47,7 @@ if isfield(MG.HW,'SIM') MG.HW.Engines{end+1} = 'SIM'; end;
 %% CONNECTION TO STIMULATION MACHINE DEFAULTS
 MG.Stim.COMterm = 124; % '|'
 MG.Stim.MSGterm = 33; % '!' 
-MG.Stim.Port = 33330; % Port to connect to
+MG.Stim.Port = 33330; %  Port to connect to
 MG.Stim.Host = 'localhost';
 I = ver('instrument');
 if ~isempty(I)
@@ -68,7 +68,7 @@ M_loadDefaultsByHostname(MG.HW.Hostname,'Stim');
 %% DAQ DEFAULTS
 MG.DAQ.Engine = 'NIDAQ';
 MG.DAQ.WithSpikes = 1;
-MG.DAQ.HSDIO.Path = 'R:\';
+MG.DAQ.HSDIO.Path = 'R:\'; % THIS WILL BE ACTIVATED AS A RAMDISK (see M_initializeRamDisk for Details)
 MG.DAQ.HSDIO.BaseName = [MG.DAQ.HSDIO.Path,'HSDIO']; % Intermediate storage of acquired data
 MG.DAQ.HSDIO.TempFile = [MG.DAQ.HSDIO.BaseName,'.bin']; % Intermediate storage of acquired data
 MG.DAQ.HSDIO.StatusFile = [MG.DAQ.HSDIO.BaseName,'.status']; % Intermediate storage of acquired data
@@ -91,11 +91,12 @@ LocalRemap=[8 16 7 15 6 14 5 13 4 12 3 11 2 10 1 9 [8 16 7 15 6 14 5 13 4 12 3 1
 LocalRemap=[LocalRemap LocalRemap+32 LocalRemap+64];
 BankRemap=[1:3:94 2:3:95 3:3:96];
 MG.DAQ.HSDIO.FullRemap=BankRemap(LocalRemap);
+MG.DAQ.HSDIO.MinSamplesPerIteration = 100;
 
 MG.DAQ.NIDAQ.RingEngineLength = 5; % seconds. Defines Ring Buffer Length for Manual Trigger
 MG.DAQ.NIDAQ.BufferSize = 500; % samples. Packages of samples on the level of the DAQ device
 MG.DAQ.SR = 31250; % Analog sampling rate per channel
-MG.DAQ.MinDur = 0.15; % seconds. Minimal Duration of the Loop = Video Rate
+MG.DAQ.MinDur = 0.05; % seconds. Minimal Duration of the Loop = Video Rate
 MG.DAQ.TrialLength = 200; % second. Maximal Trial length
 MG.DAQ.Precision = 'int16'; % Precision for writing data to disk (if DAQ devices deliver lower precision, it needs to be converted to this value)
 switch MG.DAQ.Precision case 'int16'; MG.DAQ.BytesPerSample = 2; otherwise error('Precision not implemented yet'); end
@@ -125,73 +126,85 @@ MG.DAQ.FirstTrial = 0;
 M_loadDefaultsByHostname(MG.HW.Hostname,'Triggers');
 
 %% DISP DEFAULTS
-% Default figure number
-MG.Disp.FIG = 100001;
 % Default display options
 MG.Disp.Display = 0;
-MG.Disp.Raw = 0;
-MG.Disp.Trace = 1;
-MG.Disp.LFP = 0;
-MG.Disp.Depth = 0;
-% Display limits
-MG.Disp.DispDur = 1; % seconds. Displayed Duration
-% SET YLIM BY DEFAULT TO A REASONABLE VALUE FOR SEEING SPIKES
-if ~isfield(MG.Disp,'YLim') MG.Disp.YLim = 100e-6; end
-% Filtering
+MG.Disp.Reference = 1;
 MG.Disp.Humbug = 0;
-MG.Disp.Filter.Raw.Lowpass = inf;
-MG.Disp.Filter.Raw.Highpass = -inf;
-MG.Disp.Filter.Raw.Order = 0;
-MG.Disp.Filter.Trace.Lowpass = 7000;
-MG.Disp.Filter.Trace.Highpass = 300;
-MG.Disp.Filter.Trace.Order = 2;
-MG.Disp.Filter.LFP.Lowpass = 300;
-MG.Disp.Filter.LFP.Highpass = 0.1;
-MG.Disp.Filter.LFP.Order = 2;
-MG.Disp.Filter.Humbug.Styles = M_Humbug('getstyles');
-MG.Disp.Filter.Humbug.Style = MG.Disp.Filter.Humbug.Styles{1};
+MG.Disp.CompensateImpedance = 0;
+MG.Disp.Main.Raw = 0;
+MG.Disp.Main.Trace = 1;
+MG.Disp.Main.LFP = 0;
+MG.Disp.Main.Depth = 0;
+MG.Disp.Main.Spectrum = 0;
+MG.Disp.Main.Spike = 1;
+MG.Disp.Main.PSTH = 0;
+
+% Default figure number
+MG.Disp.Main.H = 100001;
+MG.Disp.Rate.H = 100002;
+
+% Default figure number
+MG.Disp.Main.Display = 0;
+MG.Disp.Rate.Display = 0;
+
+% Display limits
+MG.Disp.Main.DispDur = 1; % seconds. Displayed Duration
+% SET YLIM BY DEFAULT TO A REASONABLE VALUE FOR SEEING SPIKES
+if ~isfield(MG.Disp.Main,'YLim') MG.Disp.Main.YLim = 100e-6; end
+% Filtering
+MG.Disp.Ana.Filter.Raw.Lowpass = inf;
+MG.Disp.Ana.Filter.Raw.Highpass = -inf;
+MG.Disp.Ana.Filter.Raw.Order = 0;
+MG.Disp.Ana.Filter.Trace.Lowpass = 7000;
+MG.Disp.Ana.Filter.Trace.Highpass = 300;
+MG.Disp.Ana.Filter.Trace.Order = 2;
+MG.Disp.Ana.Filter.LFP.Lowpass = 300;
+MG.Disp.Ana.Filter.LFP.Highpass = 0.1;
+MG.Disp.Ana.Filter.LFP.Order = 2;
+MG.Disp.Ana.Filter.Humbug.Styles = M_Humbug('getstyles');
+MG.Disp.Ana.Filter.Humbug.Style = MG.Disp.Ana.Filter.Humbug.Styles{1};
 % Graphics properties
-MG.Disp.UseUserXY = 0;
-MG.Disp.Tiling.State = 0;
-MG.Disp.AxisSize = 6;
-MG.Disp.Renderer = 'Painters';
-MG.Disp.MarginFraction = [0.93,0.85];
+MG.Disp.Main.UseUserXY = 0;
+MG.Disp.Main.Tiling.State = 0;
+MG.Disp.Main.AxisSize = 6;
+MG.Disp.Main.MarginFraction = [0.93,0.85];
 % Spectrum Display
-MG.Disp.Spectrum = 0;
-MG.Disp.SpecFrac = 0.35;
-MG.Disp.NFFT = 1024;
-% Spike Triggering
-MG.Disp.Spike = 1;
-MG.Disp.SpikeFrac = 0.4;
-MG.Disp.AutoThresh.State = 1;
-MG.Disp.ISIDur = 0.001;
-MG.Disp.PreDur = 0.002;
-MG.Disp.PostDur = 0.005;
-MG.Disp.SpikeThreshold = -4;
-MG.Disp.NSpikes = 10;
+MG.Disp.Main.SpecFrac = 0.35;
+MG.Disp.Main.NFFT = 1024;
+% Spike Triggering & Sorting
+MG.Disp.Ana.Spikes.SpikeFrac = 0.4;
+MG.Disp.Ana.Spikes.AutoThresh.State = 1;
+MG.Disp.Ana.Spikes.ISIDur = 0.001;
+MG.Disp.Ana.Spikes.PreDur = 0.002;
+MG.Disp.Ana.Spikes.PostDur = 0.005;
+MG.Disp.Ana.Spikes.SpikeThreshold = -4;
+MG.Disp.Ana.Spikes.NSpikesMax = 10;
+% SpikeSorting
+MG.Disp.Ana.Spikes.SpikeSort= 0; 
+MG.Disp.Ana.Spikes.SorterFun = @M_Sorter_Extrema;
 % PSTH display
-MG.Disp.PSTH = 0;
-MG.Disp.PSTHType = 'Spikes';
-MG.Disp.SRPSTH = 100;
+MG.Disp.Main.PSTHType = 'Spikes';
+MG.Disp.Main.SRPSTH = 100;
 % Compensate Impedance
 MG.Disp.CompensateImpedance = 0;
 % Common Referencing
-MG.Disp.Reference = 1;
-MG.Disp.Referencing.NSets = 6;
-MG.Disp.Referencing.StateBySet = logical(zeros(1,MG.Disp.Referencing.NSets));
-MG.Disp.Referencing.BoolBySet = logical(zeros(MG.Disp.Referencing.NSets,0));
-MG.Disp.Referencing.BankSize = 16; % Number of channels over which common referencing occurs
+MG.Disp.Ana.Reference.NSets = 6;
+MG.Disp.Ana.Reference.StateBySet = logical(zeros(1,MG.Disp.Ana.Reference.NSets));
+MG.Disp.Ana.Reference.BoolBySet = logical(zeros(MG.Disp.Ana.Reference.NSets,0));
+MG.Disp.Ana.Reference.BankSize = 16; % Number of channels over which common referencing occurs
 % Depth
-MG.Disp.DepthYScale = 0.9;
-MG.Disp.DepthType = 'LFP';
-MG.Disp.DepthLFPNormalize = 1;
+MG.Disp.Ana.Depth.DepthYScale = 0.9;
+MG.Disp.Ana.Depth.DepthType = 'LFP';
+MG.Disp.Ana.Depth.DepthLFPNormalize = 1;
 % Constants
-MG.Disp.Day2Sec = 24*60*60;
-MG.Disp.MaxSteps = 5000;
-% SpikeSorting
-MG.Disp.SpikeSort= 0; 
-MG.Disp.SorterFun = @M_Sorter_Extrema;
+MG.Disp.Main.Day2Sec = 24*60*60;
+MG.Disp.Main.MaxSteps = 5000;
 M_loadDefaultsByHostname(MG.HW.Hostname,'Disp');
+
+% RATE DISPLAY
+MG.Disp.Rate.Display = 0;
+MG.Disp.Rate.SR = 100;
+MG.Disp.Rate.RatesMax = 100;
 
 %% AUDIO DEFAULTS
 MG.Audio.Output = 0;
@@ -206,15 +219,16 @@ switch computer
   case 'PCWIN'; MG.GUI.MenuOffset = 30; 
   otherwise MG.GUI.MenuOffset = 45; 
 end
-MG.GUI.FIGs = [MG.Disp.FIG,MG.GUI.FIG];
-
+MG.GUI.FIGs = [MG.Disp.Main.H,MG.Disp.Rate.H,MG.GUI.FIG];
 
 %% DEFINES DEFAULT COLORS
 if ~isfield(MG.GUI,'Skin') MG.GUI.Skin = 'default'; end
-MG.Colors.GUIBackground = [0,0,.8];
-MG.Colors.GUIBackgroundSim = [1,0,0];
 switch lower(MG.GUI.Skin)
-  case 'default';
+  case 'blue';
+    MG.Colors.GUIBackground = [0,0,.8];
+    MG.Colors.GUIBackgroundSim = [1,0,0];
+    MG.Colors.GUITextColor = [1,1,1];
+    MG.Colors.PanelHighlight = [0.5,0.5,0.5];
     MG.Colors.Background = [0.95,0.95,0.95];
     MG.Colors.FigureBackground = [1,1,1];
     MG.Colors.LineColor = [0,0,0];
@@ -237,6 +251,10 @@ switch lower(MG.GUI.Skin)
     MG.Colors.AlterColors = {[1,1,1],[1,1,.7]};
   
   case 'classic'
+    MG.Colors.GUIBackground = [0,0,.8];
+    MG.Colors.GUIBackgroundSim = [1,0,0];
+    MG.Colors.GUITextColor = [1,1,1];
+    MG.Colors.PanelHighlight = [0.5,0.5,0.5];
     MG.Colors.Background = [0,0,0];
     MG.Colors.FigureBackground = [0,0,0];
     MG.Colors.LineColor = [1,1,1];
@@ -256,5 +274,30 @@ switch lower(MG.GUI.Skin)
     MG.Colors.Cycleusage = HF_colormap({[0,1,0],[1,0,0]},[0,1],100);
     MG.Colors.Inactive = [0.5,0.5,0.5];
     MG.Colors.SpikeColorsBase = [0.5,0,0;1,0,0;1,1,0]';
+    
+  case 'default'
+    MG.Colors.GUIBackground = [1,1,1];
+    MG.Colors.GUIBackgroundSim = [1,1,1];
+    MG.Colors.GUITextColor = [0,0,0];
+    MG.Colors.Panel = [1,1,1];
+    MG.Colors.PanelHighlight = [0.5,0.5,0.5];
+    MG.Colors.Background = [1,1,1];
+    MG.Colors.FigureBackground = [1,1,1];
+    MG.Colors.LineColor = [0,0,0];
+    MG.Colors.Raw = [0,0,0];
+    MG.Colors.Trace = [0,0,1];
+    MG.Colors.LFP = [1,0,0];
+    MG.Colors.Spectrum = [0,0,1];
+    MG.Colors.Threshold = [1,0,0];
+    MG.Colors.Indicator = [.7,.7,.7];
+    MG.Colors.PSTH = [0,1,0];
+    MG.Colors.SpikeBackground = [1,0.9,1];
+    MG.Colors.Button = [1,1,0];
+    MG.Colors.ButtonAct = [1,0,0];
+    MG.Colors.TCPIP.open = [0,1,0];
+    MG.Colors.TCPIP.closed = [1,1,0];
+    MG.Colors.Cycleusage = HF_colormap({[0,1,0],[1,0,0]},[0,1],100);
+    MG.Colors.Inactive = [0.5,0.5,0.5];
+    MG.Colors.SpikeColorsBase = [0.5,0,0;1,0,0;1,0.5,0]';
 end
     

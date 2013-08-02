@@ -24,7 +24,7 @@ end
 
 % INITIALIZE DATA MATRIX
 M_refreshTimeSteps;
-MG.Data.Raw = zeros(MG.Disp.DispStepsFull,MG.DAQ.NChannelsTotal);
+MG.Data.Raw = zeros(MG.Disp.Main.DispStepsFull,MG.DAQ.NChannelsTotal);
 if isfield(MG.Data,'Offset') MG.Data = rmfield(MG.Data,'Offset'); end
 
 % SETUP ENGINES
@@ -50,7 +50,7 @@ for i=MG.DAQ.BoardsNum
       end
       
     case 'HSDIO'; % MOSTLY PERFORMED IN THE STREAMING PROGRAM
-      if exist(MG.DAQ.HSDIO.StatusFile,'file') FID = fopen(MG.DAQ.HSDIO.StatusFile,'w'); fclose(FID); end
+      %if exist(MG.DAQ.HSDIO.StatusFile,'file') FID = fopen(MG.DAQ.HSDIO.StatusFile,'w'); fclose(FID); end
   end
 end
 % SET AUDIO TO THE SAME SAMPLE RATE AS DAQ

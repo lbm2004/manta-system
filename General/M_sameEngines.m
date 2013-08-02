@@ -8,7 +8,7 @@ if isempty(MGold)
 else
   Fields = {'DAQ','Disp'};
   SubFields.DAQ = {'SR','ChannelsBool','BoardsBool'};
-  SubFields.Disp = {'DispDur','Tiling'};
+  SubFields.Disp = {'Main.DispDur','Main.Tiling'};
   for i=1:length(Fields)
     for j=1:length(SubFields.(Fields{i}))
       try, cField = ['.',Fields{i},'.',SubFields.(Fields{i}){j}];

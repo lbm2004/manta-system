@@ -41,6 +41,7 @@ for i=1:MG.HW.NBoards % LOOP over physically present boards
         Num = libpointer('doublePtr',0);
         S = DAQmxGetDevAIMaxMultiChanRate(MG.DAQ.BoardIDs{k},Num); if S NI_MSG(S); end
       case 'HSDIO'; % DONE IN STREAMING PROGRAM
+        M_initializeRamDisk;
     end
     
     % ASSIGN PROPERTIES OF CONNECTED SYSTEMS

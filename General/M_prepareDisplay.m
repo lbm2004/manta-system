@@ -3,7 +3,7 @@ function M_prepareDisplay
 
 %% SETUP FIGURE
 global MG MGold Verbose
-FIG = MG.Disp.FIG; MPos = get(MG.GUI.FIG,'Position');
+FIG = MG.Disp.Main.H; MPos = get(MG.GUI.FIG,'Position');
 MG.Disp.Done = 0;
 
 %% PREPARE VARIABLES
@@ -216,7 +216,7 @@ if ~MG.Disp.Raw            set(MG.Disp.RPH,'Visible','Off'); end
 if ~MG.Disp.Trace          set(MG.Disp.TPH,'Visible','Off'); end
 if ~MG.Disp.LFP             set(MG.Disp.LPH,'Visible','Off'); end
 if ~MG.Disp.Spike          set(MG.Disp.SPH,'Visible','Off'); end
-if ~MG.Disp.Spectrum   set(MG.Disp.FPH,'Visible','Off'); end
+if ~MG.Disp.Spectrum    set(MG.Disp.FPH,'Visible','Off'); end
 M_showSpike(MG.Disp.Spike);
 M_showSpectrum(MG.Disp.Spectrum);
 M_showDepth(MG.Disp.Depth);
@@ -225,7 +225,8 @@ M_showMain;
 if MG.Disp.Array3D M_prepare3DRotation; end
 % PREPARE SIMULATED DATA (FOR OFFLINE TESTING)
 if strcmp(MG.DAQ.Engine,'SIM') M_prepareSpikes; end
- 
+
+
 MGold.Disp = MG.Disp; MGold.DAQ = MG.DAQ; % Save to check in M_startEngine
 MG.Disp.Done = 1;
 
@@ -315,7 +316,7 @@ end
 
 function M_prepare3DRotation
 global MG
-set(MG.Disp.FIG,'ButtonDownFcn',{@M_rotateMatrix},...
+set(MG.Disp.FIG.Main.H,'ButtonDownFcn',{@M_rotateMatrix},...
   'WindowButtonUpFcn','global Rotating_ ; Rotating_ = 0;','Units','norm');
 FN = {'Data','Spike','Spectrum'};
 
@@ -349,7 +350,7 @@ SelType = get(gcf, 'SelectionType');
 switch SelType 
   case {'normal','open'}; button = 1; % left
     % POP OUT PLOT TO INDIVIDUAL WINDOW
-    cFIG = MG.Disp.FIG+Index;
+    cFIG = MG.Disp.FIG.Main.H+100*Index;
     figure(cFIG); clf;
     set(cFIG,'Position',[10,50,400,200],'DeleteFcn',{@M_CBF_returnPlot,Index,String},...
       'WindowScrollWheelFcn',{@M_CBF_axisWheel},...
@@ -372,14 +373,14 @@ switch SelType
     else Color = MG.Colors.Background;
     end
     set([MG.Disp.AH.Data(Index),MG.Disp.AH.Spike(Index)],'Color',Color)
-    set(MG.Disp.FIG,'Name',[MG.Disp.FigureTitle,' (',n2s(sum(MG.Disp.HasSpikeBool)),' Spikes)']);
+    set(MG.Disp.FIG.Main.H,'Name',[MG.Disp.FigureTitle,' (',n2s(sum(MG.Disp.HasSpikeBool)),' Spikes)']);
 end
 
 function M_CBF_returnPlot(obj,event,Index,String)
 global MG
 try
-  set(MG.Disp.AH.Data(Index),'Parent',MG.Disp.FIG);
-  set(MG.Disp.AH.Spike(Index),'Parent',MG.Disp.FIG);
+  set(MG.Disp.AH.Data(Index),'Parent',MG.Disp.FIG.Main.H);
+  set(MG.Disp.AH.Spike(Index),'Parent',MG.Disp.FIG.Main.H);
   MG.Disp.ZoomedBool(Index) = 0;
   set([MG.Disp.TPH(Index),MG.Disp.RPH(Index),MG.Disp.LPH(Index)],...
     'XData',MG.Disp.TimeInit,'YData',MG.Disp.TraceInit);

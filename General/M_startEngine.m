@@ -23,24 +23,26 @@ M_prepareParameters; M_Logger('\n => Parameters set ...');
 M_prepareEngine('Trigger',P.Trigger); M_Logger('\n => Engines ready ...'); 
 
 % PREPARE FIGURE FOR PLOTTING
-FigOpen = sum(MG.Disp.FIG==get(0,'Children'));
+FigOpen = ~isempty(intersect([MG.Disp.Main.H,MG.Disp.Rate.H],get(0,'Children')));
 if MG.DAQ.FirstTrial || ~FigOpen || ~M_sameEngines
-  M_prepareDisplay; M_Logger('\n => Display ready ...'); 
+  M_prepareDisplayMain;
+  M_prepareDisplayRate;
+  M_Logger('\n => Display ready ...');
 else
-  M_Logger(' (Reusing old Display)'); 
+  M_Logger(' (Reusing old Display)');
   if FigOpen
     try
-      for i=1:MG.Disp.NPlot
-        if ~MG.Disp.ZoomedBool(i)
-          set([MG.Disp.RPH(i),MG.Disp.TPH(i),MG.Disp.LPH(i)],'YData',MG.Disp.TraceInit(:,1));
-          if isfield(MG.Disp,'RawD') MG.Disp.RawD(:) = 0; end
-          if isfield(MG.Disp,'TraceD') MG.Disp.TraceD(:) = 0; end
-          if isfield(MG.Disp,'LFPD') MG.Disp.LFPD(:) = 0; end
+      for i=1:MG.Disp.Main.NPlot
+        if ~MG.Disp.Main.ZoomedBool(i)
+          set([MG.Disp.Main.RPH(i),MG.Disp.Main.TPH(i),MG.Disp.Main.LPH(i)],'YData',MG.Disp.Main.TraceInit(:,1));
+          if isfield(MG.Disp.Data,'RawD') MG.Disp.Data.RawD(:) = 0; end
+          if isfield(MG.Disp.Data,'TraceD') MG.Disp.Data.TraceD(:) = 0; end
+          if isfield(MG.Disp.Data,'LFPD') MG.Disp.Data.LFPD(:) = 0; end
         else
-          set([MG.Disp.RPH(i),MG.Disp.TPH(i),MG.Disp.LPH(i)],'YData',MG.Disp.TraceInitFull(:,1));
+          set([MG.Disp.Main.RPH(i),MG.Disp.Main.TPH(i),MG.Disp.Main.LPH(i)],'YData',MG.Disp.Main.TraceInitFull(:,1));
         end
       end
-    catch; 
+    catch
       fprintf('WARNING : cannot clear plots\n');
     end
   end
@@ -65,7 +67,7 @@ set(MG.GUI.EngineHandles,'Enable','off');
 
 % LOCAL TRIGGER TO START
 if strcmp(MG.DAQ.Trigger.Type,'Local')
-  MG.Disp.SaveSpikes = 0;
+  MG.Disp.Ana.Spikes.Save = 0;
   switch MG.DAQ.Engine
     case 'NIDAQ';
       for i=MG.DAQ.BoardsNum

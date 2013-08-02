@@ -5,16 +5,16 @@ function M_saveSpiketimes
 global MG Verbose
 
 % AVOID ALLSPIKES GETTING SET TO [] IN M_PREPARERECORDING BEFORE WE HAVE SAVED
-if isfield(MG.Disp,'AllSpikes')
-  cAllSpikes = MG.Disp.AllSpikes;
+if isfield(MG.Disp.Ana.Spikes,'AllSpikes')
+  cAllSpikes = MG.Disp.Ana.Spikes.AllSpikes;
   
   M_Logger('M_saveSpiketimes : writing all spiketimes up to current repetition.\n'); 
   
-  if MG.Disp.SaveSpikes
+  if MG.Disp.Ana.Spikes.Save
     for i=1:MG.DAQ.NChannelsTotal
       if ~isempty(cAllSpikes) cData = cAllSpikes(i); else cData = []; end
-      cData.sigma = MG.Disp.Thresholds(i)/4;
-      save(MG.Disp.SpikeFileNames{i},'-struct','cData');
+      cData.sigma = MG.Disp.Ana.Spikes.Thresholds(i)/4;
+      save(MG.Disp.Ana.Spikes.SpikeFileNames{i},'-struct','cData');
     end
   end
 end

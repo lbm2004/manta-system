@@ -6,6 +6,7 @@ global MG
 
 Triggers = [];
 FID = fopen(MG.DAQ.HSDIO.TriggersFile,'r');
+MG.DAQ.HSDIO.TriggersFileFID = FID;
 if FID>0
   tmp = fread(FID,'char');
   Triggers = str2num(char(tmp)');

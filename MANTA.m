@@ -34,6 +34,14 @@ function MANTA(varargin)
 %   - Differences also exist for different input ranges 
 % - MG.HW should contain the physical properties of all DAQ Cards
 % - MG.DAQ should contain the properties of the cards used with MANTA
+% - MG.Disp contains all the information relating to plots
+%     There are two main plots: Main & Rate
+%     Each of them house all their information underneath them.
+%     There are some more main fields, which hold general information for plotting:
+%     - Ana {Spikes,Referencing,Filter}
+%     - : 
+%     - :
+
 
 %% TODO:
 % - generalize narrowband humbug to arbitrary sampling rates (using fitler design toolbox)
@@ -48,6 +56,8 @@ function MANTA(varargin)
 % - Audio: try PortAudio with pa-wavplay for continuous audio output (cross-platform that does not require the DAQ Toolbox)
 % - Use different TCP/IP suite
 %  
+% 
+%
 % LICENSE
 % This file is part of MANTA.
 % MANTA is free software: you can redistribute it and/or modify
@@ -89,7 +99,9 @@ M_prepareEngine;
 %% BUILD THE GUI (USING THE PREVIOUSLY SET VALUES)
 M_buildGUI;
 
-try close(MG.Disp.SplashFig); end
+M_orderfields;
+
+try close(MG.Disp.Splash.H); end
 
 
 function M_setPath(Path)

@@ -14,7 +14,8 @@ MG.Disp.PlotInd = find(MG.Disp.PlotBool); PlotInd = MG.Disp.PlotInd;
 NPlot = MG.DAQ.NChannelsTotal; SPAll = [];
 
 %% CHECK IF FIGURE WAS CLOSED AND TURN OFF PLOTTING
-if ~sum(MG.Disp.FIG==get(0,'Children')) MG.Disp.Display = 0; return; end
+if ~sum([MG.Disp.FIG.Main.H,MG.Disp.FIG.Rate.H]==get(0,'Children')) 
+  MG.Disp.Display = 0; return; end
 
 %% TRACK STANDARD DEVIATIONS OF ALL CHANNELS
 if (MG.Disp.Spike & MG.Disp.AutoThresh.State) | MG.Disp.CompensateImpedance
@@ -43,7 +44,7 @@ end
 %% FILTER DIFFERENT SIGNALS
 if MG.Disp.Humbug
   % 'AUTOCORRELATION FILTERING' : USEFUL FOR IRREGULAR REPEATING SIGNALS
-  if MG.Disp.HumbugSeqAv
+  if MG.Disp.Ana.Filter.Humbug.SeqAv
     PeriodSteps = round(MG.DAQ.SR/MG.DAQ.HumFreq);
     NPeriods = floor(size(MG.Data.Raw,1)/PeriodSteps);
     if NPeriods
@@ -175,7 +176,7 @@ if MG.Disp.Spike
     end
     for i=PlotInd
       SP = [ ];
-      if MG.Disp.SpikesBool(i) % SHOW SPIKES FOR THIS CHANNEL
+      if MG.Disp.Ana.Spikes.SpikesBool(i) % SHOW SPIKES FOR THIS CHANNEL
         if MG.Disp.Thresholds(i)>0
           Ind = find(MG.Data.Trace(:,i)>MG.Disp.Thresholds(i));
         else
@@ -206,13 +207,21 @@ if MG.Disp.Spike
       set(MG.Disp.FR(i),'String',...
          [sprintf('%5.1f Hz',length(SP)/MG.DAQ.TimeTaken(Iteration))]);
       % SAVE SPIKETIMES WHILE RECORDING (GENERALIZE TO MULTIPLE CELLS)
-      if MG.Disp.SaveSpikes % ONLY FOR REMOTELY TRIGGERED RECORDINGS
+      if MG.Disp.Ana.Spikes.Save % ONLY FOR REMOTELY TRIGGERED RECORDINGS
         MG.Disp.AllSpikes(i).trialid(end+1:end+length(SP)) = MG.DAQ.Trial;
         MG.Disp.AllSpikes(i).spikebin(end+1:end+length(SP)) = SP + FirstSample-1;
       end
     end
   end
 end
+
+%% UPDATE RATE DISPLAY
+
+
+
+
+
+
 
 %% UPDATE PSTH
 if CollectPSTH
@@ -263,7 +272,7 @@ for i=PlotInd
     if MG.Disp.Trace        set(MG.Disp.TPH(i),'YData',MG.Disp.TraceA(:,i)); end
     if MG.Disp.LFP            set(MG.Disp.LPH(i),'YData',MG.Disp.LFPA(:,i)); end
   end
-  if MG.Disp.Spike && MG.Disp.SpikesBool(i)
+  if MG.Disp.Spike && MG.Disp.Ana.Spikes.Bool(i)
     set(MG.Disp.ThPH(i),'YData',[MG.Disp.Thresholds(i),MG.Disp.Thresholds(i)]);
     if MG.Disp.NewSpikes(i)
        for j=1:MG.Disp.NSpikes
@@ -274,7 +283,7 @@ for i=PlotInd
   end
   if CollectPSTH & MG.Disp.PSTH & DispIteration <= size(MG.Disp.cIndP) 
     MAX = max(abs(MG.Disp.PSTHs(3:end,i)));
-    if MAX Factor = MG.Disp.YLims(i,2)/1.3/MAX; else Factor = 1; end
+    if MAX Factor = MG.Disp.Main.YLims(i,2)/1.3/MAX; else Factor = 1; end
     set(MG.Disp.PPH(i),'YData',Factor*MG.Disp.PSTHs(MG.Disp.cIndP(DispIteration,:),i));
   end
 end

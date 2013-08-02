@@ -10,10 +10,10 @@ Styles = {'50Hz','60Hz','SeqAv'};
 
 if exist('Opt','var') & strcmp(Opt,'getstyles') b = Styles; return; end
 
-MG.Disp.HumbugSeqAv = 0;
+MG.Disp.Ana.Filter.Humbug.SeqAv = 0;
 b = 1; a = 1;
 
-switch MG.Disp.Filter.Humbug.Style
+switch MG.Disp.Ana.Filter.Humbug.Style
   case '50Hz'  % EUROPEAN MODE
     switch round(MG.DAQ.SR)
       case 20833
@@ -47,14 +47,14 @@ switch MG.Disp.Filter.Humbug.Style
     end
     
     case 'SeqAv'
-     MG.Disp.HumbugSeqAv = 1;
+     MG.Disp.Ana.Filter.Humbug.SeqAv = 1;
      b = 1; a = 1;
      
   otherwise error('Filter style for humbug not implemented!');  
 end
 
-MG.Disp.Filter.Humbug.b = b;
-MG.Disp.Filter.Humbug.a = a;
+MG.Disp.Ana.Filter.Humbug.b = b;
+MG.Disp.Ana.Filter.Humbug.a = a;
 
 % OLD FILTERS:
 %   case Styles{2}; % O2 instable

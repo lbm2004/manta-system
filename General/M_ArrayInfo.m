@@ -316,6 +316,24 @@ switch lower(ArrayName)
     Reference = {{'Tip',[NaN,NaN,NaN]}};
     Ground = {{'Tip',[NaN,NaN,NaN]}};
     Comment = '';
+
+  case 'nn3d_1_192';
+    PinsByElectrode = [1:192];
+    Drive = 1; Type = '3d';
+    Nx = 8; Ny = 3; Nz = 8; Dz = 0.2;
+    for iE=1:length(PinsByElectrode)
+      ElecPos(iE,:) = [ ...
+        mod(floor((iE-1)/Nz),Nx) ,...
+        floor((iE-1)/(Nz*Nx)) ,...
+        Dz*(Nz-mod(iE-1,Nz)-1) ]; % Spacing is 1mm in X & Y
+    end
+    Impedances = repmat(0.5,size(PinsByElectrode));
+    WireDiameter =  repmat(25,size(PinsByElectrode));
+    Reference = {{'Tip',[NaN,NaN,NaN]}};
+    Ground = {{'Tip',[NaN,NaN,NaN]}};
+    Comment = '';
+
+    
     
   case {'plextrode_24','plextrode_24_100'};
     NChannels = 24;

@@ -4,10 +4,16 @@ function M_startHSDIO
 global MG Verbose
 
 Cmd = [MG.DAQ.HSDIO.EngineCommand,' '];
+% HARDWARE SETUP:
+% Connections (NI to Circuit, at this point hard-coded in the streamer):
+% - LVDS to LVDS (Clock)
+% - DIO0 to DIO (Data)
+% - DIO2 to NI Outputs from baphy card (D0.1, D2.1, see InitializeHW.m) (Trigger)
+% 
 % ADD PARAMETERS TO COMMAND
-%Example : R:\HSDIO.bin 5000000 20000 10 D1 0 PFI0 96 16 1
+% Example : R:\HSDIO.bin 5000000 20000 10 D1 0 PFI0 96 16 1
 %
-% Command to setup RamDisk:
+% Command to SETUP RAMDISK (Needs to be run before the ):
 % imdisk -a -m R: -t vm -s 500M -p "/fs:ntfs /q /y"
 % which need to be run in an elevated command prompt
 % alternatively one can use 
@@ -27,7 +33,7 @@ Cmd = [Cmd,sprintf('%d  ',MG.DAQ.HSDIO.Simulation)]; % Simulation Mode
 Cmd = [Cmd,'  >  ',MG.DAQ.HSDIO.DebugFile]; % Debugging Output
 M_Logger(['\n\nExecuting : [  ',escapeMasker(Cmd),'  ]\n']);
 
-outpath=fileparts(MG.DAQ.HSDIO.BaseName);
+outpath = fileparts(MG.DAQ.HSDIO.BaseName);
 while ~exist(outpath,'dir'),
    yn=questdlg(['Temp folder ' outpath ' not found. Retry?'],...
       'Missing path','Yes','Cancel','Yes');
@@ -39,7 +45,7 @@ end
 % REMOVE FILES FROM PREVIOUS RUNS
 Files = {MG.DAQ.HSDIO.TempFile,MG.DAQ.HSDIO.StatusFile,MG.DAQ.HSDIO.TriggersFile,...
   MG.DAQ.HSDIO.StopFile,MG.DAQ.HSDIO.DebugFile};
-for i=1:length(Files) fprintf(['\nDeleting ',escapeMasker(Files{i})]); delete(Files{i});  end
+for i=1:length(Files) M_Logger(['\nDeleting ',escapeMasker(Files{i})]); delete(Files{i});  end
 
 % SET STOPFILE TO 0
 FID = fopen(MG.DAQ.HSDIO.StopFile,'w'); fwrite(FID,0,'uint32'); fclose(FID);
