@@ -4,6 +4,8 @@ function String = HF_var2string(Var)
 
 if ischar(Var) % TEXT
   String  = ['''',Var,''''];
+elseif isnumeric(Var) && length(Var)==1 % MATRICES
+   String = sprintf('%1.10g',Var);      
 elseif isnumeric(Var) % MATRICES
   String = '[';
   for i=1:size(Var,1)

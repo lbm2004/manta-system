@@ -14,12 +14,14 @@ switch Selection
   case 'DAQ';
     MG.DAQ.DataPath = 'C:\Data\';
     MG.DAQ.Engine='HSDIO';
+    MG.DAQ.HSDIO.Path = 'R:\';
+
     %MG.DAQ.HSDIO.TempFile = 'F:\data\HSDIO.bin'; % Intermediate storage of acquired data
     %MG.DAQ.HSDIO.DebugFile = 'F:\data\HSDIO.out'; % Debugging information for digital acquisition
-    MG.DAQ.HSDIO.TempFile = 'R:\HSDIO.bin'; % Intermediate storage of acquired data
-    MG.DAQ.HSDIO.DebugFile = 'R:\HSDIO.out'; % Debugging information for digital acquisition
-    MG.DAQ.HSDIO.EngineCommand = 'C:\Code\baphy\Hardware\hsdio\64-bit\hsdio_stream_dual';
-    MG.DAQ.HSDIO.Simulation = 0;
+%     MG.DAQ.HSDIO.TempFile = 'R:\HSDIO.bin'; % Intermediate storage of acquired data
+%     MG.DAQ.HSDIO.DebugFile = 'R:\HSDIO.out'; % Debugging information for digital acquisition
+%     MG.DAQ.HSDIO.EngineCommand = 'C:\Code\baphy\Hardware\hsdio\64-bit\hsdio_stream_dual';
+%     MG.DAQ.HSDIO.Simulation = 0;
 
   case 'Stim';
     MG.Stim.Host = '137.53.80.76';  % weasel.ohsu.edu

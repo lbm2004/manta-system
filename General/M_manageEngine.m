@@ -177,9 +177,13 @@ while MG.DAQ.Running
       end
       M_saveInformation;
       MG.DAQ.StopRecording = 0;
-      if strcmp(MG.DAQ.Trigger.Type,'Remote') && ~MG.DAQ.StopMessageSent
+      while ~MG.DAQ.StopMessageReceived pause(0.1);  
+        if isfield(MG.Stim,'TCPIP') & get(MG.Stim.TCPIP,'BytesAvailable')
+          M_CBF_TCPIP(MG.Stim.TCPIP,[]);
+        end    
+      end
+      if strcmp(MG.DAQ.Trigger.Type,'Remote')
         M_sendMessage(['STOP OK']);
-        MG.DAQ.StopMessageSent = 1;
       end
     end
     MG.DAQ.CurrentFileSize = MG.DAQ.SamplesRecorded*MG.DAQ.NChannelsTotal*2/1024/1024;

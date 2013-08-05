@@ -12,6 +12,8 @@ MG.DAQ.SamplesAcquired = 0;  % total samples acquired this session.
 MG.DAQ.SamplesTakenTotal = 0; 
 MG.DAQ.SamplesRecovered = 0;
 MG.DAQ.AcquisitionDone = 1;
+MG.DAQ.StopRecording = 0; 
+MG.DAQ.StopMessageReceived = 0;
 switch MG.DAQ.Engine case 'HSDIO'; MG.DAQ.Triggered = 0; MG.DAQ.LastPosBytes = inf; end
 
 % SETUP CHANNELS, RANGES AND FILTERS

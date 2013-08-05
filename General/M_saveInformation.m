@@ -7,7 +7,8 @@ global MG Verbose
 MGSave = rmfield(MG,{'Data','Colors','GUI','Audio','Disp','Log'});
 if isfield(MG,'AI') MGSave = rmfield(MGSave,'AI'); end
 if isfield(MGSave,'DIO') MGSave = rmfield(MGSave,'DIO'); end
-try MGSave = rmfield(MGSave,{'AudioI','AudioO'}); end
+try MGSave = rmfield(MGSave,{'AudioO'}); end
+try MGSave = rmfield(MGSave,{'AudioI'}); end
 MGSave.DAQ = rmfield(MGSave.DAQ,{'Channels'});
 Fields = {'HasSpikeBool','DepthsByColumn','DC','SorterFun'};
 for i=1:length(Fields)
