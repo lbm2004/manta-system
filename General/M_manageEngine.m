@@ -128,6 +128,7 @@ while MG.DAQ.Running
    
   %% SAVE DATA
   if Recording
+    % INIT RECORDING
     if MG.DAQ.StartRecording % note the time when recording started
       MG.DAQ.StartRecording = 0; MG.DAQ.SamplesRecorded = 0;
       switch MG.DAQ.Trigger.Type
@@ -146,11 +147,12 @@ while MG.DAQ.Running
     % IF RECORDING IS STOPPED & NIDAQ IS USED, NUMBER OF SAMPLES HAS TO BE ESTIMATED 
     % (DOWN TRIGGER NOT AVAILABLE)
     if StopRecording && strcmp(MG.DAQ.Engine,'NIDAQ')
-      MG.DAQ.TotalSamples = round(MG.DAQ.SR*MG.Disp.Day2Sec*...
+      MG.DAQ.TotalSamples = round(MG.DAQ.SR*MG.Disp.Main.Day2Sec*...
         (MG.DAQ.StopRecTime - MG.DAQ.StartRecTime));
       RemSamples = MG.DAQ.TotalSamples - MG.DAQ.SamplesRecorded;
       NWrite = min([NWrite,RemSamples]); NWrite = max([0,NWrite]);
     end
+    
     % ACTUALLY WRITE SAMPLES
     if NWrite>0
       for i=1:length(MG.DAQ.Files)
@@ -161,14 +163,14 @@ while MG.DAQ.Running
       end
       MG.DAQ.SamplesRecorded = MG.DAQ.SamplesRecorded +NWrite;
     end
+    
     % MANAGE STOPPING PROCESS
     % FOR NIDAQ : WHEN THE NUMBER OF SAMPLES IS LESS THAN THE AVAILABLE ONES
     % FOR HSDIO : IF THE STOPPING SIGNAL HAS BEEN GIVEN (SAMPLES ARE EXACT W.R.T. THE TRIGGER)    
-    if NWrite < SamplesToTake | (StopRecording & strcmp(MG.DAQ.Engine,'HSDIO'))
+    if NWrite < SamplesAvailable | (StopRecording & strcmp(MG.DAQ.Engine,'HSDIO'))
       MG.DAQ.Recording = 0;
       M_Logger('\n => Recording stopping...\n');
       M_closeFiles;
-      fclose(MG.DAQ.HSDIO.TempFileID);
       if strcmp(MG.DAQ.Trigger.Type,'Remote')
         switch MG.DAQ.Engine
           case 'NIDAQ'; M_stopEngine;

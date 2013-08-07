@@ -10,7 +10,7 @@ switch Selection
     MG.HW.NIDAQ.BoardsBool = logical([1]);
     MG.HW.NIDAQ.SystemsByBoard = struct('Name',{'plexon'});
     MG.HW.NIDAQ.ArraysByBoard(1) = struct('Name','plextrode_24_75','Pins',[1:24]);
-    MG.HW.NIDAQ.Triggers = struct('Remote','RTSI0','Local','PFI0');  % WHEN USED WITH CMB1
+    MG.HW.NIDAQ.Triggers = struct('Remote','PFI0','Local','PFI0');
     
     % DIGITAL (HSDIO) BOARDS
     MG.HW.HSDIO.BoardIDs = {'D10'};

@@ -91,7 +91,7 @@ for iA = 1:length(Plots)
       MaxY = max(Y(:)); MinY = min(Y(:)); RY = MaxY-MinY;
       MaxZ = max(Z(:)); MinZ = min(Z(:)); RZ = MaxZ-MinZ;
       caxis([0,1]); set(MG.Disp.Rate.AH.(cPlot),'XLim',[MinX,MaxX] + Margin*[-RX,RX],...
-        'YLim',[MinY,MaxY] + Margin*[-RY,RY],'ZLim',[MinZ,MaxZ] + Margin*[-RZ,RZ]);
+        'YLim',[MinY,MaxY] + Margin*[-RY,RY],'ZLim',[MinZ,MaxZ] + Margin*[-RZ,RZ] + [-0.001,0.001]);
       xlabel('X',AxisLabelOpt{:});
       ylabel('Y',AxisLabelOpt{:});
       zlabel('Depth',AxisLabelOpt{:});
