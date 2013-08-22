@@ -85,7 +85,7 @@ switch COMMAND
            lastsysmatch=ii;
         end
      end
-    String = HF_var2string(SendStruct)
+    String = HF_var2string(SendStruct);
     M_sendMessage(String);
     
   case 'COMTEST';
