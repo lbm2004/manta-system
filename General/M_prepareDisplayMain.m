@@ -192,6 +192,7 @@ for i=NPlot:-1:1
   set(MG.Disp.Main.AH.Spike(i),'ButtonDownFcn',{@M_CBF_axisClick,i});
   MG.Disp.Main.FR(i) = text(1,.9,'0 Hz','Units','n','Horiz','r','FontSize',6,'Color',MG.Colors.LineColor);
 end
+MG.Disp.Main.SPH = MG.Disp.Main.SPH(:,end:-1:1);
 
 %% ASSIGN DEPTH PROPERTIES
 set(MG.Disp.Main.AH.Data,Opts{:},'XLim',[0,MG.Disp.Main.DispDur],'Ylim',1.01*[-MG.Disp.Main.YLim,MG.Disp.Main.YLim],'Color',MG.Colors.Background,'XColor',MG.Colors.LineColor,'YColor',MG.Colors.LineColor);

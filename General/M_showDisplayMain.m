@@ -18,7 +18,7 @@ for i=MG.Disp.Main.PlotInd
   if MG.Disp.Main.Spike
     set(MG.Disp.Main.ThPH(i),'YData',repmat(MG.Disp.Ana.Spikes.Thresholds(i),1,2));
     if MG.Disp.Ana.Spikes.NewSpikes(i)
-       for j=1:MG.Disp.Ana.Spikes.NSpikesShow(i)
+       for j=1:MG.Disp.Ana.Spikes.NSpikesMax
          set(MG.Disp.Main.SPH(i,j),'YData',MG.Disp.Ana.Spikes.Spikes(:,j,i),'Color',MG.Colors.SpikeColors(:,j,i));
        end
     else set(MG.Disp.Main.SPH(i,:),'Color',MG.Colors.Inactive);

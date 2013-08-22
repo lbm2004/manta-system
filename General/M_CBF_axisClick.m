@@ -26,8 +26,8 @@ switch button
 
   case 2  % Set Threshold for right click in spike window
     if obj == MG.Disp.Main.AH.Spike(Index)
-      MG.Disp.Main.Thresholds(Index) = D(1,2);
-      MG.Disp.Main.AutoThreshBool(Index) = logical(0);
+      MG.Disp.Ana.Spikes.Thresholds(Index) = D(1,2);
+      MG.Disp.Ana.Spikes.AutoThreshBool(Index) = logical(0);
     end
       
   case 3  % Set Scale to match data

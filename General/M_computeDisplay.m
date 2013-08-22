@@ -212,6 +212,14 @@ if MG.Disp.Ana.Spike
         end
         if ~mod(Iteration,20) MG.Disp.Ana.Spikes.SorterFun(1,i); end
       end
+      
+      % DELETE SOME OLD SPIKES TO MAKE THEM FADE (NOT FINISHED)
+      %        NSpikesDelete = floor(0.25*(MG.Disp.Ana.Spikes.NSpikesMax - MG.Disp.Ana.Spikes.NSpikesShow(i)));
+      %        if NSpikesDelete
+      %          Ind = randi([MG.Disp.Ana.Spikes.NSpikes(i)+1,MG.Disp.Ana.Spikes.NSpikesMax],NSpikesDelete,1);
+      %          MG.Disp.Ana.Spikes.Spikes(:,Ind,i) = 0;
+      %        end
+      
       try
         set(MG.Disp.Main.FR(i),'String',...
           [sprintf('%5.1f Hz',length(SP)/MG.DAQ.TimeTaken(Iteration))]);

@@ -8,7 +8,7 @@ if isempty(Verbose) Verbose = 0; end
 
 if ~isfield(MG,'Config') MG.Config = 'Default'; end
 
-%% INITIALIZE LOG
+%% INITIALIZE L ituensOG
 MG.Log = [];
 
 %% DETERMINE LOCATION 
