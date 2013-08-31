@@ -111,6 +111,7 @@ MG.Disp.Ana.Spikes.SpikeDur = MG.Disp.Ana.Spikes.SpikeSteps/MG.DAQ.SR;
 SpikeTime = [-MG.Disp.Ana.Spikes.PreSteps:MG.Disp.Ana.Spikes.PostSteps]/MG.DAQ.SR*1000; % in ms
 MG.Disp.Ana.Spikes.SpikeInit = zeros(length(SpikeTime),MG.Disp.Ana.Spikes.NSpikesMax);
 MG.Disp.Ana.Spikes.SpikeInd = repmat([0:length(SpikeTime)-1]',1,MG.Disp.Ana.Spikes.NSpikesMax);
+ MG.Disp.Ana.Spikes.Spikes = zeros(MG.Disp.Ana.Spikes.SpikeSteps,MG.Disp.Ana.Spikes.NSpikesMax,NPlot);
 % CHECK IF THRESHOLDS HAVE BEEN SET BEFORE
 if ~isfield(MG.Disp,'Thresholds') | (length(MG.Disp.Ana.Spikes.Thresholds)~=NPlot)
   MG.Disp.Ana.Spikes.Thresholds =MG.Disp.Main.YLim*ones(1,NPlot)/2;
