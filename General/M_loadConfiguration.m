@@ -5,7 +5,9 @@ global MG Verbose
 
 Sep = HF_getSep;
 tmp = load([MG.HW.ConfigPath,'M_Config_',MG.Config,'.mat']);
-tmp.MGSave.Disp.Filter.Humbug = rmfield(tmp.MGSave.Disp.Filter.Humbug,'Styles');
+if isfield(tmp.MGSave.Disp.Filter.Humbug,'Styles'),
+    tmp.MGSave.Disp.Filter.Humbug = rmfield(tmp.MGSave.Disp.Filter.Humbug,'Styles');
+end
 LF_transferFields(tmp.MGSave,'MG');
 
 function LF_transferFields(Source,Dest)
