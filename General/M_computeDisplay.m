@@ -168,7 +168,6 @@ end
 
 %% TRIGGER SPIKES
 if MG.Disp.Ana.Spike
-  MG.Disp.Ana.Spikes.Spikes = zeros(MG.Disp.Ana.Spikes.SpikeSteps,MG.Disp.Ana.Spikes.NSpikesMax,NPlot);
   MG.Disp.Ana.Spikes.NSpikes = zeros(MG.Disp.Main.NPlot,1);
   MG.Disp.Ana.Spikes.NSpikesShow = zeros(MG.Disp.Main.NPlot,1);
   if CurrentSamples > 50
@@ -214,11 +213,11 @@ if MG.Disp.Ana.Spike
       end
       
       % DELETE SOME OLD SPIKES TO MAKE THEM FADE (NOT FINISHED)
-      %        NSpikesDelete = floor(0.25*(MG.Disp.Ana.Spikes.NSpikesMax - MG.Disp.Ana.Spikes.NSpikesShow(i)));
-      %        if NSpikesDelete
-      %          Ind = randi([MG.Disp.Ana.Spikes.NSpikes(i)+1,MG.Disp.Ana.Spikes.NSpikesMax],NSpikesDelete,1);
-      %          MG.Disp.Ana.Spikes.Spikes(:,Ind,i) = 0;
-      %        end
+      NSpikesDelete = floor(0.25*(MG.Disp.Ana.Spikes.NSpikesMax - MG.Disp.Ana.Spikes.NSpikesShow(i)));
+      if NSpikesDelete
+        MG.Disp.Ana.Spikes.DeleteInd{i} = randi([MG.Disp.Ana.Spikes.NSpikes(i)+1,MG.Disp.Ana.Spikes.NSpikesMax],NSpikesDelete,1);
+        MG.Disp.Ana.Spikes.Spikes(:,MG.Disp.Ana.Spikes.DeleteInd{i},i) = 0;
+      end
       
       try
         set(MG.Disp.Main.FR(i),'String',...
