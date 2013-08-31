@@ -18,10 +18,14 @@ for i=MG.Disp.Main.PlotInd
   if MG.Disp.Main.Spike
     set(MG.Disp.Main.ThPH(i),'YData',repmat(MG.Disp.Ana.Spikes.Thresholds(i),1,2));
     if MG.Disp.Ana.Spikes.NewSpikes(i)
-       for j=1:MG.Disp.Ana.Spikes.NSpikesMax
+       for j=1:MG.Disp.Ana.Spikes.NSpikesShow(i)
          set(MG.Disp.Main.SPH(i,j),'YData',MG.Disp.Ana.Spikes.Spikes(:,j,i),'Color',MG.Colors.SpikeColors(:,j,i));
        end
     else set(MG.Disp.Main.SPH(i,:),'Color',MG.Colors.Inactive);
+    end
+    for j=1:length(MG.Disp.Ana.Spikes.DeleteInd{i})
+      cInd = MG.Disp.Ana.Spikes.DeleteInd{i}(j);
+       set(MG.Disp.Main.SPH(i,cInd),'YData',MG.Disp.Ana.Spikes.Spikes(:,cInd,i),'Color',MG.Colors.Inactive);
     end
   end
   if MG.Disp.Main.CollectPSTH & MG.Disp.Main.PSTH & DispIteration <= size(MG.Disp.Main.cIndP) 
@@ -39,5 +43,4 @@ if MG.Disp.Ana.Depth.Available & MG.Disp.Main.Depth
     if LIM~=0 && ~isnan(LIM)    set(MG.Disp.Main.AH.Depth(i),'CLim',[-LIM,LIM]);    end
   end
 end
-
 
