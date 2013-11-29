@@ -256,5 +256,13 @@ fcns.name{fcnNum}='DAQmxResetAIExcitVoltageOrCurrent'; fcns.calltype{fcnNum}='st
 fcns.name{fcnNum}='DAQmxCreateAIVoltageChanWithExcit'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'cstring', 'int32', 'double', 'double', 'int32', 'int32', 'int32', 'double', 'uint32', 'cstring'};fcnNum=fcnNum+1;
 % int32 _stdcall DAQmxCreateAIMicrophoneChan ( TaskHandle taskHandle , const char physicalChannel [], const char nameToAssignToChannel [], int32 terminalConfig , int32 units , float64 micSensitivity , float64 maxSndPressLevel , int32 currentExcitSource , float64 currentExcitVal , const char customScaleName []); 
 fcns.name{fcnNum}='DAQmxCreateAIMicrophoneChan'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'cstring', 'cstring', 'int32', 'int32', 'double', 'double', 'int32', 'double', 'cstring'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxCreateLinScale ( const char name [], float64 slope , float64 yIntercept , int32 preScaledUnits , const char scaledUnits []); 
+fcns.name{fcnNum}='DAQmxCreateLinScale'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'cstring', 'double', 'double', 'int32', 'cstring'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxCreateMapScale ( const char name [], float64 prescaledMin , float64 prescaledMax , float64 scaledMin , float64 scaledMax , int32 preScaledUnits , const char scaledUnits []); 
+fcns.name{fcnNum}='DAQmxCreateMapScale'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'cstring', 'double', 'double', 'double', 'double', 'int32', 'cstring'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxCfgInputBuffer ( TaskHandle taskHandle , uInt32 numSampsPerChan ); 
+fcns.name{fcnNum}='DAQmxCfgInputBuffer'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'uint32'};fcnNum=fcnNum+1;
+% int32 _stdcall DAQmxCfgOutputBuffer ( TaskHandle taskHandle , uInt32 numSampsPerChan ); 
+fcns.name{fcnNum}='DAQmxCfgOutputBuffer'; fcns.calltype{fcnNum}='stdcall'; fcns.LHS{fcnNum}='int32'; fcns.RHS{fcnNum}={'uint32', 'uint32'};fcnNum=fcnNum+1;
 
 methodinfo=fcns;

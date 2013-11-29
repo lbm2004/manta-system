@@ -52,10 +52,9 @@ switch OSBitLength
         LibPath = 'C:\Windows\SysWOW64\';
         loadlibrary([LibPath,'nicaiu.dll'],@nidaqmx,'alias','nidaqmx');
       case {'PCWIN64'}; % WINDOWS INSTALLED AS 64-BITS
+        %loadlibrary C:\Windows\System32\nicaiu.dll NIDAQmx.h mfilename DacMX.m
         LibPath = 'C:\Windows\System32\';
-        %global BAPHYHOME
-        %[R,W] = loadlibrary([LibPath,'nicaiu.dll'],['C:\Program Files (x86)\National Instruments\Shared\ExternalCompilerSupport\C\include\NIDAQmx.h'],'alias','nidaqmx','mfilename','nidaqmx64');
-        loadlibrary([LibPath,'nicaiu.dll'],@nidaqmx64,'alias','nidaqmx');
+        loadlibrary([LibPath,'nicaiu.dll'],@NIDAQmx64,'alias','nidaqmx');
       otherwise error(['Architecture ',computer,' not supported yet.'])
     end
 end

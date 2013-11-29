@@ -43,7 +43,8 @@ ViStatus setupAcquisitionDevice(ViRsrc acqDeviceID,
         ViSession *genViPtr);
 
 void decodeData(
-      ViUInt8 *DData,
+        ViUInt16 *DData,
+        ViUInt16 *BData,
         ViUInt16 *AData,
         ViUInt32 DBufferPos,
         ViUInt32 *DBufferDecoded,
@@ -53,6 +54,10 @@ void decodeData(
         ViUInt32 BitLength, 
         ViUInt32 PacketLength, 
         ViUInt32 LoopIteration,
+        ViUInt32 NumberOfChannelsTotal,
+        ViUInt32 *NumberOfChannelByChan,
+        ViUInt16 *AcqChannelsI,
+        ViUInt16 TrigChannelI,
         ViUInt32 *TriggerCount, 
         ViUInt64 *TriggerSamples,
         ViUInt64 *TriggerValues
@@ -60,18 +65,21 @@ void decodeData(
  
 int acquireData(
         char* FileName, 
-        ViUInt32 NumberOfChannels, 
+        ViUInt32 *NumberOfChannelByChan,
+        ViUInt32 NumberOfChannelsTotal,
         int DSamplingRate, 
         ViUInt32 MaxIterations, 
         int ASamplesPerIteration,
         char* DeviceName, 
-        int ChannelNumber, 
-        char* TriggerChannel,
+        char* AcqChannels, 
+        char* TrigChannel,
+        char* StartTrigChannel,
         ViUInt32 BitLength);
 
 int createData(
         char* FileName,
-        int NumberOfChannels,
+        ViUInt32 *NumberOfChannelByChan,
+        ViUInt32 NumberOfChannelsTotal,
         int DSamplingRate, 
         int MaxIterations, 
         int SamplesPerIteration);
@@ -84,7 +92,8 @@ int checkStopFile(char *FileNameStop);
 ///////////////////////////////////////////////////////////////////////////////////////////
 int createData(
         char* FileName,
-        int NumberOfChannels,
+        ViUInt32 *NumberOfChannelByChan,
+        ViUInt32 NumberOfChannelsTotal,
         int DSamplingRate, 
         int MaxIterations, 
         int ASamplesPerIteration) {
@@ -129,7 +138,7 @@ int createData(
   
 // SETUP DATA MATRIX
   ASamplesRead = ASamplesPerIteration;
-  ASamplesTotal = (int) (ASamplesRead*NumberOfChannels);
+  ASamplesTotal = (int) (ASamplesRead*NumberOfChannelsTotal);
   if (DEBUG) printf("Analog Samples per Iteration : %d\n", ASamplesTotal);
   AData = (short*)calloc(ASamplesTotal,sizeof(short));
   for (i=0;i<ASamplesTotal;i++) AData[i] = 0; // Initialize to  0
@@ -155,9 +164,9 @@ int createData(
     // GENERATE DATA
     for (i=0;i<ASamplesRead;i++) {
       cStep = iTotal + i;
-      for (j=0;j<NumberOfChannels;j++) {
+      for (j=0;j<NumberOfChannelsTotal;j++) {
         // Simulate Continuous 60Hz Noise
-        AData[i*NumberOfChannels+j] = (short) (10000*sin(2*3.14159*5.123*(i+iTotal)/ASamplingRate));
+        AData[i*NumberOfChannelsTotal+j] = (short) (10000*sin(2*3.14159*5.123*(i+iTotal)/ASamplingRate));
         // Simulate temporally stable grid 
         //AData[i*NumberOfChannels+j] = 0;
         //if (cStep % 1000 == 0) {AData[i*NumberOfChannels+j] = 10000;}
@@ -167,7 +176,7 @@ int createData(
   
     // WRITE ANALOG DATA TO DISK (FOR ONLINE READING, BIG CIRCULAR BUFFER)
     if (ABufferPos+ASamplesTotal > ANALOGSAMPLESPERLOOP) {
-      ATailSamples=(ANALOGSAMPLESPERLOOP-ABufferPos)/NumberOfChannels;
+      ATailSamples=(ANALOGSAMPLESPERLOOP-ABufferPos)/NumberOfChannelsTotal;
       AHeadSamples=ASamplesRead-ATailSamples;
     } else {
       ATailSamples=ASamplesRead; AHeadSamples=0;
@@ -177,20 +186,20 @@ int createData(
     
     // WRITE TAIL
     if (ATailSamples>0) {
-      ATailWritten = fwrite(AData, sizeof(short), (size_t) (ATailSamples*NumberOfChannels), DataFile);
-      //if (DEBUG) printf("\tTailSamples  %d %d %d %d %d\n", ATailSamples,ATailWritten,NumberOfChannels,sizeof(short),sizeof(AData));
-      if (ATailWritten != ATailSamples*NumberOfChannels) { printf("Tail samples could not be written!\n"); return -1;}
+      ATailWritten = fwrite(AData, sizeof(short), (size_t) (ATailSamples*NumberOfChannelsTotal), DataFile);
+      //if (DEBUG) printf("\tTailSamples  %d %d %d %d %d\n", ATailSamples,ATailWritten,NumberOfChannelsTotal,sizeof(short),sizeof(AData));
+      if (ATailWritten != ATailSamples*NumberOfChannelsTotal) { printf("Tail samples could not be written!\n"); return -1;}
     } else {
       ATailWritten = 0;
     }
     
     // WRITE HEAD
     if (AHeadSamples>0) {
-      AOffset=ATailSamples*NumberOfChannels;
+      AOffset=ATailSamples*NumberOfChannelsTotal;
       fseek(DataFile  , 0 , SEEK_SET );
-      AHeadWritten = fwrite(&(AData[AOffset]), sizeof(short), (size_t) (AHeadSamples*NumberOfChannels), DataFile);
-      //if (DEBUG) printf("\tHeadSamples  %d %d %d %d %d\n", AHeadSamples,AHeadWritten,NumberOfChannels,sizeof(short),sizeof(AData));
-      if (AHeadWritten != AHeadSamples*NumberOfChannels) { printf("Head samples could not be written!\n"); return -1;}
+      AHeadWritten = fwrite(&(AData[AOffset]), sizeof(short), (size_t) (AHeadSamples*NumberOfChannelsTotal), DataFile);
+      //if (DEBUG) printf("\tHeadSamples  %d %d %d %d %d\n", AHeadSamples,AHeadWritten,NumberOfChannelsTotal,sizeof(short),sizeof(AData));
+      if (AHeadWritten != AHeadSamples*NumberOfChannelsTotal) { printf("Head samples could not be written!\n"); return -1;}
       ALoopCount++;
       if (DEBUG) printf("\tStarting output loop %d\n", ALoopCount);
       ABufferPos=AHeadWritten;
@@ -243,13 +252,15 @@ int createData(
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int acquireData(
         char* FileName, 
-        ViUInt32 NumberOfChannels, 
+        ViUInt32 *NumberOfChannelsByChan, 
+        ViUInt32 NumberOfChannelsTotal, 
         int DSamplingRate, 
         ViUInt32 MaxIterations, 
         int ASamplesPerIteration,
         char* DeviceName, 
-        int ChannelNumber, 
-        char* TriggerChannel, 
+        char* AcqChannels, 
+        char* TrigChannel, 
+        char* StartTrigChannel, 
         ViUInt32 BitLength) {
   
   // TRANSFER ARGUMENTS TO NI VARIABLES 
@@ -257,18 +268,20 @@ int acquireData(
   ViReal64 SampleClockRate = (ViReal64) DSamplingRate;
   
   // DATA MATRICES
-  ViUInt16 *AData;
-  ViUInt8 *DData;
-    
+  ViUInt16 *DData; // HOLDS THE DIGITAL DATA
+  ViUInt16 *BData; // HOLDS THE INTERMEDIATE BINARY DATA
+  ViUInt16 *AData; // HOLDS THE ANALOG (DECODED) DATA
+ 
   // ACQUISITION PARAMETERS
-  ViConstString acqChannelList = "0,2"; // Acquisition and Trigger Channel
+  ViConstString acqChannelList = sprintf("%s,%s",AcqChannels,TrigChannel); // Acquisition and Trigger Channel
+  ViUInt16 TrigChannelI= atoi(TrigChannel); 
   ViSession vi = VI_NULL;
   ViUInt32 ReadTimeout = 1500; // Milliseconds : this corresponds to 2x the maximal bufferduration at 50MHz
 
   // GENERATION PARAMETERS
-  ViConstString genChannelList = "1,3";
+  ViConstString genChannelList = "14,15"; // GENERATION CHANNELS : FIrst is clock, second is test signal
   ViSession genVi = VI_NULL;
-  ViConstString GenTriggerTerminal = (ViConstString) TriggerChannel; // Generation triggered by external trigger, sends trigger to Acquisition trigger
+  ViConstString GenTriggerTerminal = (ViConstString) StartTrigChannel; // Generation triggered by external trigger, sends trigger to Acquisition trigger
   ViConstString AcqTriggerTerminal = NIHSDIO_VAL_PFI0_STR; // Acquisition trigger received by Generation device, otherwise timing not reliable.
   ViInt32 StartTriggerEdge =  NIHSDIO_VAL_RISING_EDGE; // Mysteriously, one needs to connect the trigger inverted between GND and +. Probably better in a closed circuit/with a switch
   ViConstString sampleClockOutputTerminal = NIHSDIO_VAL_DDC_CLK_OUT_STR; // MAYBE THIS IS THE PLACE WHERE THE ACQUIRED SAMPLES ARE SHOWN?? See setupGenerationDevice
@@ -304,7 +317,18 @@ int acquireData(
   ViChar errDesc[1024];
   ViStatus error = VI_SUCCESS;
   
+  char* Rest[2];
+  int NChannels = 0;
+  
   //----------------------------------------------------------------------------------------------------//
+  
+  // PARSE CHANNELNUMBERS
+  Rest = strtok(AcqChannels,',');
+  while (Rest != NULL) {
+    AcqChannelsI[NChannels] = atoi(Rest);
+    Rest = strtok(NULL,",");
+    NChannels ++;
+  }
   
   // PARSE OPTIONS FOR DIFFERENT BITS
   if (BitLength==12) PacketLength = 1200;
@@ -354,9 +378,11 @@ int acquireData(
     // GET DIGITAL DATA MATRIX
   DSamplesBuffer = (ViUInt32) (2*DSamplesPerChannelHW);
   if (DEBUG) printf("Allocating Digital Buffer: %d bits \n",DSamplesBuffer);
-  DData = (char*)malloc(DSamplesBuffer*sizeof(char));
+  DData = (char*)malloc(DSamplesBuffer*sizeof(ViUint16));
+  // GET BINARY DATA MATRIX
+  BData = (char*)malloc(DSamplesBuffer*sizeof(ViUint16));
   // GET ANALOG DATA MATRIX
-  ASamplesBuffer = ceil(DSamplesBuffer/PacketLength*NumberOfChannels);
+  ASamplesBuffer = ceil(DSamplesBuffer/PacketLength*NumberOfChannelsTotal);
   if (DEBUG) printf("Allocating Analog Buffer: %d samples \n",ASamplesBuffer);
   AData = (ViUInt16*)malloc(ASamplesBuffer*sizeof(ViUInt16));
   TriggerSamples = (ViUInt64*)malloc(MaxTriggers*sizeof(ViUInt64));
@@ -417,7 +443,7 @@ int acquireData(
     // WRITE DIGITAL DATA
     if (WriteDigital) {
         DOffset=(DBufferPos-DSamplesRead);
-        DSamplesWritten = fwrite(&(DData[DOffset]), sizeof(char), (size_t) (DSamplesRead), DataFileD);
+        DSamplesWritten = fwrite(&(DData[DOffset]), sizeof(ViUInt16), (size_t) (DSamplesRead), DataFileD);
         DSamplesWrittenTotal = DSamplesWrittenTotal +  (ViUInt64) DSamplesWritten;
         if (DSamplesWritten != DSamplesRead) { printf("Samples could not be written!\n"); return -1;}
         if (DEBUG) printf("\tDigital Samples written : \t %d (now) %llu (tot)\n",DSamplesWritten,DSamplesWrittenTotal);
@@ -425,7 +451,9 @@ int acquireData(
     
     if (WriteAnalog) {
       // DECODE ANALOG DATA FROM DIGITAL DATA 
-      decodeData(DData, AData, 
+      decodeData(DData, 
+              BData, 
+              AData, 
               DBufferPos,
               &DBufferDecoded, 
               &DDecodedPosTotal, 
@@ -434,6 +462,8 @@ int acquireData(
               BitLength, 
               PacketLength, 
               LoopIteration,
+              AcqChannelsI,
+              TrigChannelI,
               &TriggerCount,
               TriggerSamples,
               TriggerValues);
@@ -455,7 +485,7 @@ int acquireData(
       if (ATailSamples>0) {
         ATailWritten = fwrite(AData, sizeof(short), (size_t) (ATailSamples), DataFile);
         if (ATailWritten != ATailSamples) { printf("Tail samples could not be written!\n"); return -1;}
-        //if (DEBUG) printf("\tTailSamples  %d %d %d %d %d\n", ATailSamples,ATailWritten,NumberOfChannels,sizeof(short),sizeof(AData));
+        //if (DEBUG) printf("\tTailSamples  %d %d %d %d %d\n", ATailSamples,ATailWritten,NumberOfChannelsTotal,sizeof(short),sizeof(AData));
       } else {
         ATailWritten = 0;
       }
@@ -467,7 +497,7 @@ int acquireData(
         fseek(DataFile,0,SEEK_SET);
         AHeadWritten = fwrite(&(AData[AOffset]), sizeof(short), (size_t) (AHeadSamples), DataFile);
         if (AHeadWritten != AHeadSamples) { printf("Head samples could not be written!\n"); return -1;}
-        //if (DEBUG) printf("\tHeadSamples  %d %d %d %d %d\n", AHeadSamples,AHeadWritten,NumberOfChannels,sizeof(short),sizeof(AData));
+        //if (DEBUG) printf("\tHeadSamples  %d %d %d %d %d\n", AHeadSamples,AHeadWritten,NumberOfChannelsTotal,sizeof(short),sizeof(AData));
         ABufferPos=AHeadWritten;
       } else {
         AHeadWritten=0; ABufferPos+=ATailWritten;
@@ -525,7 +555,8 @@ int acquireData(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void decodeData(
-        ViUInt8 *DData,
+        ViUInt16 *DData,
+        ViUInt16 *BData,
         ViUInt16 *AData,
         ViUInt32 DBufferPos,
         ViUInt32 *DBufferDecoded,
@@ -535,30 +566,36 @@ void decodeData(
         ViUInt32 BitLength, 
         ViUInt32 PacketLength, 
         ViUInt32 LoopIteration,
+        ViUInt32 NumberOfChannelsTotal,
+        ViUInt32 *NumberOfChannelByChan,
+        ViUInt16 *AcqChannelsI,
+        ViUInt16 TrigChannelI,
         ViUInt32 *TriggerCount, 
         ViUInt64 *TriggerSamples,
         ViUInt64 *TriggerValues
         ) {
   
-  ViInt32 HeaderFound = 0, HeaderStart = 0, ProcessData = 1;
-  ViInt32 NumberOfChannels = 96, Bundles = 32;
+  ViInt32 HeaderFound = 0, HeaderStart = 0, ProcessData = 1, Bundles = 32;
   ViInt32 BitsPerBundle = 3*BitLength, FlagLength = 8, TBDLength = 0;
-  ViUInt8 Header[] = {0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1};
-  ViInt32 HeaderLength = sizeof(Header)/sizeof(ViUInt8);
+  ViUInt16 Header[] = {0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1};
+  ViInt32 HeaderLength = sizeof(Header)/sizeof(ViUInt16);
   ViInt32 cStart= 0, DataStart = 0, PacketStart =0, DataOffset = 0, AOffset =0, Offset = 0;
-  ViInt32 cASamplesRead = 0, i1, i2, i3, EqCount;
+  ViInt32 cASamplesRead = 0, i1, i2, i3, EqCount, iAC;
   ViInt32 PacketsThisIteration = (ViInt32) (floor(DBufferPos/PacketLength));
   ViInt64 TriggerSample = 0;
-          
+  ViInt32 TriggerLimit = 2^TrigChannel;
+  unsigned int Mask = 0;        
+  
   // ADDITIONAL HEADER FOR CONTROL INFORMATION?
   if (BitLength==16) TBDLength = 16;
  
   if (DEBUG) printf("\tShift : %d\n",DSamplesShift[0]);
-  
-  // SCAN FOR TRIGGER (NOTE DOWN TRIGGERS AND REDUCE REPRESENTATION TO HEADSSTAGE CODE)
+    
+  // SCAN FOR TRIGGER (NOTE DOWN TRIGGERS AND REDUCE REPRESENTATION TO HEADSTAGE CODE)
+  // TRIGGERLIMIT IS DETERMINED FROM THE TRIGGER CHANNEL
   if (DEBUG2) printf("\tChecking for Triggers : \n");
   for (i1=0; i1<DBufferPos; i1+=PacketLength) {
-    if (TriggerValues[TriggerCount[0]]==0 && DData[i1]>1) {    
+    if (TriggerValues[TriggerCount[0]]==0 && DData[i1]>=TriggerLimit) { // TRIGGER HIGH
       TriggerSample = floor((DDecodedPosTotal[0] + i1 + DSamplesShift[0])/PacketLength);
       if (TriggerSample == 0) { // DO NOT CONSIDER ONE AT BEGINNING A TRIGGER
         TriggerValues[0] = 1;
@@ -569,7 +606,7 @@ void decodeData(
         printf("\t\t T%d : UP Trigger (DLocal : %d) (D: %llu, T: %d)\n",TriggerCount[0],i1,DDecodedPosTotal[0] + i1 + DSamplesShift[0],TriggerSamples[TriggerCount[0]]);
         //for (i2=-20;i2<20;i2++) printf("%d ",DData[i1+i2]); printf("\n");
       }
-    } else if (TriggerValues[TriggerCount[0]]==1 && DData[i1]<2) {   
+    } else if (TriggerValues[TriggerCount[0]]==1 && DData[i1]<TriggerLimit) { // TRIGGER LOW
       TriggerCount[0]++;
       TriggerSamples[TriggerCount[0]] = floor((DDecodedPosTotal[0] + i1 + DSamplesShift[0])/PacketLength);
       TriggerValues[TriggerCount[0]] = 0;
@@ -577,100 +614,111 @@ void decodeData(
       //for (i2=-20;i2<20;i2++) printf("%d ",DData[i1+i2]); printf("\n");
     }
   }
-  
-  // MOVE THE DATA BACK TO BINARY
-  for (i1 = 0;  i1<2*PacketLength; i1++) DData[i1] = DData[i1] % 2;
 
-  if (DEBUG2) printf("\tChecking for Header...\n",DDecodedPosTotal[0]);
   
-  // DISTANCE FROM THE PACKETSTART TO THE DATA START
-  DataOffset = HeaderLength + FlagLength + TBDLength;
-  // DETECT FIRST HEADER ( SEARCH FORWARD )
-  for (Offset=0; Offset<PacketLength; Offset++) {   
-    EqCount = 0;
-    for (i2=0; i2<HeaderLength; i2++) { // DUAL HEADER DETECTION
-      if ((DData[Offset+i2] == Header[i2]) && (DData[PacketLength+Offset+i2] == Header[i2]))
-        EqCount++;
-    }
-    // MATCH FOUND
-    if (EqCount == HeaderLength) {
-      PacketStart = Offset; HeaderFound = 1; PacketsThisIteration--; break;
-      if (DEBUG) printf("\tInitial Header found at : %d\n",PacketStart);
-    }
-  }
-
-  if (!HeaderFound) {
-    printf("\tInitial Header not found within one PacketLength!!!\n"); 
-    for (i1=0;i1<PacketLength;i1++) printf("%d ",DData[i1]);
-    printf("\n");
-    for (i1=PacketLength;i1<2*PacketLength;i1++) printf("%d ",DData[i1]); 
-    printf("\n");
-  }
-  if (DEBUG2) printf("\tEntering decoder (DSample : %d)...\n",DDecodedPosTotal[0]);
+  // LOOP OVER THE DIFFERENT ACQUISITION CHANNELS
+  for (iAC = 0; iAC<; iAC++) {
+    cBit = AcqChannelsI[iAC];
+    Mask = 1<<cBit;
   
-  // DECODE PACKAGES
-  for (i1 = 0; i1<PacketsThisIteration; i1++) { // LOOP OVER ANALOG PACKETS
-    HeaderStart=PacketStart;
+    // WITHIN THIS LOOP, A HEADER IS FOUND, WHICH DEFINES THE PACKET START
+    // THE COUNT ON THE ANALOG MATRIX INCLUDES THE CHANNELS FROM ALL HEADSTAGES TOGETHER
     
-    // MOVE THE DATA BACK TO BINARY
-    for (i2 = PacketStart;  i2<PacketStart+PacketLength; i2++) DData[i2] = DData[i2] % 2;
+    // EXTRACT THE CURRENT BIT
+    for (i1 = 0;  i1<2*PacketLength; i1++) BData[i1] = DData[i1] & Mask;
     
-    // CHECK WHETHER PACKET HEADER LOCATED AT EXPECTED LOCATION
-    EqCount = 0;
-    for (i2=0; i2<HeaderLength; i2++)   EqCount += DData[HeaderStart+i2] == Header[i2];
+    if (DEBUG2) printf("\tChecking for Header...\n",DDecodedPosTotal[0]);
     
-    // IF HEADER NOT FOUND, LOOK FOR HEADER (should happen only rarely)
-    if (EqCount != HeaderLength) {
-      if (DEBUG2) printf("ASamp: %d DSamp: %d Iteration: %d:  Header not found at offset : %d\n Searching for header ...\n",
-              i1,HeaderStart,i1,Offset);
-      for (i3=0; i3<PacketLength; i3++) { // SEARCH FOR HEADER WITHIN ONE PACKETLENGTH
-        EqCount = 0;
-        for (i2=0; i2<HeaderLength; i2++) {
-          EqCount += DData[HeaderStart-(PacketLength/2)+i3+i2] == Header[i2];
-        }
-        // MATCH FOUND
-        if (EqCount == HeaderLength) {
-          if (DEBUG2) printf("Found a new match, adjusting offset from %d to %d\n",Offset,Offset-(PacketLength/2)+i3);
-          Offset = Offset-(PacketLength/2)+i3;
-          PacketStart=PacketStart-(PacketLength/2)+i3;
-          HeaderFound = 2;
-          break;
-          DSamplesShift[0] = DSamplesShift[0] - PacketLength+i3;
-        }
+    // DISTANCE FROM THE PACKETSTART TO THE DATA START
+    DataOffset = HeaderLength + FlagLength + TBDLength;
+    // DETECT FIRST HEADER ( SEARCH FORWARD )
+    for (Offset=0; Offset<PacketLength; Offset++) {
+      EqCount = 0;
+      for (i2=0; i2<HeaderLength; i2++) { // DUAL HEADER DETECTION
+        if ((DData[Offset+i2] == Header[i2]) && (DData[PacketLength+Offset+i2] == Header[i2]))
+          EqCount++;
       }
-      if (~HeaderFound && DEBUG3) printf("No Header Found within one packetlength\n");
+      // MATCH FOUND
+      if (EqCount == HeaderLength) {
+        PacketStart = Offset; HeaderFound = 1; PacketsThisIteration--; break;
+        if (DEBUG) printf("\tInitial Header found at : %d\n",PacketStart);
+      }
     }
     
-    if (DEBUG3) printf("\tDecoding Packet %d APos %d DPos %d\n",i1,AOffset,cStart);
- 
-    DataStart = PacketStart + DataOffset;
-    switch (BitLength) {
-      case 12:
-        for (i2 = 0; i2<Bundles ; i2++ ) { // Loop over the Bundles in the data section in a packet
-          cStart = DataStart + i2*BitsPerBundle;
-          cASamplesRead = i1;
-          AOffset = cASamplesRead*NumberOfChannels + i2*3;
-          AData[AOffset]     = -2048*DData[cStart]     + 1024*DData[cStart+3] + 512*DData[cStart+6] + 256*DData[cStart+9]   + 128*DData[cStart+12] + 64*DData[cStart+15] + 32*DData[cStart+18] + 16*DData[cStart+21] + 8*DData[cStart+24] + 4*DData[cStart+27] + 2*DData[cStart+30] + 1*DData[cStart+33];
-          AData[AOffset+1] = -2048*DData[cStart+1] + 1024*DData[cStart+4] + 512*DData[cStart+7] + 256*DData[cStart+10] + 128*DData[cStart+13] + 64*DData[cStart+16] + 32*DData[cStart+19] + 16*DData[cStart+22] + 8*DData[cStart+25] + 4*DData[cStart+28] + 2*DData[cStart+31] + 1*DData[cStart+34];
-          AData[AOffset+2] = -2048*DData[cStart+2] + 1024*DData[cStart+5] + 512*DData[cStart+8] + 256*DData[cStart+11] + 128*DData[cStart+14] + 64*DData[cStart+17] + 32*DData[cStart+20] + 16*DData[cStart+23] + 8*DData[cStart+26] + 4*DData[cStart+29] + 2*DData[cStart+32] + 1*DData[cStart+35];
-        };
-        break;
-      case 16:
-        for (i2 = 0; i2<Bundles ; i2++ ) { // Loop over the Bundles in the data section in a packet
-          cStart = DataStart + i2*BitsPerBundle;
-          cASamplesRead = i1;
-          AOffset = cASamplesRead*NumberOfChannels + i2*3;
-          AData[AOffset]      = 32768*DData[cStart]     + 16384*DData[cStart+3] + 8192*DData[cStart+6] + 4096*DData[cStart+9]   + 2048*DData[cStart+12] + 1024*DData[cStart+15] + 512*DData[cStart+18] + 256*DData[cStart+21] + 128*DData[cStart+24] + 64*DData[cStart+27] + 32*DData[cStart+30] + 16*DData[cStart+33] + 8*DData[cStart+36] + 4*DData[cStart+39] + 2*DData[cStart+42] + 1*DData[cStart+45];
-          AData[AOffset+1] = 32768*DData[cStart+1] + 16384*DData[cStart+4] + 8192*DData[cStart+7] + 4096*DData[cStart+10] + 2048*DData[cStart+13] + 1024*DData[cStart+16] + 512*DData[cStart+19] + 256*DData[cStart+22] + 128*DData[cStart+25] + 64*DData[cStart+28] + 32*DData[cStart+31] + 16*DData[cStart+34] + 8*DData[cStart+37] + 4*DData[cStart+40] + 2*DData[cStart+43] + 1*DData[cStart+46];
-          AData[AOffset+2] = 32768*DData[cStart+2] + 16384*DData[cStart+5] + 8192*DData[cStart+8] + 4096*DData[cStart+11] + 2048*DData[cStart+14] + 1024*DData[cStart+17] + 512*DData[cStart+20] + 256*DData[cStart+23] + 128*DData[cStart+26] + 64*DData[cStart+29] + 32*DData[cStart+32] + 16*DData[cStart+35] + 8*DData[cStart+38] + 4*DData[cStart+41] + 2*DData[cStart+44] + 1*DData[cStart+47];
-        };
-        break;
-      default:
-        printf("Unknown Bitlength specified!"); return;
+    if (!HeaderFound) {
+      printf("\tInitial Header not found within one PacketLength!!!\n");
+      for (i1=0;i1<PacketLength;i1++) printf("%d ",BData[i1]);
+      printf("\n");
+      for (i1=PacketLength;i1<2*PacketLength;i1++) printf("%d ",BData[i1]);
+      printf("\n");
     }
-    PacketStart = PacketStart + PacketLength;
-  } // END OF DECODING LOOP
-  
+    if (DEBUG2) printf("\tEntering decoder (DSample : %d)...\n",DDecodedPosTotal[0]);
+    
+    // DECODE PACKAGES
+    for (i1 = 0; i1<PacketsThisIteration; i1++) { // LOOP OVER ANALOG PACKETS
+      HeaderStart=PacketStart;
+      
+      // EXTRACT THE CURRENT BIT
+      for (i2 = PacketStart;  i2<PacketStart+PacketLength; i2++) BData[i2] = DData[i2] & Mask;
+      
+      // CHECK WHETHER PACKET HEADER LOCATED AT EXPECTED LOCATION
+      EqCount = 0;
+      for (i2=0; i2<HeaderLength; i2++)   EqCount += BData[HeaderStart+i2] == Header[i2];
+      
+      // IF HEADER NOT FOUND, LOOK FOR HEADER (should happen only rarely)
+      if (EqCount != HeaderLength) {
+        if (DEBUG2) printf("ASamp: %d DSamp: %d Iteration: %d:  Header not found at offset : %d\n Searching for header ...\n",
+                i1,HeaderStart,i1,Offset);
+        for (i3=0; i3<PacketLength; i3++) { // SEARCH FOR HEADER WITHIN ONE PACKETLENGTH
+          EqCount = 0;
+          for (i2=0; i2<HeaderLength; i2++) {
+            EqCount += BData[HeaderStart-(PacketLength/2)+i3+i2] == Header[i2];
+          }
+          // MATCH FOUND
+          if (EqCount == HeaderLength) {
+            if (DEBUG2) printf("Found a new match, adjusting offset from %d to %d\n",Offset,Offset-(PacketLength/2)+i3);
+            Offset = Offset-(PacketLength/2)+i3;
+            PacketStart=PacketStart-(PacketLength/2)+i3;
+            HeaderFound = 2;
+            break;
+            DSamplesShift[0] = DSamplesShift[0] - PacketLength+i3;
+          }
+        }
+        if (~HeaderFound && DEBUG3) printf("No Header Found within one packetlength\n");
+      }
+      
+      if (DEBUG3) printf("\tDecoding Packet %d APos %d DPos %d\n",i1,AOffset,cStart);
+      
+      DataStart = PacketStart + DataOffset;
+      switch (BitLength) {
+        case 12:
+          for (i2 = 0; i2<Bundles ; i2++ ) { // Loop over the Bundles in the data section in a packet
+            cStart = DataStart + i2*BitsPerBundle;
+            cASamplesRead = i1;
+            AOffset = cASamplesRead*NumberOfChannelsTotal + NumberOfChannelsDone + i2*3; // This has to be expanded for multiple headstages
+            AData[AOffset]     = -2048*BData[cStart]     + 1024*BData[cStart+3] + 512*BData[cStart+6] + 256*BData[cStart+9]   + 128*BData[cStart+12] + 64*BData[cStart+15] + 32*BData[cStart+18] + 16*BData[cStart+21] + 8*BData[cStart+24] + 4*BData[cStart+27] + 2*BData[cStart+30] + 1*BData[cStart+33];
+            AData[AOffset+1] = -2048*BData[cStart+1] + 1024*BData[cStart+4] + 512*BData[cStart+7] + 256*BData[cStart+10] + 128*BData[cStart+13] + 64*BData[cStart+16] + 32*BData[cStart+19] + 16*BData[cStart+22] + 8*BData[cStart+25] + 4*BData[cStart+28] + 2*BData[cStart+31] + 1*BData[cStart+34];
+            AData[AOffset+2] = -2048*BData[cStart+2] + 1024*BData[cStart+5] + 512*BData[cStart+8] + 256*BData[cStart+11] + 128*BData[cStart+14] + 64*BData[cStart+17] + 32*BData[cStart+20] + 16*BData[cStart+23] + 8*BData[cStart+26] + 4*BData[cStart+29] + 2*BData[cStart+32] + 1*BData[cStart+35];
+          };
+          break;
+        case 16:
+          for (i2 = 0; i2<Bundles ; i2++ ) { // Loop over the Bundles in the data section in a packet
+            cStart = DataStart + i2*BitsPerBundle;
+            cASamplesRead = i1;
+            AOffset = cASamplesRead*NumberOfChannelsTotal + NumberOfChannelsDone + i2*3;
+            AData[AOffset]      = 32768*BData[cStart]     + 16384*BData[cStart+3] + 8192*BData[cStart+6] + 4096*BData[cStart+9]   + 2048*BData[cStart+12] + 1024*BData[cStart+15] + 512*BData[cStart+18] + 256*BData[cStart+21] + 128*BData[cStart+24] + 64*BData[cStart+27] + 32*BData[cStart+30] + 16*BData[cStart+33] + 8*BData[cStart+36] + 4*BData[cStart+39] + 2*BData[cStart+42] + 1*BData[cStart+45];
+            AData[AOffset+1] = 32768*BData[cStart+1] + 16384*BData[cStart+4] + 8192*BData[cStart+7] + 4096*BData[cStart+10] + 2048*BData[cStart+13] + 1024*BData[cStart+16] + 512*BData[cStart+19] + 256*BData[cStart+22] + 128*BData[cStart+25] + 64*BData[cStart+28] + 32*BData[cStart+31] + 16*BData[cStart+34] + 8*BData[cStart+37] + 4*BData[cStart+40] + 2*BData[cStart+43] + 1*BData[cStart+46];
+            AData[AOffset+2] = 32768*BData[cStart+2] + 16384*BData[cStart+5] + 8192*BData[cStart+8] + 4096*BData[cStart+11] + 2048*BData[cStart+14] + 1024*BData[cStart+17] + 512*BData[cStart+20] + 256*BData[cStart+23] + 128*BData[cStart+26] + 64*BData[cStart+29] + 32*BData[cStart+32] + 16*BData[cStart+35] + 8*BData[cStart+38] + 4*BData[cStart+41] + 2*BData[cStart+44] + 1*BData[cStart+47];
+          };
+          break;
+        default:
+          printf("Unknown Bitlength specified!"); return;
+      }
+      PacketStart = PacketStart + PacketLength;
+    } // END OF DECODING LOOP
+    
+    NumberOfChannelsDone = NumberOfChannelsDone + NumberOfChannelByChan[iAC];
+  }
   DBufferDecoded[0] = PacketStart;
   
   if (DEBUG) printf("\tLeaving decoder (DSample : %d)...\n",DBufferDecoded[0]);
@@ -679,7 +727,7 @@ void decodeData(
   if (TriggerSamples[TriggerCount[0]] > DBufferDecoded[0]) TriggerCount--;
   
   DDecodedPosTotal[0] = DDecodedPosTotal[0] +  (ViUInt64) (DBufferDecoded[0]) ;
-  ASamplesRead[0]=PacketsThisIteration*NumberOfChannels;
+  ASamplesRead[0]=PacketsThisIteration*NumberOfChannelsTotal;
 }
 
 
@@ -817,19 +865,21 @@ int main(int argc, char *argv[]) {
   // SamplesPerIteration : Number of Samples Per Iteration
   // MaxIterations : Maximal Iterations to Acquire
   // DeviceName : Name of the digital NI-DAQ device
-  // ChannelNumber : Digital channel to acquire
-  // TriggerChannel : Digital channel to receive the trigger from
-  // NumberOfChannels : Number of analog channels to decode
+  // AcqChannels : Digital channels to acquire, has to be comma-separated list
+  // TrigChannel : Digital channel where the trigger is sent (should be 15, has to be larger than the last AcqChannel)
+  // StartTrigChannel : Digital channel to receive the trigger from (This is the trigger for starting the engine, e.g. PFI0)
+  // NumberOfChannelsByChan : Number of analog channels to decode per Headstage, has to be comma-separated list
   // BitLength : Bit Length of the headstage
   // SimulationMode : Whether to acquire the data or generate it for testing
   
-  char FileName[100], DeviceName[2], TriggerChannel[5]; 
+  char FileName[100], DeviceName[3], AcqChannels[34], TrigChannel[2], StartTrigChannel[5], NumberOfChannels[60], Rest[3]; 
   int DSamplingRate = 0, ASamplesPerIteration = 0, MaxIterations = 0;
-  int ChannelNumber = 0 , NumberOfChannels = 0, BitLength = 0, SimulationMode = 0;
+  int BitLength = 0, SimulationMode = 0, NumberOfChannelsTotal = 0;
+  ViUInt32  = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]; // ONE ENTRY FOR EVERY POSSIBLE CHANNEL/HEADSTAGE
   
   // CHECK NUMBER OF ARGUMENTS
   if (DEBUG) printf("Starting hsdio_stream_dual.\n");
-  if (argc != 11) { printf("Ten input arguments required (%d provided).\n",argc-1); return 0; };
+  if (argc != 12) { printf("Ten input arguments required (%d provided).\n",argc-1); return 0; };
   
   // ASSIGN INPUT ARGUMENTS TO LOCAL VARIABLES
   strcpy(FileName, argv[1]); if (DEBUG) printf("Root Filename : %s \n",FileName);
@@ -837,20 +887,29 @@ int main(int argc, char *argv[]) {
   sscanf(argv[3],"%d",&ASamplesPerIteration); if (DEBUG) printf("Analog Samples Per Iteration : %d \n",ASamplesPerIteration);
   sscanf(argv[4],"%d",&MaxIterations);  if (DEBUG) printf("Maximal Number of Iterations : %d \n",MaxIterations);
   strcpy(DeviceName, argv[5]); if (DEBUG) printf("DeviceName : %s \n",DeviceName);
-  sscanf(argv[6],"%d",&ChannelNumber); if (DEBUG) printf("Digital Channel Number : %d \n",ChannelNumber);
-  strcpy(TriggerChannel,argv[7]); if (DEBUG) printf("Triggerchannel : %s \n",TriggerChannel);
-  sscanf(argv[8],"%d",&NumberOfChannels); if (DEBUG) printf("Number of Analog Channels : %d \n",NumberOfChannels);
-  sscanf(argv[9],"%d",&BitLength); if (DEBUG) printf("Resolution of Headstage in Bits : %d \n",BitLength);
-  sscanf(argv[10],"%d",&SimulationMode); if (DEBUG) printf("Simulation Mode : %d \n",SimulationMode);
+  strcpy(AcqChannels,argv[6]); if (DEBUG) printf("Digital Channels for Acquisition [0]: %s \n",AcqChannels);
+  strcpy(TrigChannels,argv[7]); if (DEBUG) printf("Digital Channel for Trigger [15] : %s \n",TrigChannel);
+  strcpy(StartTrigChannel,argv[8]); if (DEBUG) printf("Channel of Start Trigger [PFI0] : %s \n",StartTrigChannel);
+  strcpy(NumberOfChannelsByChan,argv[9]); if (DEBUG) printf("Number of Analog Channels per Digital Channel: %s \n",NumberOfChannelsByChan);
+  sscanf(argv[10],"%d",&BitLength); if (DEBUG) printf("Resolution of Headstage in Bits : %d \n",BitLength);
+  sscanf(argv[11],"%d",&SimulationMode); if (DEBUG) printf("Simulation Mode : %d \n",SimulationMode);
+  
+    // PARSE CHANNELNUMBERS
+  Rest = strtok(NumberOfChannelsByChan,',');
+  while (Rest != NULL) {
+    NumberOfChannelsByChanI[NChannels] = atoi(Rest);
+    Rest = strtok(NULL,",");
+    NumberOfChannelsTotal += NumberOfChannelsByChanI;
+  }
   
   // CALL DATA COLLECTION /GENERATION FUNCTIONS
   if (SimulationMode==0) {// ACQUIRE READ DATA
-    acquireData(FileName,(ViUInt32)  NumberOfChannels, DSamplingRate, (ViUInt32) MaxIterations, ASamplesPerIteration, 
-            DeviceName, ChannelNumber, TriggerChannel, (ViUInt32) BitLength);
+    acquireData(FileName,(ViUInt32)  NumberOfChannelsByChanI, NumberOfChannelsTotal,DSamplingRate, (ViUInt32) MaxIterations, ASamplesPerIteration, 
+            DeviceName, AcqChannels, TrigChannel, StartTrigChannel, (ViUInt32) BitLength);
   }
   else {// GENERATE SURROGATE DATA
     if (DEBUG) printf("Entering Data Creation Function...\n");
-    createData( FileName, NumberOfChannels, DSamplingRate, MaxIterations,ASamplesPerIteration);
+    createData( FileName, NumberOfChannelsByChanI, NumberOfChannelsTotal, DSamplingRate, MaxIterations,ASamplesPerIteration);
   }
   return 1;
 }
