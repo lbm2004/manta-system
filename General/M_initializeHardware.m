@@ -42,6 +42,7 @@ for i=1:MG.HW.NBoards % LOOP over physically present boards
         S = DAQmxGetDevAIMaxMultiChanRate(MG.DAQ.BoardIDs{k},Num); if S NI_MSG(S); end
       case 'HSDIO'; % DONE IN STREAMING PROGRAM
         M_initializeRamDisk;
+        M_configureHSDIO;
     end
     
     % ASSIGN PROPERTIES OF CONNECTED SYSTEMS
@@ -71,7 +72,7 @@ M_updateChannelMaps
 %MG.DAQ.NChannelsTotal = sum(MG.DAQ.NChannels);
 
 MG.DAQ.Triggers = MG.HW.(cEngine).Triggers;
-MG.DAQ.Triggers.All = unique({MG.DAQ.Triggers.Remote,'PFI0','PFI3','DIO1','RTSI0'});
+MG.DAQ.Triggers.All = unique({MG.DAQ.Triggers.Remote,'PFI0','PFI3','DIO1','RTSI0','XX'});
 
 % SET SAMPLING RATE
 MG.DAQ.AvailSRs = MG.HW.AvailSRs;
@@ -85,6 +86,9 @@ switch cEngine;
 end
 
 % SOUND CARD FOR SPIKE OUTPUT
+% DOES NOT WORK WITH 64-bit WINDOWS DUE TO SWITCH TO NEW DAQ TOOLBOX
+% POTENTIAL SOLUTION : USE DSP TOOLBOX WITH ASIO COMPATIBLE SOUND CARD
+% dsp.AudioPlayer AND THEN STREAM DATA
 try
   if ~isempty(which('daqhwinfo'))
     tmp = daqhwinfo('winsound');

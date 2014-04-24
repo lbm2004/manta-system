@@ -8,7 +8,7 @@ global MG
 Fields = {'DAQ','Disp','HW','Stim'};
 SubFields.HW = {'HSDIO','NIDAQ','ArraysByBoard','SystemsByBoard'};
 SubFields.DAQ = {'BoardsBool','ChannelsBool','Engine','SR','MinDur','BoardsBool','ChannelsBool','InputRangesByBoard','Triggers','HSDIO','NIDAQ'};
-SubFields.Disp = {'DispDur','Raw','Trace','LFP','Spike','Humbug','Filter','YLim','AutoThresh','ChannelsXYByBoard','LastPos'};
+SubFields.Disp = {'Main.DispDur','Main.Raw','Main.Trace','Main.LFP','Main.Spike','Humbug','Ana.Filter','Main.YLim','Ana.Spikes.AutoThresh','ChannelsXYByBoard','Main.LastPos'};
 SubFields.Stim = {'Host'};
 for i=1:length(Fields)
   for j=1:length(SubFields.(Fields{i}))

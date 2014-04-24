@@ -32,8 +32,10 @@ MG.GUI.LoadConfig = LF_addPushbutton(Panel,DC{1},'Load',...
 % Choose Configuration to Load
 TT='Choose Configuration to Load';
 Configs = M_getConfigs; if isempty(Configs) Configs = {'default'}; end
+cConfigInd = find(strcmp(lower(MG.Config),Configs));
+if isempty(cConfigInd) cConfigInd = 1; end
 MG.GUI.ChooseConfig = LF_addDropdown(Panel,DC{2},Configs,...
-  find(strcmp(lower(MG.Config),Configs)),'',[],TT);
+cConfigInd,'',[],TT);
 
 % Save Configuration
 TT = 'Save Configuration';
@@ -475,12 +477,7 @@ global MG
 State = get(obj,'Value'); eval([loc,' = State;']);
 Selection = get(gcf,'SelectionType');
 if State % TURN ON
-  % CHECK WHICH MOUSE BUTTONG WAS CLICKED
-  if strcmp(Selection,'alt') | ~isfield(MG.Disp.Ana.Spikes,'AutoThreshBoolSave') 
-    MG.Disp.Ana.Spikes.AutoThreshBool = logical(ones(1,MG.DAQ.NChannelsTotal)); % RESET
-  else
-    MG.Disp.Ana.Spikes.AutoThreshBool = MG.Disp.Ana.Spikes.AutoThreshBoolSave; % REUSE
-  end
+  MG.Disp.Ana.Spikes.AutoThreshBool = logical(ones(1,MG.DAQ.NChannelsTotal)); % RESET
 else % TURN OFF
   MG.Disp.Ana.Spikes.AutoThreshBoolSave = MG.Disp.Ana.Spikes.AutoThreshBool;
   MG.Disp.Ana.Spikes.AutoThreshBool(:) = 0;
@@ -513,7 +510,7 @@ function M_CBF_setValueSR(obj,event)
 % Set the analog and digital sampling rate
 global MG
 
-Value = get(obj,'Value'); Entries = get(obj,'UserData'); SR = Entries{Value};
+Value = get(obj,'Value'); Entries = get(obj,'UserData'); SR = Entries{1}(Value);
 MG.DAQ.SR = SR;
 switch MG.DAQ.Engine; case 'HSDIO'; MG.DAQ.HSDIO.SRDigital = M_convSRAnalog2Digital(SR); end
 

@@ -114,7 +114,7 @@ MG.Disp.Ana.Spikes.SpikeInd = repmat([0:length(SpikeTime)-1]',1,MG.Disp.Ana.Spik
  MG.Disp.Ana.Spikes.Spikes = zeros(MG.Disp.Ana.Spikes.SpikeSteps,MG.Disp.Ana.Spikes.NSpikesMax,NPlot);
 % CHECK IF THRESHOLDS HAVE BEEN SET BEFORE
 if ~isfield(MG.Disp,'Thresholds') | (length(MG.Disp.Ana.Spikes.Thresholds)~=NPlot)
-  MG.Disp.Ana.Spikes.Thresholds =MG.Disp.Main.YLim*ones(1,NPlot)/2;
+  MG.Disp.Ana.Spikes.Thresholds =-MG.Disp.Main.YLim*ones(1,NPlot)/2;
   MG.Disp.Ana.Spikes.AutoThresholds = zeros(1,NPlot);
 else
   MG.Disp.Ana.Spikes.AutoThreshBool = logical(ones(NPlot,1));
@@ -217,7 +217,7 @@ M_showSpectrum(MG.Disp.Main.Spectrum);
 M_showDepth(MG.Disp.Main.Depth);
 M_changeUnits(1:NPlot);
 M_showMain;
-if MG.Disp.Main.Array3D M_prepare3DRotation; end
+if MG.Disp.Main.Array3D M_prepare3DRotation; else set(MG.Disp.Main.H,'ButtonDownFcn',''); end
 % PREPARE SIMULATED DATA (FOR OFFLINE TESTING)
 if strcmp(MG.DAQ.Engine,'SIM') M_prepareSpikes; end
 

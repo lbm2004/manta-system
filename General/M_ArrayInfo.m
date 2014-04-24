@@ -109,7 +109,6 @@ switch lower(ArrayName)
     Ground = {{'Electrode',[2.0,3.0,0.0]}};
     Comment = 'Chronic recordings';
     
-    
   case 'mackenzie_a1_left';
     PinsByElectrode = [1:32]; Drive = 1;
     ElecPos = [... % Array Dimensions are 8x4 with 0.5 mm spacing
@@ -192,6 +191,7 @@ switch lower(ArrayName)
         Reference = {{'Electrode',[0.0,0.0,0.0]}};
         Ground = {{'Electrode',[2.5,0.0,0.0]}};
         Comment = 'Non-chronic recordings';
+ 
   case 'p32'; 
         PinsByElectrode = [1:32]; Drive = 1;
         ElecPos = [... % assume 0.5 mm spacing.  Maybe actually 0.3?
@@ -245,6 +245,19 @@ switch lower(ArrayName)
     Ground = {{'Electrode',[2.5,0.0,0.0]}};
     Comment = 'Dummy Array for 16 channels';
 
+  case 'mea_2_16';
+    PinsByElectrode = [1:16]; Drive = 0;
+    ElecPos = [...
+      3,0 ; 2,0 ; 1,0 ; 0,0;...
+      3,1 ; 2,1 ; 1,1 ; 0,1;...
+      3,2 ; 2,2 ; 1,2 ; 0,2;...
+      3,3 ; 2,3 ; 1,3 ; 0,3;...
+      ];
+    Impedances = repmat(6.0,16,1);
+    Reference = {{'Electrode',[-1,3,0.0]}};
+    Ground = {{'Electrode',[4,0,0.0]}};
+    Comment = 'Dummy Array for 16 channels';
+    
   case 'mea_1_2x8'; 
     % 2x8 array for KJD (JW's left over Microprobes array) omnetics label is on the bottom
     % 250uM between each electrode, 75uM diameter each electrode             
@@ -390,9 +403,23 @@ switch lower(ArrayName)
     Reference = {{'Tip',[NaN,NaN,NaN]}};
     Ground = {{'Tip',[NaN,NaN,NaN]}};
     Comment = '';
-
     
-    
+  case 'nn3d_1_288';
+    PinsByElectrode = [1:288];
+    Drive = 1; Type = '3d';
+    Nx = 6; Ny = 6; Nz = 8; Dz = 0.2;
+    for iE=1:length(PinsByElectrode)
+      ElecPos(iE,:) = [ ...
+        mod(floor((iE-1)/Nz),Nx) ,...
+        floor((iE-1)/(Nz*Nx)) ,...
+        Dz*(Nz-mod(iE-1,Nz)-1) ]; % Spacing is 1mm in X & Y
+    end
+    Impedances = repmat(0.5,size(PinsByElectrode));
+    WireDiameter =  repmat(25,size(PinsByElectrode));
+    Reference = {{'Tip',[NaN,NaN,NaN]}};
+    Ground = {{'Tip',[NaN,NaN,NaN]}};
+    Comment = '';
+       
   case {'plextrode_24','plextrode_24_100'};
     NChannels = 24;
     PinsByElectrode = [1:NChannels]; Drive = 1; Type = '1d_depth';

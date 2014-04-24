@@ -68,7 +68,7 @@ if MG.Disp.Humbug
   end
 end
 
-if MG.Disp.Ana.Trace
+if MG.Disp.Ana.Trace | MG.Disp.Ana.Spike 
   [MG.Data.Trace,MG.Data.IVTrace] = ...
     filter(MG.Disp.Ana.Filter.Trace.b,MG.Disp.Ana.Filter.Trace.a,MG.Data.Raw,MG.Data.IVTrace);
 end
@@ -85,7 +85,7 @@ if MG.Disp.Main.Spectrum
 end
 
 %% TRANSFER SIGNAL TO BE PLOTTED
-DispIteration = ceil(SamplesAcquired/MG.Disp.Main.DispStepsFull); % How many display periods have been 'wrapped'
+MG.Disp.Main.DispIteration = ceil(SamplesAcquired/MG.Disp.Main.DispStepsFull); % How many display periods have been 'wrapped'
 FirstSample = SamplesAcquired-CurrentSamples+1; % First sample of the current display period (absolute)
 LastSample = SamplesAcquired; % Last sample of the current display period (absolute)
 FirstSampleRel = modnonzero(FirstSample,MG.Disp.Main.DispStepsFull); % First sample of current display period (relative)
@@ -212,7 +212,7 @@ if MG.Disp.Ana.Spike
         if ~mod(Iteration,20) MG.Disp.Ana.Spikes.SorterFun(1,i); end
       end
       
-      % DELETE SOME OLD SPIKES TO MAKE THEM FADE (NOT FINISHED)
+      % DELETE SOME OLD SPIKES TO MAKE THEM FADE
       NSpikesDelete = floor(0.25*(MG.Disp.Ana.Spikes.NSpikesMax - MG.Disp.Ana.Spikes.NSpikesShow(i)));
       if NSpikesDelete
         MG.Disp.Ana.Spikes.DeleteInd{i} = randi([MG.Disp.Ana.Spikes.NSpikes(i)+1,MG.Disp.Ana.Spikes.NSpikesMax],NSpikesDelete,1);
@@ -253,18 +253,18 @@ if MG.Disp.Main.CollectPSTH
   LastPSTHType = MG.Disp.Main.PSTHType;
   switch MG.Disp.Main.PSTHType
     case 'Spikes';
-      if DispIteration <= size(MG.Disp.Main.cIndP) % DispIteration CAN BE LONGER THAN cIndP FOR VARIABLE TRIAL LENGTHS, E.G. DURING BEHAVIOR
+      if MG.Disp.Main.DispIteration <= size(MG.Disp.Main.cIndP) % MG.Disp.Main.DispIteration CAN BE LONGER THAN cIndP FOR VARIABLE TRIAL LENGTHS, E.G. DURING BEHAVIOR
         for i=PlotInd
           if MG.Disp.Ana.Spikes.NewSpikes(i)
             if ~isempty(SPAll)
               SPAllAbs = SPAll{i}+FirstSample-1;
-              cSP = SPAllAbs(SPAllAbs>(DispIteration-1)*MG.Disp.Main.DispStepsFull);
-              cHist = hist(cSP-(DispIteration-1)*MG.Disp.Main.DispStepsFull,MG.Disp.Main.PSTHBins);
-              MG.Disp.Main.PSTHs(MG.Disp.Main.cIndP(DispIteration,:),i) = MG.Disp.Main.PSTHs(MG.Disp.Main.cIndP(DispIteration,:),i) + cHist(1:end-1)';
-              cSP = SPAllAbs(SPAllAbs<=(DispIteration-1)*MG.Disp.Main.DispStepsFull);
+              cSP = SPAllAbs(SPAllAbs>(MG.Disp.Main.DispIteration-1)*MG.Disp.Main.DispStepsFull);
+              cHist = hist(cSP-(MG.Disp.Main.DispIteration-1)*MG.Disp.Main.DispStepsFull,MG.Disp.Main.PSTHBins);
+              MG.Disp.Main.PSTHs(MG.Disp.Main.cIndP(MG.Disp.Main.DispIteration,:),i) = MG.Disp.Main.PSTHs(MG.Disp.Main.cIndP(MG.Disp.Main.DispIteration,:),i) + cHist(1:end-1)';
+              cSP = SPAllAbs(SPAllAbs<=(MG.Disp.Main.DispIteration-1)*MG.Disp.Main.DispStepsFull);
               if ~isempty(cSP)
-                cHist = hist(cSP-(DispIteration-2)*MG.Disp.Main.DispStepsFull,MG.Disp.Main.PSTHBins);
-                MG.Disp.Main.PSTHs(MG.Disp.Main.cIndP(DispIteration-1,:),i) = MG.Disp.Main.PSTHs(MG.Disp.Main.cIndP(DispIteration-1,:),i) + cHist(1:end-1)';
+                cHist = hist(cSP-(MG.Disp.Main.DispIteration-2)*MG.Disp.Main.DispStepsFull,MG.Disp.Main.PSTHBins);
+                MG.Disp.Main.PSTHs(MG.Disp.Main.cIndP(MG.Disp.Main.DispIteration-1,:),i) = MG.Disp.Main.PSTHs(MG.Disp.Main.cIndP(MG.Disp.Main.DispIteration-1,:),i) + cHist(1:end-1)';
               end
             end
           end
@@ -276,7 +276,7 @@ if MG.Disp.Main.CollectPSTH
         PSTHInd = logical((MG.Disp.Main.PSTHBins>FirstSampleRel).*(MG.Disp.Main.PSTHBins<=LastSampleRel));
         SampleInd = MG.Disp.Main.PSTHBins(PSTHInd)-FirstSampleRel+1;
         cPSTHs(PSTHInd,:) = MG.Data.LFP(SampleInd,PlotInd);
-        MG.Disp.Main.PSTHs(MG.Disp.Main.cIndP(DispIteration,:),PlotInd) = MG.Disp.Main.PSTHs(MG.Disp.Main.cIndP(DispIteration,:),PlotInd) + cPSTHs;
+        MG.Disp.Main.PSTHs(MG.Disp.Main.cIndP(MG.Disp.Main.DispIteration,:),PlotInd) = MG.Disp.Main.PSTHs(MG.Disp.Main.cIndP(MG.Disp.Main.DispIteration,:),PlotInd) + cPSTHs;
       end
   end
 end

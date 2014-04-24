@@ -27,11 +27,13 @@ switch lower(SystemName)
     
   % DIGITAL SYSTEMS
   case 'blackrock_96ch_16bit';
-    R = struct('Name',SystemName,'Gain',1,'InputRange',[-0.005,0.005],'ChannelMap',[1:96],'DigitalChannels',0,'Bits',16,'Engine','HSDIO');
+    R = struct('Name',SystemName,'Gain',1,'InputRange',[-0.005,0.005],'ChannelMap',[1:96],'DigitalChannels',0,'NAIbyDI',[96],'Bits',16,'Engine','HSDIO');
   case 'blackrock_192ch_16bit';
-    R = struct('Name',SystemName,'Gain',1,'InputRange',[-0.005,0.005],'ChannelMap',[1:192],'DigitalChannels',[0,1],'Bits',16,'Engine','HSDIO');
-  case 'blackrock_96ch_12bit';
-    R = struct('Name',SystemName,'Gain',1,'InputRange',[-0.005,0.005],'ChannelMap',[1:96],'DigitalChannels',0,'Bits',12,'Engine','HSDIO');
+    R = struct('Name',SystemName,'Gain',1,'InputRange',[-0.005,0.005],'ChannelMap',[1:192],'DigitalChannels',[0,1],'NAIbyDI',[96,96],'Bits',16,'Engine','HSDIO');
+  case 'blackrock_288ch_16bit';
+    R = struct('Name',SystemName,'Gain',1,'InputRange',[-0.005,0.005],'ChannelMap',[1:288],'DigitalChannels',[0,1,2],'NAIbyDI',[96,96,96],'Bits',16,'Engine','HSDIO');
+   case 'blackrock_96ch_12bit';
+    R = struct('Name',SystemName,'Gain',1,'InputRange',[-0.005,0.005],'ChannelMap',[1:96],'DigitalChannels',0,'NAIbyDI',[96],'Bits',12,'Engine','HSDIO');
     
   % SIM SYSTEMS
   case 'generic_128ch_16bit';

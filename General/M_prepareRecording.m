@@ -19,11 +19,11 @@ MG.DAQ.StopRecording = 0; MG.DAQ.StopRecTime = NaN;
 MG.DAQ.StartRecording = 1; MG.DAQ.StartRecTime = NaN;
 MG.DAQ.Recording = 1;
 MG.DAQ.IterationRec = 0;
-MG.Disp.Ana.Spikes.AutoThresh.State = 0; set(MG.GUI.Spike.AutoThresh,'Value',0); % AVOID CHANGING THRESHOLDS DURING A RECORDING
+%MG.Disp.Ana.Spikes.AutoThresh.State = 0; set(MG.GUI.Spike.AutoThresh,'Value',0); % AVOID CHANGING THRESHOLDS DURING A RECORDING
 
 % SETUP SPIKETIME SAVING DURING RECORDING
 MG.Disp.Ana.Spikes.Save = strcmp(MG.DAQ.Trigger.Type,'Remote');
- if (MG.DAQ.FirstTrial && MG.Disp.Ana.Spikes.Save) | ~isfield(MG.Disp,'SpikeFileNames') | ~isfield(MG.Disp,'AllSpikes')
+ if (MG.DAQ.FirstTrial && MG.Disp.Ana.Spikes.Save) | ~isfield(MG.Disp.Ana.Spikes,'SpikeFileNames') | ~isfield(MG.Disp.Ana.Spikes,'AllSpikes')
   MG.Disp.Ana.Spikes.AllSpikes = struct('channel',{MG.DAQ.ElectrodesByChannel.Electrode},...
     'sigthreshold',0,'sigma',NaN,'trialid',[],'spikebin',[]);
   for i=1:MG.DAQ.NChannelsTotal

@@ -33,15 +33,15 @@ switch MG.DAQ.Engine
             if ~isempty(HighTrigs)
               TriggerState = 1;  MG.DAQ.Triggered = 1;
               TriggerSample = NewTriggers(HighTrigs(1),2);
-              MG.DAQ.FirstPosBytes = TriggerSample*MG.DAQ.HSDIO.NAI*MG.DAQ.HSDIO.BytesPerSample;
+              MG.DAQ.FirstPosBytes = TriggerSample*MG.DAQ.HSDIO.NAITotal*MG.DAQ.HSDIO.BytesPerSample;
               M_Logger('High Trigger selected : Samples %d \n',TriggerSample);
               % SPECIAL CASE : ANOTHER LOW TRIGGER EXISTS
               LowTrigs = find(NewTriggers(:,3)==0);
               LowTriggerSamples = NewTriggers(LowTrigs,3);
-              LowTriggerBytes = LowTriggerSamples*MG.DAQ.HSDIO.NAI*MG.DAQ.HSDIO.BytesPerSample;
+              LowTriggerBytes = LowTriggerSamples*MG.DAQ.HSDIO.NAITotal*MG.DAQ.HSDIO.BytesPerSample;
               cPos = find(LowTriggerBytes>MG.DAQ.FirstPosBytes,1,'first');
               if ~isempty(cPos)
-                MG.DAQ.LastPosBytes = LowTriggerSamples(cPos)*MG.DAQ.HSDIO.NAI*MG.DAQ.HSDIO.BytesPerSample;
+                MG.DAQ.LastPosBytes = LowTriggerSamples(cPos)*MG.DAQ.HSDIO.NAITotal*MG.DAQ.HSDIO.BytesPerSample;
                 TriggerState = 0;
                 M_stopRecording;
                 M_Logger('Low Trigger selected : Samples %d \n',LowTriggerSamples(cPos));
@@ -50,10 +50,10 @@ switch MG.DAQ.Engine
           else % ALREADY TRIGGERED, FIND FIRST LOW TRIGGER AFTER HIGH TRIGGER
             LowTrigs = find(NewTriggers(:,3)==0);
             LowTriggerSamples = NewTriggers(LowTrigs,2);
-            LowTriggerBytes = LowTriggerSamples*MG.DAQ.HSDIO.NAI*MG.DAQ.HSDIO.BytesPerSample;
+            LowTriggerBytes = LowTriggerSamples*MG.DAQ.HSDIO.NAITotal*MG.DAQ.HSDIO.BytesPerSample;
             cPos = find(LowTriggerBytes>MG.DAQ.FirstPosBytes,1,'first');
             if ~isempty(cPos)
-              MG.DAQ.LastPosBytes = LowTriggerSamples(cPos)*MG.DAQ.HSDIO.NAI*MG.DAQ.HSDIO.BytesPerSample;
+              MG.DAQ.LastPosBytes = LowTriggerSamples(cPos)*MG.DAQ.HSDIO.NAITotal*MG.DAQ.HSDIO.BytesPerSample;
               TriggerState = 0;
               M_stopRecording;
               M_Logger('Low Trigger selected : Samples %d \n',LowTriggerSamples(cPos));
@@ -78,23 +78,21 @@ switch MG.DAQ.Engine
         if length(StatusData)==3
           BytesThisLoop=StatusData(1);
           AllChanSamplesThisLoop = BytesThisLoop/MG.DAQ.HSDIO.BytesPerSample;
-          SamplesThisLoop = AllChanSamplesThisLoop/MG.DAQ.HSDIO.NAI;
+          SamplesThisLoop = AllChanSamplesThisLoop/MG.DAQ.HSDIO.NAITotal;
           MG.DAQ.CurrentBufferLoop=StatusData(2);
-          TotalSamplesWritten = StatusData(3)/MG.DAQ.HSDIO.NAI;
-          TotalSamplesAcquired = MG.DAQ.HSDIO.SamplesPerLoop*MG.DAQ.CurrentBufferLoop + SamplesThisLoop;
-          FirstSample = MG.DAQ.FirstPosBytes/MG.DAQ.HSDIO.NAI/MG.DAQ.HSDIO.BytesPerSample;
-          LastSample = MG.DAQ.LastPosBytes/MG.DAQ.HSDIO.NAI/MG.DAQ.HSDIO.BytesPerSample;
+          TotalSamplesWritten = StatusData(3)/MG.DAQ.HSDIO.NAITotal;
+          TotalSamplesAcquired = MG.DAQ.HSDIO.SamplesPerLoopPerChannel*MG.DAQ.CurrentBufferLoop + SamplesThisLoop;
+          FirstSample = MG.DAQ.FirstPosBytes/MG.DAQ.HSDIO.NAITotal/MG.DAQ.HSDIO.BytesPerSample;
+          LastSample = MG.DAQ.LastPosBytes/MG.DAQ.HSDIO.NAITotal/MG.DAQ.HSDIO.BytesPerSample;
           SamplesAvailable = TotalSamplesAcquired - FirstSample - MG.DAQ.SamplesTakenTotal;
           SamplesToTake = max([min([LastSample - FirstSample - MG.DAQ.SamplesTakenTotal,SamplesAvailable]),0]);
           M_Logger('\tIt: %d  :  Samples: Total: %d (Written: %d), Taken: %d, ThisLoop: %d, New: %d, ToTake: %d, TriggerState : %d  Last Trig: %d, Loop: %d\n',...
             MG.DAQ.Iteration,TotalSamplesAcquired,TotalSamplesWritten,MG.DAQ.SamplesTakenTotal,SamplesThisLoop,SamplesAvailable,SamplesToTake,TriggerState,FirstSample,MG.DAQ.CurrentBufferLoop);
           if mod(TotalSamplesAcquired,1) keyboard; end
-          %if SamplesToTake < MG.DAQ.HSDIO.MinSamplesPerIteration 
-           % M_Logger(['NOTE : Only ',n2s(SamplesToTake),' Samples. Deferring Acquisition to next Iteration\n']); SamplesToTake = 0; SamplesAvailable =0;
-          %end
         end
       end
     end
+ %   if SamplesAvailable > 100000 keyboard; end
     
   case 'SIM'
     if MG.DAQ.Iteration < 2  SamplesAvailable = 5000;

@@ -28,10 +28,10 @@ for i=MG.Disp.Main.PlotInd
        set(MG.Disp.Main.SPH(i,cInd),'YData',MG.Disp.Ana.Spikes.Spikes(:,cInd,i),'Color',MG.Colors.Inactive);
     end
   end
-  if MG.Disp.Main.CollectPSTH & MG.Disp.Main.PSTH & DispIteration <= size(MG.Disp.Main.cIndP) 
+  if MG.Disp.Main.CollectPSTH & MG.Disp.Main.PSTH & MG.Disp.Main.DispIteration <= size(MG.Disp.Main.cIndP) 
     MAX = max(abs(MG.Disp.Main.PSTHs(3:end,i)));
     if MAX Factor = MG.Disp.Main.YLims(i,2)/1.3/MAX; else Factor = 1; end
-    set(MG.Disp.Main.PPH(i),'YData',Factor*MG.Disp.Main.PSTHs(MG.Disp.Main.cIndP(DispIteration,:),i));
+    set(MG.Disp.Main.PPH(i),'YData',Factor*MG.Disp.Main.PSTHs(MG.Disp.Main.cIndP(MG.Disp.Main.DispIteration,:),i));
   end
 end
 
