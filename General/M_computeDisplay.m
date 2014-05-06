@@ -210,6 +210,8 @@ if MG.Disp.Ana.Spike
           MG.Colors.SpikeColors(:,1:length(SpikeClustInd),i) = MG.Colors.SpikeColorsBase(:,SpikeClustInd);
         end
         if ~mod(Iteration,20) MG.Disp.Ana.Spikes.SorterFun(1,i); end
+      else
+         MG.Colors.SpikeColors(:,:,i) = repmat(MG.Colors.Trace',[1,size(MG.Colors.SpikeColors,2)]);
       end
       
       % DELETE SOME OLD SPIKES TO MAKE THEM FADE

@@ -79,7 +79,7 @@ if strcmp(MG.DAQ.Trigger.Type,'Local')
           SamplesWritten = libpointer('int32Ptr',false); WriteArray = libpointer('uint8PtrPtr',TrigVal);
           S = DAQmxWriteDigitalLines(MG.DIO(i),1,1,10,NI_decode('DAQmx_Val_GroupByChannel'),...
             WriteArray,SamplesWritten,[]); if S NI_MSG(S); end
-          if get(SamplesWritten,'Value') ~=1 keyboard; end
+          if get(SamplesWritten,'Value') ~=1 fprintf('M_startEngine: '); keyboard; end
         end
       end
     case 'HSDIO';

@@ -86,13 +86,17 @@ switch cEngine;
 end
 
 % SOUND CARD FOR SPIKE OUTPUT
-% DOES NOT WORK WITH 64-bit WINDOWS DUE TO SWITCH TO NEW DAQ TOOLBOX
-% POTENTIAL SOLUTION : USE DSP TOOLBOX WITH ASIO COMPATIBLE SOUND CARD
-% dsp.AudioPlayer AND THEN STREAM DATA
-try
-  if ~isempty(which('daqhwinfo'))
+Toolboxes = ver;
+if  any(strcmp('DSP System Toolbox', {Toolboxes.Name})) % Check for Audio via DSP Toolbox
+  MG.Audio.Interface = 'DSP';
+  MG.Audio.SR = 44100;
+  MG.AudioO = dsp.AudioPlayer('SampleRate',MG.Audio.SR,'QueueDuration',0.1);
+  
+elseif any(strcmp('Data Acquisition Toolbox', {Toolboxes.Name})) % Check for Audio via DAQ Toolbox
+  if ispc && OSBitLength == 32
     tmp = daqhwinfo('winsound');
     if ~isempty(tmp.BoardNames) % AUDIO BOARD FOUND
+      MG.Audio.Interface = 'DAQ';
       AudioBoardID = NaN;
       for i=1:length(tmp.BoardNames)
         if ~isempty(tmp.ObjectConstructorName{i,2}) AudioBoardID = i;  break; end
@@ -101,7 +105,7 @@ try
         fprintf('Audio disabled : None of the audio devices support output (potential cause: unplugged speakers)\n');
         MG.Audio.Output = 0;
       else
-        M_Logger(['Using Audio Device : ',tmp.BoardNames{AudioBoardID},'\n']); 
+        M_Logger(['Using Audio Device : ',tmp.BoardNames{AudioBoardID},'\n']);
         MG.Audio = transferFields(MG.Audio,tmp);
         Opt = {'I','O'};
         if ~isempty(tmp.BoardNames)
@@ -115,13 +119,14 @@ try
         end
       end
     else
-        MG.AudioO = analogoutput('winsound',0);
-        MG.Audio.ChannelO = addchannel(MG.AudioO,[1,2]);
+      MG.AudioO = analogoutput('winsound',0);
+      MG.Audio.ChannelO = addchannel(MG.AudioO,[1,2]);
     end
-  else fprintf('Audio disabled : DAQ-toolbox not available\n');
+  else
+    fprintf('Audio disabled : DAQ-toolbox and Audio Output can only be used under Matlab 32 bits\n');
   end
-catch
-  M_Logger('Audio disabled : Error configuring'); 
+else
+  M_Logger('Audio disabled : No Supported Toolbox for Output available.');
 end
 
 % OUTPUT SOME INFORMATION ON DAQ CARDS

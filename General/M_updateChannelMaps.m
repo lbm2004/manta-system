@@ -123,6 +123,7 @@ M_findProngs;
 
 % REINIT SPIKE SORTER
 MG.Disp.Ana.Spikes.SorterFun(0);
+MG.Disp.Ana.Spikes.DeleteInd = cell(MG.DAQ.NChannelsTotal,1);
 
 % INITIALIZE HSDIO
 switch MG.DAQ.Engine

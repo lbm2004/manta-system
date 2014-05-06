@@ -32,7 +32,7 @@ if isfield(MG.Data,'Offset') MG.Data = rmfield(MG.Data,'Offset'); end
 % SETUP ENGINES
 k=0;
 for i=MG.DAQ.BoardsNum
-  switch MG.DAQ.Engine 
+  switch MG.DAQ.Engine
     case 'NIDAQ';
       % SET SAMPLING RATE AND SAMPLING MODE
       S = DAQmxCfgSampClkTiming(MG.AI(i),NI_decode('OnboardClock'),...
@@ -56,4 +56,8 @@ for i=MG.DAQ.BoardsNum
   end
 end
 % SET AUDIO TO THE SAME SAMPLE RATE AS DAQ
-try set(MG.AudioO,'SampleRate',MG.DAQ.SR); end
+if isfield(MG,'AudioO')
+  switch MG.Audio.Interface
+    case 'DAQ'; set(MG.AudioO,'SampleRate',SR/2); 
+  end
+end

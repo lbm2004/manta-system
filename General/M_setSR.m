@@ -15,4 +15,8 @@ if sum(SRActual(MG.DAQ.BoardsNum)~=SR)
 MG.HW.SR = SR;
 
 % SET SAMPLING RATE FOR AUDIO(PROVIDED IN HZ)
-if isfield(MG,'AudioO') set(MG.AudioO,'SampleRate',SR); end
+if isfield(MG,'AudioO')
+  switch MG.Audio.Interface
+    case 'DAQ'; set(MG.AudioO,'SampleRate',SR/2); 
+  end
+end

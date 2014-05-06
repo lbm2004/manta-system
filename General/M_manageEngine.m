@@ -74,7 +74,7 @@ while MG.DAQ.Running
           Data = [TailData;HeadData];
           SamplesActuallyRead=round(length(Data)./MG.HW.Boards(i).NAI);
           Data = reshape(Data,MG.HW.Boards(i).NAI,SamplesActuallyRead)'/MG.DAQ.GainsByBoard(i);
-          if SamplesActuallyRead<SamplesToTake   M_Logger('Not enough samples available!\n'); keyboard;  end
+          if SamplesActuallyRead<SamplesToTake   M_Logger('Not enough samples available!\n'); fprintf('M_manageEngine: ');  keyboard;  end
           
           % offset of 19000 (rather than expected 32000) matched to
           % approximate "true" zero volts, reflecting how digitization

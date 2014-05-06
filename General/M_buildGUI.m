@@ -237,14 +237,21 @@ for i=1:length(Vars)
         {@M_CBF_setFilter,Loc},'Hertz (Corner Frequency for Lowpass)');
       M_CBF_setFilter(MG.GUI.(Vars{i}).LowPass,0,Loc);
     case 4 % SPIKE DISPLAY
+      
+      Loc = ['MG.Disp.Ana.Spikes.SpikeSort'];
+      MG.GUI.(Vars{i}).SpikeSort = ...
+        LF_addCheckbox(Panel,DC2{i,3}-[0.1,0,0,0],eval(Loc),{@M_CBF_setValue,Loc});
+      h = LF_addText(Panel,DC2{i,3}+[0,-0.02,0,0],'Sort'); set(h,'Horiz','Left');
+      
       Loc = ['MG.Disp.Ana.Spikes.AutoThresh.State'];
       MG.GUI.(Vars{i}).AutoThresh = ...
-        LF_addCheckbox(Panel,DC2{i,3},eval(Loc),...
+        LF_addCheckbox(Panel,DC2{i,4}+[0.05,0,0,0],eval(Loc),...
         {@M_CBF_setAutoThresh,Loc});
-      h = LF_addText(Panel,DC2{i,4}-[0,0.02,-.2,0],'Auto'); set(h,'Horiz','Left');
-       % THRESHOLD IN MULTIPLES OF SD
+      h = LF_addText(Panel,DC2{i,4}+[0.15,-0.02,0,0],'Auto'); set(h,'Horiz','Left');
+      
+      % THRESHOLD IN MULTIPLES OF SD
       Loc = ['MG.Disp.Ana.Spikes.SpikeThreshold'];
-      MG.GUI.(Vars{i}).SpikeThreshold = LF_addEdit(Panel,DC2{i,5},eval(Loc),...
+      MG.GUI.(Vars{i}).SpikeThreshold = LF_addEdit(Panel,DC2{i,5}+[0.1,0,-0.1,0],eval(Loc),...
         {@M_CBF_setFilter,Loc},'Auto Threshold for Spike Detection (multiples of baseline S.D.)');
     case 5 % PSTH DISPLAY
       Strings = {'Spikes','LFP'}; TT = 'Select the source for building the LFP : Spikes or LFP';

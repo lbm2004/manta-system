@@ -6,10 +6,10 @@ global MG
 switch MG.DAQ.Engine
   case 'NIDAQ';
     S = DAQmxTaskControl(MG.AI(MG.DAQ.BoardsNum(1)),NI_decode('DAQmx_Val_Task_Start')); 
-    if ~S keyboard; end; 
+    if ~S fprintf('M_SamplesAvailable: '); keyboard; end; 
     SamplesAvailablePtr = libpointer('uint32Ptr',false);
     S = DAQmxGetReadAvailSampPerChan(MG.AI(MG.DAQ.BoardsNum(1)),SamplesAvailablePtr); if S NI_MSG(S); end
-    if S<0 keyboard; end
+    if S<0 fprintf('M_SamplesAvailable: '); keyboard; end
     % MAYBE USEFUL TO KEEP ABSOLUTE TIMING : DAQmxGetReadTotalSampPerChanAcquired 
     SamplesAvailable = double(get(SamplesAvailablePtr,'Value'));
     SamplesToTake = SamplesAvailable;
@@ -88,7 +88,7 @@ switch MG.DAQ.Engine
           SamplesToTake = max([min([LastSample - FirstSample - MG.DAQ.SamplesTakenTotal,SamplesAvailable]),0]);
           M_Logger('\tIt: %d  :  Samples: Total: %d (Written: %d), Taken: %d, ThisLoop: %d, New: %d, ToTake: %d, TriggerState : %d  Last Trig: %d, Loop: %d\n',...
             MG.DAQ.Iteration,TotalSamplesAcquired,TotalSamplesWritten,MG.DAQ.SamplesTakenTotal,SamplesThisLoop,SamplesAvailable,SamplesToTake,TriggerState,FirstSample,MG.DAQ.CurrentBufferLoop);
-          if mod(TotalSamplesAcquired,1) keyboard; end
+          if mod(TotalSamplesAcquired,1) fprintf('M_SamplesAvailable: '); keyboard; end
         end
       end
     end
