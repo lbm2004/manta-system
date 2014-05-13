@@ -91,7 +91,8 @@ if  any(strcmp('DSP System Toolbox', {Toolboxes.Name})) % Check for Audio via DS
   MG.Audio.Interface = 'DSP';
   MG.Audio.SR = 44100;
   MG.AudioO = dsp.AudioPlayer('SampleRate',MG.Audio.SR,'QueueDuration',0.1);
-  
+  MG.Audio.RemainingData = [];
+  warning off all;
 elseif any(strcmp('Data Acquisition Toolbox', {Toolboxes.Name})) % Check for Audio via DAQ Toolbox
   if ispc && OSBitLength == 32
     tmp = daqhwinfo('winsound');

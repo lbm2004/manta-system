@@ -80,6 +80,7 @@ while MG.DAQ.Running
           % approximate "true" zero volts, reflecting how digitization
           % actually happens in the Blackrock headstage according to Mike S.
           if MG.DAQ.HSDIO.Simulation ValCorr = 0; else ValCorr = 19000; end
+          
           MG.Data.Raw(:,MG.DAQ.ChSeqInds{i}) = Data(:,MG.DAQ.HSDIO.ChannelMap{i})- ValCorr;
           MG.Data.Raw = bsxfun(@rdivide,MG.Data.Raw,MG.DAQ.int16factors{i}');
           

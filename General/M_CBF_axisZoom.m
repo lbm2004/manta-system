@@ -5,7 +5,7 @@ global MG
 SelType = get(gcf, 'SelectionType');
 MG.Disp.Main.Display = 1;
 switch SelType 
-  case {'normal','open'}; button = 1; % left
+  case {'normal'}; button = 1; % left
     % POP OUT PLOT TO INDIVIDUAL WINDOW
     cFIG = MG.Disp.Main.H+100*Index;
     figure(cFIG); clf;
@@ -24,11 +24,13 @@ switch SelType
     xlabel(MG.Disp.Main.AH.Spike(Index),'Time [Milliseconds]');
     
   case {'alt'}; button = 2; % right
-    % INDICATE SPIKE
-    MG.Disp.Main.HasSpikeBool(Index) = ~MG.Disp.Main.HasSpikeBool(Index);
-    if MG.Disp.Main.HasSpikeBool(Index)  Color = MG.Colors.SpikeBackground;
-    else Color = MG.Colors.Background;
+    if strcmp(FigName,'Main')
+      % INDICATE SPIKE
+      MG.Disp.Main.HasSpikeBool(Index) = ~MG.Disp.Main.HasSpikeBool(Index);
+      if MG.Disp.Main.HasSpikeBool(Index)  Color = MG.Colors.SpikeBackground;
+      else Color = MG.Colors.Background;
+      end
+      set([MG.Disp.Main.AH.Data(Index),MG.Disp.AH.Spike(Index)],'Color',Color)
+      set(MG.Disp.Main.H,'Name',[MG.Disp.FigureTitle,' (',n2s(sum(MG.Disp.Main.HasSpikeBool)),' Spikes)']);
     end
-    set([MG.Disp.Main.AH.Data(Index),MG.Disp.AH.Spike(Index)],'Color',Color)
-    set(MG.Disp.Main.H,'Name',[MG.Disp.FigureTitle,' (',n2s(sum(MG.Disp.Main.HasSpikeBool)),' Spikes)']);
 end

@@ -33,8 +33,14 @@ if isfield(MG.HW,'HSDIO')
   MG.DAQ.HSDIO.BytesPerLoop = MG.DAQ.HSDIO.SamplesPerLoopTotal * MG.DAQ.HSDIO.BytesPerSample; % Size of circular buffer on disk
 
   % INITIALIZE HSDIO REMAPPING (Applied in M_updateChannelMap / M_manageEngine)
-  LocalRemap=[8 16 7 15 6 14 5 13 4 12 3 11 2 10 1 9 [8 16 7 15 6 14 5 13 4 12 3 11 2 10 1 9]+16];
-  LocalRemap=[LocalRemap LocalRemap+32 LocalRemap+64];
+  % LocalRemap=[8 16 7 15 6 14 5 13 4 12 3 11 2 10 1 9 [8 16 7 15 6 14 5 13 4 12 3 11 2 10 1 9]+16]; REMAP MEASURED BY STEPHEN FOR 12 BIT BLACKROCK HEADSTAGE (96 Channels)
+  % LocalRemap = [1:32];
+  %LocalRemap=[LocalRemap LocalRemap+32 LocalRemap+64];
+  LocalRemapA = [16:-1:9,25:32,8:-1:1,17:24];  % REMAP REMEASURED IN PARIS FOR 16 BIT BLACKROCK HEADSTAGE
+  LocalRemapB = [41,57,42,58,43,59,44,60,45,61,46,62,47,63,48,64,33,49,34,50,35,51,36,52,37,53,38,54,39,55,40,56]; 
+  LocalRemapC = LocalRemapB(end:-1:1) + 32;
+  LocalRemap = [LocalRemapA,LocalRemapB,LocalRemapC];
+  
   BankRemap=[1:3:94 2:3:95 3:3:96];
   MG.DAQ.HSDIO.FullRemap=BankRemap(LocalRemap);
   
