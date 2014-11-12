@@ -12,11 +12,12 @@ switch Selection
     MG.HW.NIDAQ.ArraysByBoard(1) = struct('Name','plextrode_24_75','Pins',[1:24]);
     MG.HW.NIDAQ.Triggers = struct('Remote','PFI0','Local','PFI0');
     
-    % DIGITAL (HSDIO) BOARDS
+    % DIGITAL (HSDIO) BOARDS  14/10-YB; temporary change for single electrode rec.
     MG.HW.HSDIO.BoardIDs = {'D10'};
     MG.HW.HSDIO.BoardsBool = logical([1]);
     MG.HW.HSDIO.SystemsByBoard = struct('Name',{'Blackrock_96Ch_16bit'});
-    MG.HW.HSDIO.ArraysByBoard(1) = struct('Name','mea_1_96','Pins',[1:96]);
+%     MG.HW.HSDIO.ArraysByBoard(1) = struct('Name','mea_1_96','Pins',[1:96]);
+    MG.HW.HSDIO.ArraysByBoard(1) = struct('Name','single_clockwise','Pins',[1:32]);    
     MG.HW.HSDIO.Triggers = struct('Remote','XX','Local','XX');
     
     % SIMULATION MODE

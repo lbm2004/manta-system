@@ -457,7 +457,7 @@ switch lower(ArrayName)
     
   case 'single_clockwise';
     if ~exist('NElectrodes','var') NElectrodes = 4; end
-    PinsByElectrode = [1:NElectrodes];
+    PinsByElectrode = 1:5:16;%[1:NElectrodes];  %14/08-YB: update for pins on the 32-channel BR headstage
     % modified svd 2011-09-30 to allow flexible electrode count
     Channels = [1:NElectrodes]; Drive = 1;
     rowcount=floor(sqrt(NElectrodes));
