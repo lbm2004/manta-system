@@ -17,7 +17,8 @@ switch Selection
     MG.HW.HSDIO.BoardsBool = logical([1]);
     MG.HW.HSDIO.SystemsByBoard = struct('Name',{'Blackrock_96Ch_16bit'});
 %     MG.HW.HSDIO.ArraysByBoard(1) = struct('Name','mea_1_96','Pins',[1:96]);
-    MG.HW.HSDIO.ArraysByBoard(1) = struct('Name','single_clockwise','Pins',[1:32]);    
+%    MG.HW.HSDIO.ArraysByBoard(1) = struct('Name','single_clockwise','Pins',[1:32]);    
+    MG.HW.HSDIO.ArraysByBoard(1) = struct('Name','single_clockwise_bankx','Pins',[1:96]);    %modified by CB 10/04
     MG.HW.HSDIO.Triggers = struct('Remote','XX','Local','XX');
     
     % SIMULATION MODE

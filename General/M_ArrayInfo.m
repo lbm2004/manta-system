@@ -336,7 +336,7 @@ switch lower(ArrayName)
     Comment = '';
        
   case 'lma2d_1_32';
-    PinsByElectrode = [17:32,1:16];
+    PinsByElectrode = 65:96;%[17:32,1:16];
     Drive = 1; Type = '3d';
     Nx = 2; Ny = 1; Nz = 16; Dz = 0.1;
     for iE=1:length(PinsByElectrode)
@@ -446,7 +446,8 @@ switch lower(ArrayName)
     
   case 'plextrode_24_75';
     NChannels = 24;
-    PinsByElectrode = [1:NChannels]; Drive = 1; Type = '1d_depth';
+    PinsByElectrode = 65:88;%[1:NChannels];
+    Drive = 1; Type = '1d_depth';
     dZ = 0.075; ElecPos = [0:dZ:(NChannels-1)*dZ];
     Impedances = repmat(2,1,NChannels);
     WireDiameter = repmat(15,1,NChannels);
@@ -457,7 +458,49 @@ switch lower(ArrayName)
     
   case 'single_clockwise';
     if ~exist('NElectrodes','var') NElectrodes = 4; end
-    PinsByElectrode = 1:5:16;%[1:NElectrodes];  %14/08-YB: update for pins on the 32-channel BR headstage
+%     PinsByElectrode = 1:5:16;%[1:NElectrodes];  %14/08-YB: update for pins on the 32-channel BR headstage
+%     PinsByElectrode = 1:4;
+PinsByElectrode = 29:32;
+    % modified svd 2011-09-30 to allow flexible electrode count
+    Channels = [1:NElectrodes]; Drive = 1;
+    rowcount=floor(sqrt(NElectrodes));
+    colcount=ceil(NElectrodes./rowcount);
+    ElecPos=zeros(NElectrodes,2);
+    for ii=0:NElectrodes-1,
+      ElecPos(ii+1,1)=floor(ii./colcount);
+      ElecPos(ii+1,2)=mod(ii,colcount);
+    end
+    %ElecPos = [0,1 ; 1,1; 0,0 ; 1,0; 0,2; 1,2;0,3;1,3];
+    Impedances = repmat(NaN,1,length(PinsByElectrode));
+    Reference = {{'Electrode',[NaN,NaN,NaN]}};
+    Ground = {{'Wire',[NaN,NaN,NaN]}};
+    
+  case 'single_clockwise_bankx';
+    if ~exist('NElectrodes','var') NElectrodes = 4; end
+% PinsByElectrode = 33:36;
+PinsByElectrode = 1:4;
+% PinsByElectrode = 65:68;
+    % modified svd 2011-09-30 to allow flexible electrode count
+    Channels = [1:NElectrodes]; Drive = 1;
+    rowcount=floor(sqrt(NElectrodes));
+    colcount=ceil(NElectrodes./rowcount);
+    ElecPos=zeros(NElectrodes,2);
+    for ii=0:NElectrodes-1,
+      ElecPos(ii+1,1)=floor(ii./colcount);
+      ElecPos(ii+1,2)=mod(ii,colcount);
+    end
+    %ElecPos = [0,1 ; 1,1; 0,0 ; 1,0; 0,2; 1,2;0,3;1,3];
+    Impedances = repmat(NaN,1,length(PinsByElectrode));
+    Reference = {{'Electrode',[NaN,NaN,NaN]}};
+    Ground = {{'Wire',[NaN,NaN,NaN]}};    
+    
+        
+  case 'double_single_clockwise';
+    if ~exist('NElectrodes','var') NElectrodes = 6; end
+%     PinsByElectrode = 1:5:16;%[1:NElectrodes];  %14/08-YB: update for pins on the 32-channel BR headstage
+%     PinsByElectrode = 1:4;
+% PinsByElectrode = [29:32 33:36];
+PinsByElectrode = [65:68 69:70];
     % modified svd 2011-09-30 to allow flexible electrode count
     Channels = [1:NElectrodes]; Drive = 1;
     rowcount=floor(sqrt(NElectrodes));

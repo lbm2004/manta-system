@@ -55,7 +55,13 @@ for i=1:MG.HW.NBoards % LOOP over physically present boards
     MG.DAQ.BoardsBool(k) = 1;
     if ~isfield(MG.DAQ,'ChannelsBool') | length(MG.DAQ.ChannelsBool)<k | ...
         length(MG.DAQ.ChannelsBool{k}) ~= MG.DAQ.NChannelsPhys(k) 
-      MG.DAQ.ChannelsBool{k} = repmat(1,MG.DAQ.NChannelsPhys(k),1);
+      %MG.DAQ.ChannelsBool{k} = repmat(1,MG.DAQ.NChannelsPhys(k),1);
+      %added by CB 13/04
+      chan_tmp = zeros(MG.DAQ.NChannelsPhys(k),1);
+%       chan_tmp(65:68) = 1;
+      R = M_ArrayInfo(MG.HW.HSDIO.ArraysByBoard(1).Name);
+      chan_tmp(R.PinsByElectrode) = 1;
+      MG.DAQ.ChannelsBool{k} = chan_tmp;
     end
     MG.DAQ.ChannelsNum{k} = find(MG.DAQ.ChannelsBool{k});
     MG.DAQ.NChannels(k) = sum(MG.DAQ.ChannelsBool{k});

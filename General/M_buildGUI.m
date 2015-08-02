@@ -749,7 +749,7 @@ TT = 'Channels selected on the present Board';
 LF_addText(cFIG,DC2{1},'Selected',TT,[],[],MG.Colors.GUIBackground);
 cArray = M_ArrayInfo(MG.HW.ArraysByBoard(BoardPhysNum).Name);
 MG.GUI.ChannelSelector(BoardIndex) = LF_addEdit(cFIG,DC2{2},...
-  HF_list2colon(find(MG.DAQ.ChannelsBool{BoardIndex})),{@M_CBF_setSelected,BoardIndex,'Select'},[],TT);
+ HF_list2colon(find(MG.DAQ.ChannelsBool{BoardIndex})),{@M_CBF_setSelected,BoardIndex,'Select'},[],TT);
 
 DC = DC(2:end,:);
 for i=1:NChannel

@@ -43,7 +43,7 @@ switch MG.DAQ.Format
     
     MG.DAQ.PenetrationPath = [Names.Path,Sep,Names.Animal,Sep,Names.Penetration,Sep];
     MG.DAQ.TmpPath = [MG.DAQ.PenetrationPath,'tmp',Sep];
-    if ~exist(MG.DAQ.TmpPath) mkdir(MG.DAQ.TmpPath); end
+    if ~exist(MG.DAQ.TmpPath) disp(MG.DAQ.TmpPath); mkdir(MG.DAQ.TmpPath); end
     MG.DAQ.TmpFileBase = [MG.DAQ.PenetrationPath,'tmp',Sep,Names.Penetration,Names.Condition,'.001.1'];
 
   otherwise error('Filename parsing format not implemented!');
